@@ -1200,6 +1200,12 @@ begin
       v_pendente public.pacientes_pendentes%rowtype;
       v_template record;
     begin
+      -- Se nutri_id não veio nos metadados, cadastrar_paciente_direto
+      -- já inseriu diretamente em pacientes — nada a fazer aqui.
+      if v_nutri_id is null then
+        return new;
+      end if;
+
       select * into v_pendente from public.pacientes_pendentes
       where nutri_id = v_nutri_id and lower(email) = lower(new.email) limit 1;
 
@@ -1414,11 +1420,17 @@ returns jsonb
 language plpgsql security definer set search_path = public
 as $$
 declare
-  v_nutri_id uuid := auth.uid();
+  v_nutri_id uuid;
   v_user_id  uuid := gen_random_uuid();
-  -- Senha aleatória forte — paciente nunca a vê; usa "Esqueci minha senha" pra acessar
   v_senha    text := gen_random_uuid()::text || gen_random_uuid()::text;
 begin
+  -- Lê nutri_id via current_setting (mais robusto que auth.uid() em security definer)
+  v_nutri_id := nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub';
+
+  if v_nutri_id is null then
+    raise exception 'Sessão inválida. Faça login novamente.';
+  end if;
+
   if not exists (select 1 from public.nutris where id = v_nutri_id) then
     raise exception 'Apenas nutricionistas podem cadastrar pacientes.';
   end if;
@@ -1435,6 +1447,7 @@ begin
   end if;
 
   -- Cria usuário no Auth sem enviar email (email_confirmed_at = now() → já confirmado)
+  -- Não passa nutri_id nos metadados — a inserção em pacientes é feita explicitamente abaixo
   insert into auth.users (
     id, aud, role, email,
     encrypted_password, email_confirmed_at,
@@ -1444,12 +1457,7 @@ begin
     v_user_id, 'authenticated', 'authenticated', lower(p_email),
     crypt(v_senha, gen_salt('bf')), now(),
     '{"provider":"email","providers":["email"]}'::jsonb,
-    jsonb_build_object(
-      'role', 'paciente', 'nutri_id', v_nutri_id,
-      'nome', p_nome, 'nascimento', p_nascimento,
-      'objetivo', p_objetivo, 'tipo_plano', p_tipo_plano,
-      'modalidade', p_modalidade
-    ),
+    jsonb_build_object('role', 'paciente'),
     now(), now()
   );
 
@@ -1477,11 +1485,24 @@ begin
     end;
   end;
 
-  -- O trigger handle_new_user criou o row em public.pacientes.
-  -- Adiciona obs (campo que o trigger não cobre).
-  if p_obs is not null and p_obs <> '' then
-    update public.pacientes set obs = p_obs where id = v_user_id;
-  end if;
+  -- Insere diretamente em public.pacientes com nutri_id garantido.
+  -- ON CONFLICT DO UPDATE cobre o caso do trigger ter tentado inserir sem nutri_id.
+  insert into public.pacientes (
+    id, nutri_id, nome, email,
+    objetivo, tipo_plano, modalidade, nascimento, obs
+  ) values (
+    v_user_id, v_nutri_id, p_nome, lower(p_email),
+    p_objetivo, p_tipo_plano, p_modalidade, p_nascimento,
+    nullif(trim(coalesce(p_obs, '')), '')
+  )
+  on conflict (id) do update set
+    nutri_id   = excluded.nutri_id,
+    nome       = excluded.nome,
+    objetivo   = excluded.objetivo,
+    tipo_plano = excluded.tipo_plano,
+    modalidade = excluded.modalidade,
+    nascimento = excluded.nascimento,
+    obs        = excluded.obs;
 
   return jsonb_build_object('id', v_user_id, 'email', lower(p_email), 'nome', p_nome);
 end;
