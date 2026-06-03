@@ -3,8 +3,8 @@ import { supabase } from '../../lib/supabase.js';
 import { useSession } from '../../lib/session.jsx';
 import { dataBR } from '../../lib/utils.js';
 
-const OBJETIVOS = ['Emagrecimento', 'Hipertrofia', 'Reeducação alimentar', 'Saúde geral', 'Performance esportiva'];
-const PLANOS    = [
+const OBJETIVOS  = ['Emagrecimento', 'Hipertrofia', 'Reeducação alimentar', 'Saúde geral', 'Performance esportiva'];
+const PLANOS     = [
   { v: 'trimestral',     l: 'Trimestral' },
   { v: 'semestral',      l: 'Semestral' },
   { v: 'consultoria',    l: 'Consultoria' },
@@ -12,104 +12,79 @@ const PLANOS    = [
 ];
 const MODALIDADES = ['Presencial', 'Online', 'Híbrido'];
 
+const FORM_VAZIO = {
+  nome: '', email: '', nascimento: '',
+  objetivo: 'Emagrecimento', tipoPlano: 'trimestral',
+  modalidade: 'Online', obs: '',
+};
+
 export default function Cadastrar() {
   const { user } = useSession();
 
-  const [nome, setNome] = useState('');
-  const [email, setEmail] = useState('');
-  const [nascimento, setNascimento] = useState('');
-  const [objetivo, setObjetivo] = useState('Emagrecimento');
-  const [tipoPlano, setTipoPlano] = useState('trimestral');
-  const [modalidade, setModalidade] = useState('Online');
-  const [obs, setObs] = useState('');
+  const [form, setForm]       = useState(FORM_VAZIO);
+  const [busy, setBusy]       = useState(false);
+  const [erro, setErro]       = useState(null);
+  const [sucesso, setSucesso] = useState(null);   // { nome, email }
+  const [recentes, setRecentes] = useState([]);
 
-  const [busy, setBusy] = useState(false);
-  const [erro, setErro] = useState(null);
-  const [sucesso, setSucesso] = useState(null);   // pendente criado (objeto)
-  const [pendentes, setPendentes] = useState([]);
+  function set(campo) {
+    return v => setForm(f => ({ ...f, [campo]: v }));
+  }
 
-  async function carregarPendentes() {
+  async function carregarRecentes() {
     if (!user) return;
     const { data } = await supabase
-      .from('pacientes_pendentes')
-      .select('*')
+      .from('pacientes')
+      .select('id, nome, email, objetivo, tipo_plano, modalidade, created_at')
       .eq('nutri_id', user.id)
-      .neq('status', 'ativado')
-      .order('created_at', { ascending: false });
-    setPendentes(data ?? []);
+      .order('created_at', { ascending: false })
+      .limit(8);
+    setRecentes(data ?? []);
   }
-  useEffect(() => { carregarPendentes(); }, [user]);
+
+  useEffect(() => { carregarRecentes(); }, [user]);
 
   function resetForm() {
-    setNome(''); setEmail(''); setNascimento('');
-    setObjetivo('Emagrecimento'); setTipoPlano('trimestral');
-    setModalidade('Online'); setObs('');
+    setForm(FORM_VAZIO);
   }
 
   async function salvar(e) {
     e?.preventDefault?.();
     setErro(null); setSucesso(null);
-    if (!nome.trim()) return setErro('Informe o nome.');
-    if (!email.trim()) return setErro('Informe o email.');
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return setErro('Email inválido.');
+    if (!form.nome.trim())  return setErro('Informe o nome.');
+    if (!form.email.trim()) return setErro('Informe o email.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) return setErro('Email inválido.');
 
     setBusy(true);
-    const payload = {
-      nutri_id: user.id,
-      nome: nome.trim(),
-      email: email.trim().toLowerCase(),
-      nascimento: nascimento || null,
-      objetivo,
-      tipo_plano: tipoPlano,
-      modalidade,
-      obs: obs.trim() || null,
-      status: 'pendente',
-    };
-    // upsert (caso já exista pendente com mesmo email, atualiza dados)
-    const { data, error } = await supabase
-      .from('pacientes_pendentes')
-      .upsert(payload, { onConflict: 'nutri_id,email' })
-      .select('*')
-      .single();
+    const { data, error } = await supabase.rpc('cadastrar_paciente_direto', {
+      p_nome:       form.nome.trim(),
+      p_email:      form.email.trim().toLowerCase(),
+      p_nascimento: form.nascimento || null,
+      p_objetivo:   form.objetivo,
+      p_tipo_plano: form.tipoPlano,
+      p_modalidade: form.modalidade,
+      p_obs:        form.obs.trim() || null,
+    });
     setBusy(false);
-    if (error) return setErro('Erro ao cadastrar: ' + error.message);
 
-    setSucesso(data);
+    if (error) return setErro(error.message);
+
+    setSucesso({ nome: form.nome.trim(), email: form.email.trim().toLowerCase() });
     resetForm();
-    carregarPendentes();
+    carregarRecentes();
   }
 
-  function linkDe(pendente) {
-    return `${window.location.origin}/signup-paciente/${user.id}/${pendente.token}`;
-  }
-
-  function mensagemWhats(pendente) {
-    const link = linkDe(pendente);
-    const primeiroNome = pendente.nome.split(' ')[0];
+  function mensagemWhats(nome, email) {
+    const primeiroNome = nome.split(' ')[0];
     return encodeURIComponent(
-      `Oi ${primeiroNome}! 😊\n\nPreparei seu acesso ao app de acompanhamento nutricional. Clica no link abaixo, cria sua senha e já entra:\n\n${link}\n\nQualquer dúvida, me chama por aqui!`
+      `Oi ${primeiroNome}! 😊\n\nSeu perfil no app de acompanhamento nutricional já está pronto.\n\nPara criar sua senha e acessar, clique em "Entrar" no app e depois em "Esqueci minha senha". Use o email: ${email}\n\nQualquer dúvida, me chama!`
     );
-  }
-
-  async function copiarLink(pendente) {
-    try {
-      await navigator.clipboard.writeText(linkDe(pendente));
-      alert('Link copiado!');
-    } catch {
-      prompt('Copie o link abaixo:', linkDe(pendente));
-    }
-  }
-
-  async function excluirPendente(pendente) {
-    if (!window.confirm(`Excluir cadastro pendente de "${pendente.nome}"?`)) return;
-    await supabase.from('pacientes_pendentes').delete().eq('id', pendente.id);
-    carregarPendentes();
   }
 
   return (
     <>
       <div className="page-title">Cadastrar paciente</div>
-      <div className="page-sub">Preencha os dados da paciente — ela recebe um link pra criar só a senha</div>
+      <div className="page-sub">Preencha os dados — a conta é criada na hora. A paciente cria a senha quando quiser acessar o app.</div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 16 }}>
 
@@ -117,25 +92,24 @@ export default function Cadastrar() {
         <form onSubmit={salvar} className="card" style={{ padding: 18 }}>
           <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 12 }}>Novo cadastro</div>
 
-          <Field label="Nome completo *" value={nome} onChange={setNome} required autoFocus />
+          <Field label="Nome completo *" value={form.nome} onChange={set('nome')} required autoFocus />
           <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 10 }}>
-            <Field label="Email *" type="email" value={email} onChange={setEmail} required />
-            <Field label="Data de nascimento" type="date" value={nascimento} onChange={setNascimento} />
+            <Field label="Email *" type="email" value={form.email} onChange={set('email')} required />
+            <Field label="Data de nascimento" type="date" value={form.nascimento} onChange={set('nascimento')} />
           </div>
 
-          <SelectField label="Objetivo" value={objetivo} onChange={setObjetivo} options={OBJETIVOS} />
+          <SelectField label="Objetivo" value={form.objetivo} onChange={set('objetivo')} options={OBJETIVOS} />
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <SelectField label="Tipo de plano" value={tipoPlano} onChange={setTipoPlano} options={PLANOS} />
-            <SelectField label="Modalidade" value={modalidade} onChange={setModalidade} options={MODALIDADES} />
+            <SelectField label="Tipo de plano" value={form.tipoPlano} onChange={set('tipoPlano')} options={PLANOS} />
+            <SelectField label="Modalidade" value={form.modalidade} onChange={set('modalidade')} options={MODALIDADES} />
           </div>
 
           <label style={{ display: 'block', marginBottom: 12 }}>
-            <span style={{
-              display: 'block', fontSize: 11, color: 'var(--text3)',
-              marginBottom: 5, fontWeight: 500,
-            }}>Observação (opcional)</span>
-            <textarea value={obs} onChange={e => setObs(e.target.value)} rows={2}
-              placeholder="Ex: indicada pela Camila"
+            <span style={{ display: 'block', fontSize: 11, color: 'var(--text3)', marginBottom: 5, fontWeight: 500 }}>
+              Observação (opcional)
+            </span>
+            <textarea value={form.obs} onChange={e => set('obs')(e.target.value)} rows={2}
+              placeholder="Ex: indicada pela Camila, pós-operatório..."
               style={{
                 width: '100%', padding: '10px 12px', fontSize: 13,
                 border: '0.5px solid var(--border)', borderRadius: 8,
@@ -147,100 +121,59 @@ export default function Cadastrar() {
           {erro && (
             <div style={{
               fontSize: 12, padding: '8px 12px', borderRadius: 6, marginBottom: 10,
-              background: 'var(--red-bg)', color: 'var(--red)',
+              background: 'var(--red-soft)', color: 'var(--red)',
             }}>{erro}</div>
           )}
 
           <button type="submit" className="btn" disabled={busy} style={{ width: '100%', justifyContent: 'center' }}>
             <i className="ti ti-user-plus" aria-hidden="true"></i>
-            {busy ? 'Cadastrando...' : 'Cadastrar e gerar link'}
+            {busy ? 'Cadastrando...' : 'Cadastrar paciente'}
           </button>
         </form>
 
-        {/* ─── Painel direito: sucesso recente OU instruções ─── */}
+        {/* ─── Painel direito ─── */}
         <div>
           {sucesso ? (
-            <CartaoSucesso pendente={sucesso}
-              link={linkDe(sucesso)}
-              mensagemWhats={mensagemWhats(sucesso)}
-              onCopiar={() => copiarLink(sucesso)}
-              onDispensar={() => setSucesso(null)} />
+            <CartaoSucesso
+              nome={sucesso.nome}
+              email={sucesso.email}
+              mensagemWhats={mensagemWhats(sucesso.nome, sucesso.email)}
+              onDispensar={() => setSucesso(null)}
+            />
           ) : (
             <div className="al-b" style={{ marginBottom: 12 }}>
               <i className="ti ti-info-circle" style={{ fontSize: 16, color: 'var(--blue)', marginTop: 1 }} aria-hidden="true"></i>
               <div>
                 <div className="al-t" style={{ color: 'var(--blue)' }}>Como funciona</div>
                 <div className="al-d">
-                  Você preenche os dados administrativos (objetivo, plano, modalidade).
-                  O sistema gera um link único, você envia pra paciente, e ela só precisa criar a senha.
-                  Os dados já chegam pré-preenchidos pra ela — sem confusão.
+                  Você preenche todos os dados e a conta da paciente é criada imediatamente.
+                  Quando ela quiser acessar o app, basta clicar em "Esqueci minha senha" na tela de login
+                  e criar a própria senha — sem precisar de convite.
                 </div>
               </div>
             </div>
           )}
 
-          {/* ─── Lista de pendentes ─── */}
-          <div className="section-label" style={{ marginTop: 4 }}>
-            Cadastros pendentes ({pendentes.length})
-          </div>
-          {pendentes.length === 0 ? (
-            <div style={{
-              padding: '14px 16px', fontSize: 12, color: 'var(--text3)',
-              background: 'var(--bg2)', borderRadius: 8,
-            }}>
-              Nenhuma paciente aguardando — todas que você cadastrou já criaram conta.
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {pendentes.map(p => (
-                <div key={p.id} className="card" style={{ padding: 12 }}>
-                  <div style={{ display: 'flex', alignItems: 'start', gap: 10 }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 500 }}>{p.nome}</div>
-                      <div style={{ fontSize: 11, color: 'var(--text3)' }}>
-                        {p.email} · cadastrada em {dataBR(p.created_at)}
-                      </div>
-                      <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 2 }}>
-                        {p.objetivo} · {p.tipo_plano} · {p.modalidade}
-                      </div>
+          {/* ─── Pacientes recentemente cadastradas ─── */}
+          {recentes.length > 0 && (
+            <>
+              <div className="section-label" style={{ marginTop: 4 }}>
+                Cadastradas recentemente
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 6 }}>
+                {recentes.map(p => (
+                  <div key={p.id} className="card" style={{ padding: '10px 12px' }}>
+                    <div style={{ fontSize: 13, fontWeight: 500 }}>{p.nome}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text3)' }}>
+                      {p.email} · cadastrada em {dataBR(p.created_at)}
                     </div>
-                    <span style={{
-                      fontSize: 10, padding: '2px 8px', borderRadius: 999,
-                      background: p.status === 'enviado' ? 'var(--green-bg)' : 'var(--orange-bg)',
-                      color:      p.status === 'enviado' ? 'var(--green)'    : 'var(--orange)',
-                      fontWeight: 500,
-                    }}>
-                      {p.status === 'enviado' ? '✓ Link enviado' : 'Aguardando envio'}
-                    </span>
+                    <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 2 }}>
+                      {[p.objetivo, p.tipo_plano, p.modalidade].filter(Boolean).join(' · ')}
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
-                    <button className="btn-outline" onClick={() => copiarLink(p)}
-                      style={{ fontSize: 11, padding: '4px 10px' }}>
-                      <i className="ti ti-copy" aria-hidden="true"></i> Copiar link
-                    </button>
-                    <a className="btn-outline"
-                      href={`https://wa.me/?text=${mensagemWhats(p)}`}
-                      target="_blank" rel="noreferrer"
-                      onClick={async () => {
-                        await supabase.from('pacientes_pendentes')
-                          .update({ status: 'enviado' }).eq('id', p.id);
-                        carregarPendentes();
-                      }}
-                      style={{ fontSize: 11, padding: '4px 10px', textDecoration: 'none' }}>
-                      <i className="ti ti-brand-whatsapp" aria-hidden="true"></i> WhatsApp
-                    </a>
-                    <button onClick={() => excluirPendente(p)}
-                      style={{
-                        background: 'none', border: '0.5px solid var(--red)',
-                        borderRadius: 6, padding: '4px 8px', cursor: 'pointer',
-                        color: 'var(--red)', marginLeft: 'auto',
-                      }}>
-                      <i className="ti ti-trash" aria-hidden="true"></i>
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -249,11 +182,11 @@ export default function Cadastrar() {
 }
 
 
-function CartaoSucesso({ pendente, link, mensagemWhats, onCopiar, onDispensar }) {
+function CartaoSucesso({ nome, email, mensagemWhats, onDispensar }) {
   return (
     <div style={{
       padding: 16, borderRadius: 12,
-      background: 'var(--green-bg, #ecfdf5)',
+      background: 'var(--green-soft, #ecfdf5)',
       border: '0.5px solid var(--green, #10b981)',
       borderLeft: '3px solid var(--green, #10b981)',
       marginBottom: 14,
@@ -261,37 +194,37 @@ function CartaoSucesso({ pendente, link, mensagemWhats, onCopiar, onDispensar })
       <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between', gap: 8 }}>
         <div>
           <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--green, #10b981)', marginBottom: 4 }}>
-            ✓ {pendente.nome.split(' ')[0]} cadastrada
+            ✓ {nome.split(' ')[0]} cadastrada!
           </div>
-          <div style={{ fontSize: 12, color: 'var(--text2)' }}>
-            Agora envie o link abaixo. Ela só vai precisar criar a senha.
+          <div style={{ fontSize: 12, color: 'var(--text2)', lineHeight: 1.5 }}>
+            Conta criada. Para acessar o app, ela usa <strong>"Esqueci minha senha"</strong> na tela de login com o email:
           </div>
         </div>
         <button onClick={onDispensar}
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            fontSize: 14, color: 'var(--text3)', padding: 0,
-          }}>
+          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: 'var(--text3)', padding: 0 }}>
           <i className="ti ti-x" aria-hidden="true"></i>
         </button>
       </div>
+
       <div style={{
-        marginTop: 10, padding: '8px 10px',
+        margin: '10px 0', padding: '8px 10px',
         background: 'var(--white)', borderRadius: 6,
-        fontSize: 11, fontFamily: 'monospace', color: 'var(--ink-soft)',
+        fontSize: 12, fontFamily: 'monospace', color: 'var(--ink-soft)',
         wordBreak: 'break-all',
-      }}>{link}</div>
-      <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
-        <button className="btn" onClick={onCopiar} style={{ flex: 1, justifyContent: 'center', fontSize: 12 }}>
-          <i className="ti ti-copy" aria-hidden="true"></i> Copiar link
-        </button>
-        <a className="btn-outline"
-          href={`https://wa.me/?text=${mensagemWhats}`}
-          target="_blank" rel="noreferrer"
-          style={{ flex: 1, justifyContent: 'center', fontSize: 12, textDecoration: 'none' }}>
-          <i className="ti ti-brand-whatsapp" aria-hidden="true"></i> WhatsApp
-        </a>
-      </div>
+      }}>{email}</div>
+
+      <a
+        href={`https://wa.me/?text=${mensagemWhats}`}
+        target="_blank" rel="noreferrer"
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+          padding: '8px 14px', borderRadius: 8, textDecoration: 'none',
+          background: '#25d366', color: '#fff',
+          fontSize: 12, fontWeight: 500, fontFamily: 'var(--font-sans)',
+        }}>
+        <i className="ti ti-brand-whatsapp" aria-hidden="true"></i>
+        Avisar pelo WhatsApp
+      </a>
     </div>
   );
 }
@@ -300,10 +233,9 @@ function CartaoSucesso({ pendente, link, mensagemWhats, onCopiar, onDispensar })
 function Field({ label, value, onChange, type = 'text', required, autoFocus }) {
   return (
     <label style={{ display: 'block', marginBottom: 12 }}>
-      <span style={{
-        display: 'block', fontSize: 11, color: 'var(--text3)',
-        marginBottom: 5, fontWeight: 500,
-      }}>{label}</span>
+      <span style={{ display: 'block', fontSize: 11, color: 'var(--text3)', marginBottom: 5, fontWeight: 500 }}>
+        {label}
+      </span>
       <input
         type={type} value={value}
         onChange={e => onChange(e.target.value)}
@@ -323,10 +255,9 @@ function SelectField({ label, value, onChange, options }) {
   const opts = options.map(o => typeof o === 'string' ? { v: o, l: o } : o);
   return (
     <label style={{ display: 'block', marginBottom: 12 }}>
-      <span style={{
-        display: 'block', fontSize: 11, color: 'var(--text3)',
-        marginBottom: 5, fontWeight: 500,
-      }}>{label}</span>
+      <span style={{ display: 'block', fontSize: 11, color: 'var(--text3)', marginBottom: 5, fontWeight: 500 }}>
+        {label}
+      </span>
       <select value={value} onChange={e => onChange(e.target.value)}
         style={{
           width: '100%', padding: '10px 12px', fontSize: 13,

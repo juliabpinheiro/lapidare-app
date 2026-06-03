@@ -967,6 +967,7 @@ end$$;
 alter table public.pacientes        add column if not exists nascimento       date;
 alter table public.pacientes        add column if not exists termo_aceito_em  timestamptz;
 alter table public.pacientes        add column if not exists termo_versao     text;
+alter table public.pacientes        add column if not exists obs              text;
 
 alter table public.checkin_templates add column if not exists tipo text not null default 'recorrente';
 alter table public.checkin_templates drop constraint if exists checkin_templates_tipo_check;
@@ -1392,6 +1393,101 @@ as $$
   limit 1;
 $$;
 grant execute on function public.buscar_marca_principal() to anon, authenticated;
+
+
+-- =============================================================
+-- 11.Y Cadastro direto de paciente (sem convite / sem senha imediata)
+-- =============================================================
+-- A nutri preenche todos os dados e salva. A conta é criada na hora.
+-- A paciente usa "Esqueci minha senha" quando quiser acessar o app.
+
+create or replace function public.cadastrar_paciente_direto(
+  p_nome       text,
+  p_email      text,
+  p_nascimento date    default null,
+  p_objetivo   text    default null,
+  p_tipo_plano text    default null,
+  p_modalidade text    default null,
+  p_obs        text    default null
+)
+returns jsonb
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_nutri_id uuid := auth.uid();
+  v_user_id  uuid := gen_random_uuid();
+  -- Senha aleatória forte — paciente nunca a vê; usa "Esqueci minha senha" pra acessar
+  v_senha    text := gen_random_uuid()::text || gen_random_uuid()::text;
+begin
+  if not exists (select 1 from public.nutris where id = v_nutri_id) then
+    raise exception 'Apenas nutricionistas podem cadastrar pacientes.';
+  end if;
+
+  if exists (
+    select 1 from public.pacientes
+    where nutri_id = v_nutri_id and lower(email) = lower(p_email)
+  ) then
+    raise exception 'Já existe uma paciente cadastrada com este email.';
+  end if;
+
+  if exists (select 1 from auth.users where email = lower(p_email)) then
+    raise exception 'Este email já possui uma conta no sistema.';
+  end if;
+
+  -- Cria usuário no Auth sem enviar email (email_confirmed_at = now() → já confirmado)
+  insert into auth.users (
+    id, aud, role, email,
+    encrypted_password, email_confirmed_at,
+    raw_app_meta_data, raw_user_meta_data,
+    created_at, updated_at
+  ) values (
+    v_user_id, 'authenticated', 'authenticated', lower(p_email),
+    crypt(v_senha, gen_salt('bf')), now(),
+    '{"provider":"email","providers":["email"]}'::jsonb,
+    jsonb_build_object(
+      'role', 'paciente', 'nutri_id', v_nutri_id,
+      'nome', p_nome, 'nascimento', p_nascimento,
+      'objetivo', p_objetivo, 'tipo_plano', p_tipo_plano,
+      'modalidade', p_modalidade
+    ),
+    now(), now()
+  );
+
+  -- Identidade de email — necessário pro fluxo "Esqueci minha senha"
+  begin
+    insert into auth.identities (
+      provider_id, user_id, identity_data, provider,
+      last_sign_in_at, created_at, updated_at
+    ) values (
+      v_user_id::text, v_user_id,
+      jsonb_build_object('sub', v_user_id::text, 'email', lower(p_email)),
+      'email', now(), now(), now()
+    );
+  exception when others then
+    begin
+      insert into auth.identities (
+        id, user_id, identity_data, provider,
+        last_sign_in_at, created_at, updated_at
+      ) values (
+        v_user_id::text, v_user_id,
+        jsonb_build_object('sub', v_user_id::text, 'email', lower(p_email)),
+        'email', now(), now(), now()
+      );
+    exception when others then null;
+    end;
+  end;
+
+  -- O trigger handle_new_user criou o row em public.pacientes.
+  -- Adiciona obs (campo que o trigger não cobre).
+  if p_obs is not null and p_obs <> '' then
+    update public.pacientes set obs = p_obs where id = v_user_id;
+  end if;
+
+  return jsonb_build_object('id', v_user_id, 'email', lower(p_email), 'nome', p_nome);
+end;
+$$;
+grant execute on function public.cadastrar_paciente_direto(text, text, date, text, text, text, text)
+  to authenticated;
 
 
 -- =============================================================
