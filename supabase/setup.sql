@@ -1298,6 +1298,9 @@ alter table public.nutris add column if not exists mensagem_termo  text;
 -- por padrão; aqui a nutri pode forçar uma cor específica se quiser controle total)
 alter table public.nutris add column if not exists cor_texto_sidebar text;
 
+-- Cor do texto principal em todo o app (--ink); padrão preto
+alter table public.nutris add column if not exists cor_texto text default '#000000';
+
 -- Foto de perfil da nutri (aparece pras pacientes no chat, feed, banners)
 alter table public.nutris add column if not exists foto_url text;
 
@@ -1341,7 +1344,7 @@ drop function if exists public.buscar_personalizacao_nutri(uuid);
 create or replace function public.buscar_personalizacao_nutri(p_nutri_id uuid)
 returns table(
   marca_nome text, marca_subtitulo text, logo_url text,
-  cor_primaria text, cor_secundaria text, tipografia text,
+  cor_primaria text, cor_secundaria text, cor_texto text, tipografia text,
   mensagem_login text, mensagem_termo text, cor_texto_sidebar text,
   nutri_nome text, nutri_foto_url text
 )
@@ -1352,6 +1355,7 @@ as $$
     marca_subtitulo, logo_url,
     coalesce(cor_primaria,   '#a08456'),
     coalesce(cor_secundaria, '#c9a96e'),
+    coalesce(cor_texto,      '#000000'),
     coalesce(tipografia,     'classica'),
     mensagem_login, mensagem_termo, cor_texto_sidebar,
     coalesce(nome, 'Sua nutri') as nutri_nome,
@@ -1370,7 +1374,7 @@ drop function if exists public.buscar_marca_principal();
 create or replace function public.buscar_marca_principal()
 returns table(
   marca_nome text, marca_subtitulo text, logo_url text,
-  cor_primaria text, cor_secundaria text, tipografia text,
+  cor_primaria text, cor_secundaria text, cor_texto text, tipografia text,
   mensagem_login text, cor_texto_sidebar text
 )
 language sql security definer set search_path = public
@@ -1380,6 +1384,7 @@ as $$
     marca_subtitulo, logo_url,
     coalesce(cor_primaria,   '#a08456'),
     coalesce(cor_secundaria, '#c9a96e'),
+    coalesce(cor_texto,      '#000000'),
     coalesce(tipografia,     'classica'),
     mensagem_login, cor_texto_sidebar
   from public.nutris

@@ -20,6 +20,7 @@ const DEFAULT_TEMA = {
   logo_url: null,
   cor_primaria: '#a08456',
   cor_secundaria: '#c9a96e',
+  cor_texto: '#000000',     // cor do texto principal (--ink)
   tipografia: 'classica',
   mensagem_login: null,
   mensagem_termo: null,
@@ -47,6 +48,7 @@ export function ThemeProvider({ children }) {
           logo_url:          profile.logo_url        ?? null,
           cor_primaria:      profile.cor_primaria    ?? DEFAULT_TEMA.cor_primaria,
           cor_secundaria:    profile.cor_secundaria  ?? DEFAULT_TEMA.cor_secundaria,
+          cor_texto:         profile.cor_texto       ?? '#000000',
           tipografia:        profile.tipografia      ?? 'classica',
           mensagem_login:    profile.mensagem_login  ?? null,
           mensagem_termo:    profile.mensagem_termo  ?? null,
@@ -98,9 +100,10 @@ export function ThemeProvider({ children }) {
     // Substitui pela primária pra pintar SIDEBAR + BOTÕES + CARDS DARK.
     r.style.setProperty('--dark', primaria);
 
-    // --ink (texto principal escuro) → usa a primária pra dar identidade
-    // sem afetar legibilidade (cor escura por natureza).
-    r.style.setProperty('--ink', primaria);
+    // --ink (texto principal) → controlado pela nutri via cor_texto
+    const corTexto = tema.cor_texto ?? '#000000';
+    r.style.setProperty('--ink',      corTexto);
+    r.style.setProperty('--ink-soft', mistura(corTexto, '#ffffff', 0.25));
 
     // ─── Variantes do --dark usadas dentro da SIDEBAR ───
     // Threshold 0.45: pra cores medium-light (tan, rose gold), usa texto PRETO.
@@ -146,7 +149,7 @@ export function ThemeProvider({ children }) {
     r.style.setProperty('--bg-deep', mistura(primaria, '#faf7f2', 0.86));
 
     r.dataset.tipografia = tema.tipografia ?? 'classica';
-  }, [tema.cor_primaria, tema.cor_secundaria, tema.tipografia, tema.cor_texto_sidebar]);
+  }, [tema.cor_primaria, tema.cor_secundaria, tema.cor_texto, tema.tipografia, tema.cor_texto_sidebar]);
 
   return (
     <ThemeContext.Provider value={tema}>

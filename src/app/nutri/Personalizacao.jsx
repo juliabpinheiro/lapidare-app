@@ -24,6 +24,7 @@ export default function Personalizacao() {
     marca_nome: 'Lapidare',
     marca_subtitulo: '',
     logo_url: null,
+    cor_texto: '#000000',   // cor do texto principal (--ink)
     cor_texto_sidebar: '',  // vazio = auto-calcula contraste
     nome: '',               // nome de exibição da nutri (aparece pras pacientes)
     foto_url: null,         // foto de perfil da nutri
@@ -42,6 +43,7 @@ export default function Personalizacao() {
       marca_nome: profile.marca_nome ?? 'Lapidare',
       marca_subtitulo: profile.marca_subtitulo ?? '',
       logo_url: profile.logo_url ?? null,
+      cor_texto: profile.cor_texto ?? '#000000',
       cor_texto_sidebar: profile.cor_texto_sidebar ?? '',
       nome: profile.nome ?? '',
       foto_url: profile.foto_url ?? null,
@@ -59,6 +61,7 @@ export default function Personalizacao() {
       marca_nome: form.marca_nome.trim(),
       marca_subtitulo: form.marca_subtitulo.trim() || null,
       logo_url: form.logo_url,
+      cor_texto: form.cor_texto || '#000000',
       cor_texto_sidebar: form.cor_texto_sidebar?.trim() || null,
       nome: form.nome?.trim() || profile?.nome || 'Sua nutri',
       foto_url: form.foto_url,
@@ -151,11 +154,12 @@ export default function Personalizacao() {
     r.style.setProperty('--amber',     form.cor_secundaria);
     r.style.setProperty('--gold',      form.cor_secundaria);
     r.style.setProperty('--dark',      form.cor_primaria);
+    r.style.setProperty('--ink',       form.cor_texto || '#000000');
     if (form.cor_texto_sidebar) {
       r.style.setProperty('--dark-text', form.cor_texto_sidebar);
     }
     r.dataset.tipografia = form.tipografia;
-  }, [profile, form.cor_primaria, form.cor_secundaria, form.tipografia, form.cor_texto_sidebar]);
+  }, [profile, form.cor_primaria, form.cor_secundaria, form.cor_texto, form.tipografia, form.cor_texto_sidebar]);
 
   return (
     <>
@@ -325,6 +329,35 @@ export default function Personalizacao() {
                     onChange={e => setForm(f => ({ ...f, cor_secundaria: e.target.value }))}
                     style={{ flex: 1, fontFamily: 'monospace', fontSize: 13 }} />
                 </div>
+              </div>
+            </div>
+
+            {/* Cor do texto principal */}
+            <div style={{ marginTop: 16, padding: 14, background: 'var(--bg2)', borderRadius: 10 }}>
+              <label className="form-lbl" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span>Cor do texto</span>
+                {form.cor_texto !== '#000000' && (
+                  <button type="button"
+                    onClick={() => setForm(f => ({ ...f, cor_texto: '#000000' }))}
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      color: 'var(--gold-deep)', fontSize: 11, fontWeight: 500,
+                    }}>
+                    ↻ Voltar pro preto
+                  </button>
+                )}
+              </label>
+              <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+                <input type="color" value={form.cor_texto || '#000000'}
+                  onChange={e => setForm(f => ({ ...f, cor_texto: e.target.value }))}
+                  style={{ width: 50, height: 36, padding: 0, border: '0.5px solid var(--border)', borderRadius: 6, cursor: 'pointer' }} />
+                <input value={form.cor_texto}
+                  onChange={e => setForm(f => ({ ...f, cor_texto: e.target.value }))}
+                  placeholder="#000000"
+                  style={{ flex: 1, fontFamily: 'monospace', fontSize: 13 }} />
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 6, lineHeight: 1.5 }}>
+                Cor dos títulos, parágrafos e labels em todo o app. Padrão: preto (#000000).
               </div>
             </div>
 
