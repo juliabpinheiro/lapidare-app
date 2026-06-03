@@ -213,6 +213,7 @@ export default function PacientePerfil() {
         {[
           { id: 'evolucao',    label: 'Evolução',     icon: 'chart-line' },
           { id: 'anamnese',    label: 'Anamnese',     icon: 'clipboard-text' },
+          { id: 'calculo',     label: 'Cálculo',      icon: 'calculator' },
           { id: 'followup',    label: 'Follow-up',    icon: 'notebook' },
           { id: 'plano',       label: 'Plano',        icon: 'salad' },
           { id: 'compras',     label: 'Compras',      icon: 'shopping-cart' },
@@ -245,6 +246,7 @@ export default function PacientePerfil() {
 
       {tab === 'evolucao' && <Evolucao pacienteId={paciente.id} paciente={paciente} nutriId={user.id} />}
       {tab === 'anamnese' && <Anamnese pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
+      {tab === 'calculo'  && <CalculoEnergetico paciente={paciente} />}
       {tab === 'followup' && <FollowUp pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'suplementacao' && <Suplementacao pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'habitos' && <Habitos pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
@@ -1034,6 +1036,274 @@ function EnviarPrescricao({ pacienteId, nutriId }) {
         </div>
       )}
     </>
+  );
+}
+
+/* ============================================================
+   CÁLCULO DE GASTO ENERGÉTICO (só nutri)
+   ============================================================ */
+const FATORES_ATIVIDADE = [
+  { v: '1.2',   l: 'Sedentária' },
+  { v: '1.285', l: 'Entre sedentária e levemente ativa' },
+  { v: '1.37',  l: 'Levemente ativa' },
+  { v: '1.46',  l: 'Entre levemente e moderadamente ativa' },
+  { v: '1.55',  l: 'Moderadamente ativa' },
+  { v: '1.635', l: 'Entre moderada e muito ativa' },
+  { v: '1.72',  l: 'Muito ativa' },
+  { v: '1.81',  l: 'Entre muito ativa e extremamente ativa' },
+  { v: '1.9',   l: 'Extremamente ativa' },
+];
+
+function CalculoEnergetico({ paciente }) {
+  const [sexo, setSexo]         = useState('feminino');
+  const [peso, setPeso]         = useState('');
+  const [altura, setAltura]     = useState('');
+  const [idade, setIdade]       = useState('');
+  const [pgc, setPgc]           = useState('');
+  const [mmKg, setMmKg]         = useState('');
+  const [fator, setFator]       = useState('1.55');
+  const [carregou, setCarregou] = useState(false);
+
+  // Preenche com dados da avaliação mais recente + nascimento
+  useEffect(() => {
+    async function carregar() {
+      const { data } = await supabase
+        .from('peso_registros')
+        .select('kg, altura_cm, pgc, mm_kg')
+        .eq('paciente_id', paciente.id)
+        .order('data', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (data?.kg)      setPeso(String(data.kg));
+      if (data?.altura_cm) setAltura(String(data.altura_cm));
+      if (data?.pgc)     setPgc(String(data.pgc));
+      if (data?.mm_kg)   setMmKg(String(data.mm_kg));
+      setCarregou(true);
+    }
+
+    // Calcula idade a partir do nascimento
+    if (paciente.nascimento) {
+      const n = new Date(paciente.nascimento + 'T12:00:00');
+      const h = new Date();
+      let a = h.getFullYear() - n.getFullYear();
+      const m = h.getMonth() - n.getMonth();
+      if (m < 0 || (m === 0 && h.getDate() < n.getDate())) a--;
+      setIdade(String(a));
+    }
+
+    carregar();
+  }, [paciente.id, paciente.nascimento]);
+
+  function num(v) {
+    if (v === '' || v == null) return null;
+    const n = parseFloat(String(v).replace(',', '.'));
+    return Number.isNaN(n) ? null : n;
+  }
+
+  const p  = num(peso);
+  const al = num(altura);
+  const id = num(idade);
+  const g  = num(pgc);
+  const mm = num(mmKg);
+  const fa = parseFloat(fator);
+
+  // Mifflin-St Jeor
+  const tmb_mifflin = (p && al && id)
+    ? (sexo === 'feminino'
+        ? (10 * p) + (6.25 * al) - (5 * id) - 161
+        : (10 * p) + (6.25 * al) - (5 * id) + 5)
+    : null;
+
+  // Harris-Benedict
+  const tmb_harris = (p && al && id)
+    ? (sexo === 'feminino'
+        ? 655.1 + (9.563 * p) + (1.850 * al) - (4.676 * id)
+        : 66.5  + (13.75 * p) + (5.003 * al) - (6.775 * id))
+    : null;
+
+  // Katch-McArdle — usa massa magra direta; se não tiver, calcula do % gordura
+  const massaMagraEfetiva = mm ?? (p && g ? p * (1 - g / 100) : null);
+  const tmb_katch = massaMagraEfetiva ? 370 + (21.6 * massaMagraEfetiva) : null;
+
+  return (
+    <>
+      {/* Parâmetros */}
+      <div className="card" style={{ padding: 18, marginBottom: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+          <div className="card-title" style={{ marginBottom: 0 }}>Parâmetros</div>
+          {carregou && (
+            <div style={{ fontSize: 11, color: 'var(--text3)', fontStyle: 'italic' }}>
+              Preenchido com a avaliação mais recente
+            </div>
+          )}
+        </div>
+
+        {/* Sexo */}
+        <div style={{ marginBottom: 14 }}>
+          <label className="field-label">Sexo biológico</label>
+          <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+            {[['feminino', 'Feminino'], ['masculino', 'Masculino']].map(([val, lbl]) => (
+              <button key={val} onClick={() => setSexo(val)} style={{
+                padding: '7px 20px', borderRadius: 8, cursor: 'pointer',
+                fontFamily: 'var(--font-sans)', fontSize: 13,
+                border: `1.5px solid ${sexo === val ? 'var(--gold-deep)' : 'var(--border)'}`,
+                background: sexo === val ? 'var(--amber-bg, var(--bg2))' : 'var(--white)',
+                color: sexo === val ? 'var(--gold-deep)' : 'var(--text2)',
+                fontWeight: sexo === val ? 600 : 400,
+              }}>{lbl}</button>
+            ))}
+          </div>
+        </div>
+
+        {/* Peso / Altura / Idade */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 12 }}>
+          <div>
+            <label className="field-label">Peso (kg)</label>
+            <input inputMode="decimal" value={peso}
+              onChange={e => setPeso(e.target.value)} placeholder="ex: 65,5" />
+          </div>
+          <div>
+            <label className="field-label">Altura (cm)</label>
+            <input inputMode="decimal" value={altura}
+              onChange={e => setAltura(e.target.value)} placeholder="ex: 162" />
+          </div>
+          <div>
+            <label className="field-label">Idade (anos)</label>
+            <input inputMode="numeric" value={idade}
+              onChange={e => setIdade(e.target.value)} placeholder="ex: 32" />
+          </div>
+        </div>
+
+        {/* % Gordura / Massa magra — para Katch-McArdle */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+          <div>
+            <label className="field-label">
+              % Gordura corporal
+              <span style={{ color: 'var(--text3)', fontWeight: 400, marginLeft: 4 }}>
+                (Katch-McArdle)
+              </span>
+            </label>
+            <input inputMode="decimal" value={pgc}
+              onChange={e => setPgc(e.target.value)} placeholder="ex: 28,5" />
+          </div>
+          <div>
+            <label className="field-label">
+              Massa magra (kg)
+              <span style={{ color: 'var(--text3)', fontWeight: 400, marginLeft: 4 }}>
+                (ou calcula do %)
+              </span>
+            </label>
+            <input inputMode="decimal" value={mmKg}
+              onChange={e => setMmKg(e.target.value)} placeholder="ex: 48,2" />
+            {!mmKg && massaMagraEfetiva && (
+              <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 3 }}>
+                Calculada: {massaMagraEfetiva.toFixed(1)} kg
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Fator de atividade */}
+        <div>
+          <label className="field-label">Fator de atividade</label>
+          <select value={fator} onChange={e => setFator(e.target.value)}>
+            {FATORES_ATIVIDADE.map(f => (
+              <option key={f.v} value={f.v}>{f.l} ({f.v}×)</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Resultados — 3 fórmulas lado a lado */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+        <ResultadoFormula
+          nome="Mifflin-St Jeor"
+          descricao="Padrão clínico atual"
+          tmb={tmb_mifflin}
+          tdee={tmb_mifflin ? tmb_mifflin * fa : null}
+          aviso={!p || !al || !id ? 'Preencha peso, altura e idade' : null}
+        />
+        <ResultadoFormula
+          nome="Harris-Benedict"
+          descricao="Revisada (Roza & Shizgal)"
+          tmb={tmb_harris}
+          tdee={tmb_harris ? tmb_harris * fa : null}
+          aviso={!p || !al || !id ? 'Preencha peso, altura e idade' : null}
+        />
+        <ResultadoFormula
+          nome="Katch-McArdle"
+          descricao="Baseada na massa magra"
+          tmb={tmb_katch}
+          tdee={tmb_katch ? tmb_katch * fa : null}
+          aviso={!massaMagraEfetiva ? 'Preencha % gordura ou massa magra' : null}
+        />
+      </div>
+
+      {/* Legenda fórmulas */}
+      <div className="card" style={{ padding: 14, marginTop: 14 }}>
+        <div style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 500, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 }}>
+          Fórmulas utilizadas
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          {[
+            ['Mifflin · Mulher', '(10×P) + (6,25×A) − (5×I) − 161'],
+            ['Mifflin · Homem',  '(10×P) + (6,25×A) − (5×I) + 5'],
+            ['Harris · Mulher',  '655,1 + (9,563×P) + (1,850×A) − (4,676×I)'],
+            ['Harris · Homem',   '66,5 + (13,75×P) + (5,003×A) − (6,775×I)'],
+            ['Katch-McArdle',    '370 + (21,6 × Massa Magra)'],
+            ['TDEE',             'TMB × Fator de atividade'],
+          ].map(([label, formula]) => (
+            <div key={label} style={{ fontSize: 11 }}>
+              <span style={{ color: 'var(--text3)', fontWeight: 500 }}>{label}: </span>
+              <span style={{ fontFamily: 'monospace', color: 'var(--text2)' }}>{formula}</span>
+            </div>
+          ))}
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 8 }}>
+          P = Peso (kg) · A = Altura (cm) · I = Idade (anos)
+        </div>
+      </div>
+    </>
+  );
+}
+
+function ResultadoFormula({ nome, descricao, tmb, tdee, aviso }) {
+  return (
+    <div className="card" style={{ padding: 18 }}>
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--dark)' }}>{nome}</div>
+        <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 2 }}>{descricao}</div>
+      </div>
+
+      {aviso ? (
+        <div style={{
+          padding: '10px 12px', borderRadius: 8, background: 'var(--bg2)',
+          fontSize: 12, color: 'var(--text3)', fontStyle: 'italic',
+        }}>{aviso}</div>
+      ) : (
+        <>
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 3, fontWeight: 500 }}>
+              TMB — Taxa metabólica basal
+            </div>
+            <div style={{ fontSize: 34, fontWeight: 700, color: 'var(--gold-deep)', lineHeight: 1 }}>
+              {Math.round(tmb).toLocaleString('pt-BR')}
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--text3)' }}>kcal/dia</div>
+          </div>
+          <div style={{ borderTop: '0.5px solid var(--border)', paddingTop: 12 }}>
+            <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 3, fontWeight: 500 }}>
+              TDEE — Gasto total diário
+            </div>
+            <div style={{ fontSize: 34, fontWeight: 700, color: 'var(--dark)', lineHeight: 1 }}>
+              {Math.round(tdee).toLocaleString('pt-BR')}
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--text3)' }}>kcal/dia</div>
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 
