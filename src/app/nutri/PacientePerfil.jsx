@@ -215,8 +215,9 @@ export default function PacientePerfil() {
           { id: 'anamnese',    label: 'Anamnese',     icon: 'clipboard-text' },
           { id: 'calculo',     label: 'Cálculo',      icon: 'calculator' },
           { id: 'followup',    label: 'Follow-up',    icon: 'notebook' },
-          { id: 'plano',       label: 'Plano',        icon: 'salad' },
-          { id: 'compras',     label: 'Compras',      icon: 'shopping-cart' },
+          { id: 'plano',          label: 'Plano',          icon: 'salad' },
+          { id: 'substituicoes', label: 'Substituições', icon: 'replace' },
+          { id: 'compras',       label: 'Compras',        icon: 'shopping-cart' },
           { id: 'suplementacao', label: 'Suplementação', icon: 'pill' },
           { id: 'habitos',       label: 'Hábitos',       icon: 'checklist' },
           { id: 'prescricoes', label: 'Prescrições',  icon: 'file-text' },
@@ -251,6 +252,7 @@ export default function PacientePerfil() {
       {tab === 'suplementacao' && <Suplementacao pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'habitos' && <Habitos pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'plano' && <PublicarPlano pacienteId={paciente.id} nutriId={user.id} />}
+      {tab === 'substituicoes' && <Substituicoes pacienteId={paciente.id} pacienteNome={paciente.nome} />}
       {tab === 'compras' && <PublicarLista pacienteId={paciente.id} nutriId={user.id} />}
       {tab === 'prescricoes' && <EnviarPrescricao pacienteId={paciente.id} nutriId={user.id} />}
       {tab === 'ebooks' && <EbooksDaPaciente pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
@@ -745,6 +747,414 @@ function PublicarPlano({ pacienteId, nutriId }) {
         <VerJsonModal item={verJson} dados={verJson.dados} onClose={() => setVerJson(null)} />
       )}
     </>
+  );
+}
+
+/* ============================================================
+   SUBSTITUIÇÕES ALIMENTARES
+   ============================================================ */
+
+const _escHtmlSubs = s =>
+  String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+const _FRUTAS_SUBS = [
+  'Banana prata — 1 unidade',
+  'Uva — 15 unidades',
+  'Morango — 15 unidades',
+  'Melão — 300g',
+  'Mamão — 150g',
+  'Melancia — 350g',
+  'Manga — 200g',
+  'Maçã — 1 unidade',
+  'Tangerina — 1 unidade',
+  'Laranja — 1 unidade',
+  'Kiwi — 2 unidades',
+  'Abacate — 50g',
+  'Abacaxi — 150g',
+  'Pera — 1 unidade',
+  'Coco seco — 15g',
+  'Caqui — 1 unidade grande',
+  'Pêssego — 2 grandes',
+  'Acerola — 200g',
+  'Jabuticaba — 200g',
+  'Cajá — 200g',
+  'Figo — 150g',
+  'Goiaba — 200g',
+  'Jambo — 300g',
+  'Mangaba — 180g',
+  'Pitaya — 200g',
+];
+
+const _PROT_ALMJAN_SUBS = [
+  'Peito de frango — 100g',
+  'Sobrecoxa sem pele — 90g',
+  'Fígado — 100g',
+  'Moela — 100g',
+  'Picanha sem gordura — 80g',
+  'Músculo — 120g',
+  'Patinho moído — 100g',
+  'Bife de alcatra — 100g',
+  'Hambúrguer caseiro — 100g',
+  'Whey protein — 30g',
+  'Lombo suíno — 100g',
+  'Picanha suína — 90g',
+  'Tilápia — 150g',
+  'Salmão — 100g',
+  'Filé de merluza — 110g',
+  'Camarão — 120g',
+  'Sardinha enlatada em água — 105g',
+  'Atum enlatado em água — 100g',
+  'Ovo de galinha — 2 unidades',
+  'Drumette sem osso — 90g',
+  'Iogurte proteico — 1 unidade',
+];
+
+const _CARBO_ALMJAN_SUBS = [
+  'Arroz branco ou integral — 100g',
+  'Batata inglesa — 120g',
+  'Aipim (mandioca) — 100g',
+  'Batata doce — 105g',
+  'Inhame — 100g',
+  'Batata baroa (mandioquinha) — 150g',
+  'Milho para pipoca — 30g',
+  'Farelo de aveia — 30g',
+  'Quinoa já cozida — 80g',
+  'Macarrão tradicional ou integral — 100g',
+  'Macarrão sem glúten já cozido — 40g',
+  'Abóbora — 170g',
+  'Milho — 120g',
+  'Farofa — 25g',
+  'Cuscuz já pronto — 100g',
+  'Pão de forma — 2 fatias',
+  'Pão de hambúrguer — 50g',
+  'Rap10 — 1 unidade',
+];
+
+const _LEG_SUBS = [
+  'Feijão — 150g',
+  'Lentilha — 150g',
+  'Soja — 75g',
+  'Grão de bico — 75g',
+];
+
+const _CARBO_CAFE_SUBS = [
+  'Pão de forma tradicional ou integral sem grãos — 2 fatias',
+  'Pão francês sem miolo — 1 unidade',
+  'Torrada integral — 4 unidades',
+  'Rap10 — 1 unidade',
+  'Goma de tapioca — 45g',
+  'Pão sírio — 50g',
+  'Cuscuz já pronto — 100g',
+  '1 fatia pão de forma + 20g geleia light Linea',
+  'Pão bisnaguinha — 3 unidades',
+  'Torrada Lev Magic Toast — 7 unidades',
+];
+
+const SUBS_GRUPOS = [
+  {
+    refeicao: 'Café da Manhã',
+    categorias: [
+      { id: 'carbo-cafe', label: 'Carboidrato', itens: _CARBO_CAFE_SUBS },
+      {
+        id: 'prot-cafe', label: 'Proteína',
+        itens: [
+          'Ovo — 1 unidade',
+          'Queijo Minas Frescal — 30g',
+          'Queijo Minas Padrão — 20g',
+          'Queijo Meia Cura — 20g',
+          'Queijo Curado — 20g',
+          'Muçarela — 20g',
+          'Ricota — 40g',
+          'Muçarela de búfala — 20g',
+          'Queijo Coalho — 15g',
+        ],
+      },
+      { id: 'fruta-cafe', label: 'Fruta', itens: _FRUTAS_SUBS },
+      {
+        id: 'bebida-cafe', label: 'Bebida',
+        itens: [
+          'Café puro',
+          'Café com adoçante',
+          'Suco de limão com adoçante',
+          'Suco de morango com adoçante',
+          'Suco de melancia com adoçante',
+          'Suco de acerola com adoçante',
+          'Suco de maracujá com adoçante',
+        ],
+      },
+    ],
+  },
+  {
+    refeicao: 'Lanche da Manhã',
+    categorias: [
+      { id: 'carbo-lanche-manha', label: 'Carboidrato', itens: _CARBO_CAFE_SUBS },
+      { id: 'fruta-lanche-manha', label: 'Fruta', itens: _FRUTAS_SUBS },
+    ],
+  },
+  {
+    refeicao: 'Almoço',
+    categorias: [
+      { id: 'prot-almoco', label: 'Proteína', itens: _PROT_ALMJAN_SUBS },
+      { id: 'carbo-almoco', label: 'Carboidrato', itens: _CARBO_ALMJAN_SUBS },
+      { id: 'leg-almoco', label: 'Leguminosa', itens: _LEG_SUBS },
+    ],
+  },
+  {
+    refeicao: 'Lanche da Tarde',
+    categorias: [
+      {
+        id: 'prot-lanche-tarde', label: 'Proteína',
+        itens: [
+          'Iogurte natural desnatado — 160g',
+          'Itambé Fit sabor morango — 160ml',
+          'Iogurte grego zero — 1 unidade',
+          'Batavo Pense Zero — 160ml',
+          'Leite desnatado — 150ml',
+          'Leite em pó desnatado — 2 colheres de sopa',
+          'Piracanjuba Whey — 1 unidade',
+          'YoPro — 1 unidade',
+          'Itambé Pro Whey — 1 unidade',
+          'Verde Campo Natural Whey — 1 unidade',
+        ],
+      },
+      { id: 'fruta-lanche-tarde', label: 'Fruta', itens: _FRUTAS_SUBS },
+    ],
+  },
+  {
+    refeicao: 'Jantar',
+    categorias: [
+      { id: 'prot-jantar', label: 'Proteína', itens: _PROT_ALMJAN_SUBS },
+      { id: 'carbo-jantar', label: 'Carboidrato', itens: _CARBO_ALMJAN_SUBS },
+      { id: 'leg-jantar', label: 'Leguminosa', itens: _LEG_SUBS },
+    ],
+  },
+  {
+    refeicao: 'Ceia',
+    categorias: [
+      { id: 'fruta-ceia', label: 'Fruta', itens: _FRUTAS_SUBS },
+    ],
+  },
+];
+
+function _normSubs(s) {
+  return s.toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/\d+\s*(g|ml|kg)\b/gi, '')
+    .replace(/[^a-z\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function _bateComSub(nomeAlimento, itemSub) {
+  const STOP = new Set(['de','da','do','com','sem','em','ou','ja','por','um','uma','tipo','zero','light','fit']);
+  const kw = s => _normSubs(s).split(/\s+/).filter(w => w.length >= 4 && !STOP.has(w));
+  const k1 = kw(nomeAlimento), k2 = kw(itemSub);
+  return k1.length > 0 && k2.length > 0 && k1.some(w => k2.includes(w));
+}
+
+function _presSelecionarSubs(plano, setSelecionados) {
+  const nomes = [];
+  for (const ref of (plano.refeicoes ?? [])) {
+    for (const al of (ref.alimentos ?? [])) {
+      if (al.nome) nomes.push(al.nome);
+      for (const sub of (al.subs ?? [])) {
+        const n = typeof sub === 'string' ? sub : sub?.nome;
+        if (n) nomes.push(n);
+      }
+    }
+  }
+  if (!nomes.length) return;
+  const novos = new Set();
+  for (const grupo of SUBS_GRUPOS) {
+    for (const cat of grupo.categorias) {
+      cat.itens.forEach((item, i) => {
+        if (nomes.some(n => _bateComSub(n, item))) novos.add(`${cat.id}|${i}`);
+      });
+    }
+  }
+  setSelecionados(novos);
+}
+
+function Substituicoes({ pacienteId, pacienteNome }) {
+  const [selecionados, setSelecionados] = useState(new Set());
+  const [carregando, setCarregando] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      setCarregando(true);
+      const { data } = await supabase
+        .from('planos')
+        .select('dados')
+        .eq('paciente_id', pacienteId)
+        .order('publicado_em', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!active) return;
+      if (data?.dados) _presSelecionarSubs(data.dados, setSelecionados);
+      setCarregando(false);
+    }
+    load();
+    return () => { active = false; };
+  }, [pacienteId]);
+
+  function toggle(catId, idx) {
+    setSelecionados(prev => {
+      const next = new Set(prev);
+      const k = `${catId}|${idx}`;
+      next.has(k) ? next.delete(k) : next.add(k);
+      return next;
+    });
+  }
+
+  function marcarTodosCat(cat) {
+    setSelecionados(prev => {
+      const next = new Set(prev);
+      cat.itens.forEach((_, i) => next.add(`${cat.id}|${i}`));
+      return next;
+    });
+  }
+
+  function limparCat(cat) {
+    setSelecionados(prev => {
+      const next = new Set(prev);
+      cat.itens.forEach((_, i) => next.delete(`${cat.id}|${i}`));
+      return next;
+    });
+  }
+
+  function gerarPDF() {
+    const secoes = SUBS_GRUPOS.map(grupo => {
+      const catsHtml = grupo.categorias.map(cat => {
+        const itens = cat.itens.filter((_, i) => selecionados.has(`${cat.id}|${i}`));
+        if (!itens.length) return '';
+        return `<div class="cat"><div class="cat-label">${_escHtmlSubs(cat.label)}</div><ul>${
+          itens.map(it => `<li>${_escHtmlSubs(it)}</li>`).join('')
+        }</ul></div>`;
+      }).join('');
+      if (!catsHtml.trim()) return '';
+      return `<div class="grupo"><div class="grupo-titulo">${_escHtmlSubs(grupo.refeicao)}</div>${catsHtml}</div>`;
+    }).join('');
+
+    if (!secoes.trim()) { alert('Selecione pelo menos um alimento antes de gerar o PDF.'); return; }
+
+    const win = window.open('', '_blank');
+    if (!win) { alert('Permita pop-ups para gerar o PDF.'); return; }
+    win.document.write(`<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<title>Substituições · ${_escHtmlSubs(pacienteNome ?? '')}</title>
+<style>
+@page{size:A4;margin:20mm}
+*{box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#2b2b2b;max-width:680px;margin:0 auto;font-size:13px}
+h1{font-size:20px;margin:0 0 4px;color:#1a1a1a}
+.meta{font-size:11px;color:#888;margin-bottom:26px}
+.header{border-bottom:2px solid #c9a96e;padding-bottom:14px;margin-bottom:20px}
+.intro{font-size:12px;color:#555;background:#faf7f2;padding:10px 14px;border-radius:6px;margin-bottom:22px;line-height:1.6}
+.grupo{margin-bottom:22px;page-break-inside:avoid}
+.grupo-titulo{font-size:13px;font-weight:700;color:#c9a96e;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid #e8dcc8;padding-bottom:4px;margin-bottom:10px}
+.cat{margin-bottom:10px;padding-left:8px}
+.cat-label{font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+ul{margin:0;padding-left:16px}
+li{margin-bottom:3px;font-size:13px;line-height:1.5}
+.footer{margin-top:30px;font-size:10px;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:10px}
+</style></head>
+<body>
+<div class="header"><h1>Substituições Alimentares</h1>
+<div class="meta">Paciente: <strong>${_escHtmlSubs(pacienteNome ?? '')}</strong></div></div>
+<div class="intro">Escolha <strong>uma opção por categoria</strong> em cada refeição. Mantenha as quantidades indicadas e prefira alimentos frescos e minimamente processados.</div>
+${secoes}
+<div class="footer">Gerado pela Lapidare</div>
+<script>window.onload=()=>setTimeout(()=>window.print(),400)</script>
+</body></html>`);
+    win.document.close();
+  }
+
+  const total = selecionados.size;
+
+  return (
+    <div className="card" style={{ overflow: 'hidden', padding: 0 }}>
+      <div className="card-header" style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
+        <div>
+          <div className="card-title">Substituições Alimentares</div>
+          <div className="card-sub">
+            {carregando
+              ? 'Carregando plano ativo...'
+              : `${total} item${total !== 1 ? 's' : ''} selecionado${total !== 1 ? 's' : ''}. Edite livremente e gere o PDF para a paciente.`}
+          </div>
+        </div>
+        <button className="btn" onClick={gerarPDF} disabled={total === 0 || carregando}>
+          <i className="ti ti-download" aria-hidden="true"></i> Gerar PDF
+        </button>
+      </div>
+
+      {SUBS_GRUPOS.map((grupo, gi) => (
+        <div key={grupo.refeicao} style={{
+          padding: '16px 20px',
+          borderTop: gi === 0 ? 'none' : '1px solid var(--border)',
+        }}>
+          <div style={{
+            fontSize: 11, fontWeight: 700, color: '#c9a96e',
+            textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 12,
+          }}>
+            {grupo.refeicao}
+          </div>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+            gap: 20,
+          }}>
+            {grupo.categorias.map(cat => {
+              const allChk = cat.itens.every((_, i) => selecionados.has(`${cat.id}|${i}`));
+              const anyChk = cat.itens.some((_, i) => selecionados.has(`${cat.id}|${i}`));
+              return (
+                <div key={cat.id}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
+                    <span style={{
+                      fontSize: 10, fontWeight: 700, color: 'var(--text3)',
+                      textTransform: 'uppercase', letterSpacing: 0.5, flex: 1,
+                    }}>{cat.label}</span>
+                    {!allChk && (
+                      <button onClick={() => marcarTodosCat(cat)} style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        fontSize: 10, color: 'var(--text3)', padding: 0, textDecoration: 'underline',
+                      }}>todos</button>
+                    )}
+                    {anyChk && (
+                      <button onClick={() => limparCat(cat)} style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        fontSize: 10, color: 'var(--red)', padding: 0, textDecoration: 'underline',
+                      }}>limpar</button>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    {cat.itens.map((item, idx) => {
+                      const key = `${cat.id}|${idx}`;
+                      const chk = selecionados.has(key);
+                      return (
+                        <label key={idx} style={{
+                          display: 'flex', gap: 6, cursor: 'pointer', fontSize: 12,
+                          lineHeight: 1.5, alignItems: 'flex-start', padding: '1px 0',
+                          color: chk ? 'var(--dark)' : 'var(--text3)',
+                        }}>
+                          <input
+                            type="checkbox"
+                            checked={chk}
+                            onChange={() => toggle(cat.id, idx)}
+                            style={{ marginTop: 2, flexShrink: 0, accentColor: '#c9a96e', cursor: 'pointer' }}
+                          />
+                          {item}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
 
