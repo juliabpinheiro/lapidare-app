@@ -1712,6 +1712,27 @@ create policy planos_visuais_paciente_read on public.planos_visuais
 grant select, insert, update, delete on public.planos_visuais
   to anon, authenticated, service_role;
 
+-- Bucket para arquivos do plano visual (PDF/Word enviados pela nutri)
+insert into storage.buckets (id, name, public)
+values ('planos-arquivos', 'planos-arquivos', true)
+on conflict (id) do update set public = true;
+
+drop policy if exists planos_arquivos_select on storage.objects;
+create policy planos_arquivos_select on storage.objects
+  for select using (bucket_id = 'planos-arquivos');
+
+drop policy if exists planos_arquivos_insert on storage.objects;
+create policy planos_arquivos_insert on storage.objects
+  for insert with check (
+    bucket_id = 'planos-arquivos' and auth.uid() is not null
+  );
+
+drop policy if exists planos_arquivos_delete on storage.objects;
+create policy planos_arquivos_delete on storage.objects
+  for delete using (
+    bucket_id = 'planos-arquivos' and auth.uid() is not null
+  );
+
 
 -- =============================================================
 -- FIM — Lapidare setup
