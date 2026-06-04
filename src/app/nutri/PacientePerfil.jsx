@@ -900,87 +900,149 @@ ${secoes}
   const total = selecionados.size;
 
   return (
-    <div className="card" style={{ overflow: 'hidden', padding: 0 }}>
-      <div className="card-header" style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
-        <div>
-          <div className="card-title">Substituições Alimentares</div>
-          <div className="card-sub">
-            {carregando
-              ? 'Carregando plano ativo...'
-              : `${total} item${total !== 1 ? 's' : ''} selecionado${total !== 1 ? 's' : ''}. Edite livremente e gere o PDF para a paciente.`}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+
+      {/* Barra de ações global */}
+      <div className="card">
+        <div className="card-header">
+          <div>
+            <div className="card-title">Substituições Alimentares</div>
+            <div className="card-sub">
+              {carregando
+                ? 'Carregando plano ativo...'
+                : `${total} item${total !== 1 ? 's' : ''} selecionado${total !== 1 ? 's' : ''}. Edite livremente e gere o PDF para a paciente.`}
+            </div>
           </div>
+          <button className="btn" onClick={gerarPDF} disabled={total === 0 || carregando}>
+            <i className="ti ti-download" aria-hidden="true"></i> Gerar PDF
+          </button>
         </div>
-        <button className="btn" onClick={gerarPDF} disabled={total === 0 || carregando}>
-          <i className="ti ti-download" aria-hidden="true"></i> Gerar PDF
-        </button>
       </div>
 
-      {SUBS_GRUPOS.map((grupo, gi) => (
-        <div key={grupo.refeicao} style={{
-          padding: '16px 20px',
-          borderTop: gi === 0 ? 'none' : '1px solid var(--border)',
-        }}>
-          <div style={{
-            fontSize: 11, fontWeight: 700, color: '#c9a96e',
-            textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 12,
-          }}>
-            {grupo.refeicao}
-          </div>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-            gap: 20,
-          }}>
-            {grupo.categorias.map(cat => {
-              const allChk = cat.itens.every((_, i) => selecionados.has(`${cat.id}|${i}`));
-              const anyChk = cat.itens.some((_, i) => selecionados.has(`${cat.id}|${i}`));
-              return (
-                <div key={cat.id}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
-                    <span style={{
-                      fontSize: 10, fontWeight: 700, color: 'var(--text3)',
-                      textTransform: 'uppercase', letterSpacing: 0.5, flex: 1,
-                    }}>{cat.label}</span>
-                    {!allChk && (
-                      <button onClick={() => marcarTodosCat(cat)} style={{
-                        background: 'none', border: 'none', cursor: 'pointer',
-                        fontSize: 10, color: 'var(--text3)', padding: 0, textDecoration: 'underline',
-                      }}>todos</button>
-                    )}
-                    {anyChk && (
-                      <button onClick={() => limparCat(cat)} style={{
-                        background: 'none', border: 'none', cursor: 'pointer',
-                        fontSize: 10, color: 'var(--red)', padding: 0, textDecoration: 'underline',
-                      }}>limpar</button>
-                    )}
+      {/* Um card por refeição */}
+      {SUBS_GRUPOS.map(grupo => {
+        const totalGrupo = grupo.categorias.reduce((acc, cat) =>
+          acc + cat.itens.filter((_, i) => selecionados.has(`${cat.id}|${i}`)).length, 0);
+
+        return (
+          <div key={grupo.refeicao} className="card" style={{ overflow: 'hidden', padding: 0 }}>
+
+            {/* Header da refeição */}
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '12px 20px',
+              borderBottom: '1px solid var(--border)',
+              background: 'var(--bg2, #faf7f2)',
+            }}>
+              <div style={{
+                fontSize: 13, fontWeight: 700, color: 'var(--dark)',
+                textTransform: 'uppercase', letterSpacing: '0.06em',
+              }}>
+                {grupo.refeicao}
+              </div>
+              {totalGrupo > 0 && (
+                <span style={{
+                  fontSize: 11, color: '#c9a96e', fontWeight: 600,
+                  background: '#fdf3ee', borderRadius: 20,
+                  padding: '2px 10px',
+                }}>
+                  {totalGrupo} selecionado{totalGrupo !== 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
+
+            {/* Categorias */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+            }}>
+              {grupo.categorias.map((cat, ci) => {
+                const allChk = cat.itens.every((_, i) => selecionados.has(`${cat.id}|${i}`));
+                const anyChk = cat.itens.some((_, i) => selecionados.has(`${cat.id}|${i}`));
+                const selCount = cat.itens.filter((_, i) => selecionados.has(`${cat.id}|${i}`)).length;
+
+                return (
+                  <div key={cat.id} style={{
+                    borderRight: ci % 2 === 0 ? '1px solid var(--border)' : 'none',
+                    borderBottom: '1px solid var(--border)',
+                  }}>
+                    {/* Header da categoria */}
+                    <div style={{
+                      display: 'flex', alignItems: 'center', gap: 6,
+                      padding: '10px 16px 8px',
+                      borderBottom: '1px solid var(--border)',
+                    }}>
+                      <span style={{
+                        fontSize: 10, fontWeight: 700, letterSpacing: '0.08em',
+                        textTransform: 'uppercase', color: '#c9a96e', flex: 1,
+                      }}>
+                        {cat.label}
+                        {selCount > 0 && (
+                          <span style={{ color: 'var(--text3)', fontWeight: 400, marginLeft: 5 }}>
+                            ({selCount}/{cat.itens.length})
+                          </span>
+                        )}
+                      </span>
+                      {!allChk && (
+                        <button onClick={() => marcarTodosCat(cat)} style={{
+                          background: 'none', border: '0.5px solid var(--border)',
+                          borderRadius: 4, cursor: 'pointer',
+                          fontSize: 10, color: 'var(--text3)', padding: '1px 7px',
+                          lineHeight: '16px',
+                        }}>todos</button>
+                      )}
+                      {anyChk && (
+                        <button onClick={() => limparCat(cat)} style={{
+                          background: 'none', border: '0.5px solid var(--border)',
+                          borderRadius: 4, cursor: 'pointer',
+                          fontSize: 10, color: 'var(--red)', padding: '1px 7px',
+                          lineHeight: '16px',
+                        }}>limpar</button>
+                      )}
+                    </div>
+
+                    {/* Lista de itens */}
+                    <div>
+                      {cat.itens.map((item, idx) => {
+                        const key = `${cat.id}|${idx}`;
+                        const chk = selecionados.has(key);
+                        return (
+                          <label key={idx} style={{
+                            display: 'flex', alignItems: 'center', gap: 10,
+                            padding: '7px 16px',
+                            borderBottom: idx < cat.itens.length - 1
+                              ? '0.5px solid var(--border)' : 'none',
+                            cursor: 'pointer',
+                            background: chk ? '#fffbf6' : 'transparent',
+                            transition: 'background 0.1s',
+                          }}>
+                            <input
+                              type="checkbox"
+                              checked={chk}
+                              onChange={() => toggle(cat.id, idx)}
+                              style={{ flexShrink: 0, accentColor: '#c9a96e', cursor: 'pointer', margin: 0 }}
+                            />
+                            <span style={{
+                              fontSize: 13,
+                              color: chk ? 'var(--dark)' : 'var(--text3)',
+                              fontWeight: chk ? 500 : 400,
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }} title={item}>
+                              {item}
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                    {cat.itens.map((item, idx) => {
-                      const key = `${cat.id}|${idx}`;
-                      const chk = selecionados.has(key);
-                      return (
-                        <label key={idx} style={{
-                          display: 'flex', gap: 6, cursor: 'pointer', fontSize: 12,
-                          lineHeight: 1.5, alignItems: 'flex-start', padding: '1px 0',
-                          color: chk ? 'var(--dark)' : 'var(--text3)',
-                        }}>
-                          <input
-                            type="checkbox"
-                            checked={chk}
-                            onChange={() => toggle(cat.id, idx)}
-                            style={{ marginTop: 2, flexShrink: 0, accentColor: '#c9a96e', cursor: 'pointer' }}
-                          />
-                          {item}
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
