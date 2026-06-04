@@ -23,6 +23,7 @@ function bullets(text) {
 
 function subsHtml(mealKey, subsTexto) {
   if (!subsTexto || !mealKey) return '';
+  if ((subsTexto._meta?.removed ?? []).includes(mealKey)) return '';
   const cats = subsTexto[mealKey];
   if (!cats) return '';
   const order = _CAT_ORDER[mealKey] ?? Object.keys(cats);
@@ -34,6 +35,21 @@ function subsHtml(mealKey, subsTexto) {
       <div class="grupo-caixa">${esc(texto)}</div>
     </div>`;
   }).join('');
+}
+
+function pagCustomMeals(subsTexto) {
+  const custom = subsTexto?._meta?.custom ?? [];
+  const com_conteudo = custom.filter(c => c.content?.trim());
+  if (!com_conteudo.length) return '';
+  const secoes = com_conteudo.map(c => `
+    <div class="refeicao">
+      <div class="ref-titulo">${esc((c.label ?? '').toLowerCase())}</div>
+      <div class="grupo">
+        <div class="grupo-label">Opções (Escolha 1 Opção)</div>
+        <div class="grupo-caixa">${esc(c.content)}</div>
+      </div>
+    </div>`).join('');
+  return pagina(secoes);
 }
 
 function fmtNum(v) { return v != null ? String(v) : '—'; }
@@ -288,6 +304,7 @@ export function gerarPlanoHtml({ pacienteNome, plano, extras, subsTexto, nutriNo
     pag1(pacienteNome, macros, e),
     pag2(e),
     ...refeicoes.map((ref, i) => pagRef(ref, i, e, subsTexto)),
+    pagCustomMeals(subsTexto),
     pagTotais(e),
     pagOrientacoes(e),
     pagEncerramento(pacienteNome, e, nutriNome, nutriCrn, nutriEmail),

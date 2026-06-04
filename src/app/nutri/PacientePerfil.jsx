@@ -820,10 +820,12 @@ const SUBS_ESTRUTURA = [
   ]},
 ];
 
-function Substituicoes({ pacienteId, nutriId, pacienteNome }) {
-  const [texto, setTexto] = useState(
-    () => JSON.parse(JSON.stringify(SUBS_TEXTO_PADRAO)) // deep clone defaults
-  );
+function Substituicoes({ pacienteId, nutriId }) {
+  const [texto, setTexto] = useState(() => JSON.parse(JSON.stringify(SUBS_TEXTO_PADRAO)));
+  const [removidos, setRemovidos] = useState(new Set());
+  const [customRefeicoes, setCustomRefeicoes] = useState([]);
+  const [addingAfter, setAddingAfter] = useState(null); // key da refeição precedente, ou null
+  const [novoNome, setNovoNome] = useState('');
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
@@ -831,80 +833,149 @@ function Substituicoes({ pacienteId, nutriId, pacienteNome }) {
     let active = true;
     async function load() {
       const { data } = await supabase
-        .from('planos_visuais')
-        .select('subs_texto')
+        .from('planos_visuais').select('subs_texto')
         .eq('paciente_id', pacienteId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .order('created_at', { ascending: false }).limit(1).maybeSingle();
       if (!active) return;
       if (data?.subs_texto) {
-        setTexto(prev => {
-          // merge: mantém estrutura padrão, sobrepõe com o salvo
-          const merged = JSON.parse(JSON.stringify(SUBS_TEXTO_PADRAO));
-          for (const ref of Object.keys(data.subs_texto)) {
-            if (merged[ref]) Object.assign(merged[ref], data.subs_texto[ref]);
-          }
-          return merged;
-        });
+        const { _meta = {}, ...content } = data.subs_texto;
+        const merged = JSON.parse(JSON.stringify(SUBS_TEXTO_PADRAO));
+        for (const k of Object.keys(content)) {
+          if (merged[k]) Object.assign(merged[k], content[k]);
+        }
+        setTexto(merged);
+        setRemovidos(new Set(_meta.removed ?? []));
+        setCustomRefeicoes(_meta.custom ?? []);
       }
     }
     load();
     return () => { active = false; };
   }, [pacienteId]);
 
-  function setCategoria(refKey, catKey, valor) {
-    setTexto(prev => ({
-      ...prev,
-      [refKey]: { ...prev[refKey], [catKey]: valor },
-    }));
+  const setCategoria = (rk, ck, v) => {
+    setTexto(p => ({ ...p, [rk]: { ...p[rk], [ck]: v } }));
     setFeedback(null);
-  }
-
-  function restaurarPadrao(refKey, catKey) {
-    setTexto(prev => ({
-      ...prev,
-      [refKey]: { ...prev[refKey], [catKey]: SUBS_TEXTO_PADRAO[refKey]?.[catKey] ?? '' },
-    }));
-  }
+  };
+  const setCustomContent = (key, v) => {
+    setCustomRefeicoes(p => p.map(c => c.key === key ? { ...c, content: v } : c));
+    setFeedback(null);
+  };
+  const restaurarPadrao = (rk, ck) =>
+    setTexto(p => ({ ...p, [rk]: { ...p[rk], [ck]: SUBS_TEXTO_PADRAO[rk]?.[ck] ?? '' } }));
+  const removerRefeicao = (key, tipo) => {
+    tipo === 'padrao'
+      ? setRemovidos(p => new Set([...p, key]))
+      : setCustomRefeicoes(p => p.filter(c => c.key !== key));
+    setFeedback(null);
+  };
+  const restaurarRefeicao = key =>
+    setRemovidos(p => { const n = new Set(p); n.delete(key); return n; });
+  const confirmarAdicionar = () => {
+    if (!novoNome.trim()) return;
+    setCustomRefeicoes(p => [...p, {
+      key: `custom_${Date.now()}`,
+      label: novoNome.trim(),
+      insertAfter: addingAfter,
+      content: '',
+    }]);
+    setAddingAfter(null);
+    setNovoNome('');
+  };
 
   async function salvar() {
     setBusy(true);
     setFeedback(null);
-    const { data: existing } = await supabase
-      .from('planos_visuais')
-      .select('id')
-      .eq('paciente_id', pacienteId)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
+    const toSave = {
+      ...texto,
+      _meta: { removed: [...removidos], custom: customRefeicoes },
+    };
+    const { data: ex } = await supabase.from('planos_visuais').select('id')
+      .eq('paciente_id', pacienteId).order('created_at', { ascending: false }).limit(1).maybeSingle();
     let error;
-    if (existing?.id) {
-      ({ error } = await supabase
-        .from('planos_visuais')
-        .update({ subs_texto: texto, updated_at: new Date().toISOString() })
-        .eq('id', existing.id));
+    if (ex?.id) {
+      ({ error } = await supabase.from('planos_visuais')
+        .update({ subs_texto: toSave, updated_at: new Date().toISOString() }).eq('id', ex.id));
     } else {
-      ({ error } = await supabase
-        .from('planos_visuais')
-        .insert({ paciente_id: pacienteId, nutri_id: nutriId, dados: {}, subs_texto: texto, publicado: false }));
+      ({ error } = await supabase.from('planos_visuais')
+        .insert({ paciente_id: pacienteId, nutri_id: nutriId, dados: {}, subs_texto: toSave, publicado: false }));
     }
     setBusy(false);
     if (error) return setFeedback({ tipo: 'erro', msg: error.message });
     setFeedback({ tipo: 'ok', msg: 'Substituições salvas! Aparecerão no PDF Final.' });
   }
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+  // lista ordenada de refeições visíveis
+  const ordenados = (() => {
+    const res = [];
+    for (const ref of SUBS_ESTRUTURA) {
+      if (!removidos.has(ref.key)) res.push({ tipo: 'padrao', ...ref });
+      for (const c of customRefeicoes.filter(cr => cr.insertAfter === ref.key))
+        res.push({ tipo: 'custom', key: c.key, label: c.label, content: c.content });
+    }
+    // custom sem âncora válida vão ao fim
+    const ancorados = new Set(customRefeicoes
+      .filter(c => SUBS_ESTRUTURA.some(r => r.key === c.insertAfter)).map(c => c.key));
+    for (const c of customRefeicoes.filter(cr => !ancorados.has(cr.key)))
+      res.push({ tipo: 'custom', key: c.key, label: c.label, content: c.content });
+    return res;
+  })();
 
-      {/* Cabeçalho com botão salvar */}
+  function AddZone({ afterKey }) {
+    if (addingAfter === afterKey) return (
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '2px 0' }}>
+        <input
+          autoFocus value={novoNome} onChange={e => setNovoNome(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') confirmarAdicionar(); if (e.key === 'Escape') { setAddingAfter(null); setNovoNome(''); } }}
+          placeholder="Nome da refeição (ex: Pré-treino, Lanche extra)"
+          style={{ flex: 1, fontSize: 13 }}
+        />
+        <button className="btn" style={{ padding: '5px 14px', fontSize: 12 }}
+          onClick={confirmarAdicionar} disabled={!novoNome.trim()}>
+          Adicionar
+        </button>
+        <button className="btn-outline" style={{ padding: '5px 12px', fontSize: 12 }}
+          onClick={() => { setAddingAfter(null); setNovoNome(''); }}>
+          Cancelar
+        </button>
+      </div>
+    );
+    return (
+      <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div style={{ flex: 1, height: 1, background: '#e0d9cf' }} />
+        <button onClick={() => { setAddingAfter(afterKey); setNovoNome(''); }} style={{
+          background: 'none', border: '1px dashed #bbb', borderRadius: 6, cursor: 'pointer',
+          fontSize: 11, color: 'var(--text3)', padding: '4px 12px',
+          display: 'flex', alignItems: 'center', gap: 4, margin: '0 8px',
+        }}>
+          <i className="ti ti-plus" style={{ fontSize: 11 }} aria-hidden="true"></i>
+          Adicionar refeição
+        </button>
+        <div style={{ flex: 1, height: 1, background: '#e0d9cf' }} />
+      </div>
+    );
+  }
+
+  const taStyle = {
+    width: '100%', boxSizing: 'border-box', fontFamily: 'inherit',
+    fontSize: 13, lineHeight: 1.55, color: 'var(--dark)', resize: 'vertical',
+    border: '1px solid var(--border)', borderRadius: 6, padding: '8px 10px', background: '#fff',
+  };
+  const removeBtn = {
+    background: 'none', border: '0.5px solid #ccc', borderRadius: 4, cursor: 'pointer',
+    fontSize: 10, color: 'var(--text3)', padding: '2px 8px', lineHeight: '16px',
+    display: 'flex', alignItems: 'center', gap: 3,
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+
+      {/* Cabeçalho */}
       <div className="card">
         <div className="card-header">
           <div>
             <div className="card-title">Substituições Alimentares</div>
             <div className="card-sub">
-              Textos pré-preenchidos com o padrão do método. Edite livremente — o que estiver aqui aparece no PDF Final.
+              Textos pré-preenchidos com o padrão do método. Edite, remova ou adicione refeições — tudo aparece no PDF Final.
             </div>
           </div>
           <button className="btn" onClick={salvar} disabled={busy}>
@@ -924,70 +995,98 @@ function Substituicoes({ pacienteId, nutriId, pacienteNome }) {
         )}
       </div>
 
-      {/* Um card por refeição */}
-      {SUBS_ESTRUTURA.map(ref => (
-        <div key={ref.key} className="card" style={{ overflow: 'hidden', padding: 0 }}>
+      {/* Cards + zonas de adição intercaladas */}
+      {ordenados.flatMap(ref => [
 
-          {/* Header da refeição */}
+        /* Card da refeição */
+        <div key={ref.key} className="card" style={{ overflow: 'hidden', padding: 0 }}>
           <div style={{
-            padding: '11px 20px',
-            borderBottom: '1px solid var(--border)',
-            background: '#f5f1eb',
+            display: 'flex', alignItems: 'center', gap: 10,
+            padding: '10px 16px 10px 20px', borderBottom: '1px solid var(--border)', background: '#f5f1eb',
           }}>
             <div style={{
               fontSize: 12, fontWeight: 700, color: 'var(--dark)',
-              textTransform: 'uppercase', letterSpacing: '0.07em',
+              textTransform: 'uppercase', letterSpacing: '0.07em', flex: 1,
             }}>
               {ref.label}
+              {ref.tipo === 'custom' && (
+                <span style={{ fontSize: 10, fontWeight: 400, color: 'var(--text3)', marginLeft: 6, textTransform: 'none', letterSpacing: 0 }}>
+                  personalizada
+                </span>
+              )}
             </div>
+            <button style={removeBtn} onClick={() => removerRefeicao(ref.key, ref.tipo)}>
+              <i className="ti ti-eye-off" style={{ fontSize: 11 }} aria-hidden="true"></i> Remover
+            </button>
           </div>
 
-          {/* Categorias — separadas por linha */}
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {ref.cats.map((cat, ci) => (
-              <div key={cat.key} style={{
-                borderTop: ci > 0 ? '1px solid var(--border)' : 'none',
-                padding: '14px 20px',
-              }}>
-                {/* Label + botão restaurar */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7 }}>
-                  <label style={{
-                    fontSize: 11, fontWeight: 700, letterSpacing: '0.07em',
-                    textTransform: 'uppercase', color: '#c9a96e', flex: 1,
-                  }}>
-                    {cat.label}
-                  </label>
-                  <button
-                    onClick={() => restaurarPadrao(ref.key, cat.key)}
-                    style={{
-                      background: 'none', border: '0.5px solid #ccc', borderRadius: 4,
-                      cursor: 'pointer', fontSize: 10, color: 'var(--text3)',
-                      padding: '2px 8px', lineHeight: '16px', flexShrink: 0,
-                    }}
-                  >
-                    restaurar padrão
-                  </button>
+          {ref.tipo === 'padrao' ? (
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {ref.cats.map((cat, ci) => (
+                <div key={cat.key} style={{ borderTop: ci > 0 ? '1px solid var(--border)' : 'none', padding: '14px 20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7 }}>
+                    <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: '#c9a96e', flex: 1 }}>
+                      {cat.label}
+                    </label>
+                    <button style={{ ...removeBtn, color: 'var(--text3)', border: '0.5px solid #ccc' }}
+                      onClick={() => restaurarPadrao(ref.key, cat.key)}>
+                      restaurar padrão
+                    </button>
+                  </div>
+                  <textarea value={texto[ref.key]?.[cat.key] ?? ''} rows={3} style={taStyle}
+                    onChange={e => setCategoria(ref.key, cat.key, e.target.value)} />
                 </div>
-                {/* Textarea editável */}
-                <textarea
-                  value={texto[ref.key]?.[cat.key] ?? ''}
-                  onChange={e => setCategoria(ref.key, cat.key, e.target.value)}
-                  rows={3}
-                  style={{
-                    width: '100%', boxSizing: 'border-box',
-                    fontFamily: 'inherit', fontSize: 13, lineHeight: 1.55,
-                    color: 'var(--dark)', resize: 'vertical',
-                    border: '1px solid var(--border)', borderRadius: 6,
-                    padding: '8px 10px', background: '#fff',
-                  }}
-                />
+              ))}
+            </div>
+          ) : (
+            <div style={{ padding: '14px 20px' }}>
+              <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: '#c9a96e', display: 'block', marginBottom: 7 }}>
+                Opções (ESCOLHA 1 OPÇÃO)
+              </label>
+              <textarea value={ref.content ?? ''} rows={3} style={taStyle}
+                placeholder="Ex: Banana prata 1 unidade ou Whey protein 30g ou Iogurte grego 1 unidade"
+                onChange={e => setCustomContent(ref.key, e.target.value)} />
+            </div>
+          )}
+        </div>,
+
+        /* Zona de adição após este card */
+        <AddZone key={`add-${ref.key}`} afterKey={ref.key} />,
+      ])}
+
+      {/* Lista vazia: mostra só o botão de adição */}
+      {ordenados.length === 0 && <AddZone afterKey={null} />}
+
+      {/* Painel de refeições ocultas */}
+      {removidos.size > 0 && (
+        <div className="card">
+          <div className="card-header" style={{ paddingBottom: 8 }}>
+            <div>
+              <div className="card-title" style={{ fontSize: 13 }}>Refeições ocultas</div>
+              <div className="card-sub">Clique em "Restaurar" para reexibir no PDF.</div>
+            </div>
+          </div>
+          <div style={{ padding: '0 20px 14px', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {SUBS_ESTRUTURA.filter(r => removidos.has(r.key)).map(ref => (
+              <div key={ref.key} style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '5px 10px', borderRadius: 6, background: '#f5f1eb', border: '0.5px solid #ccc',
+              }}>
+                <span style={{ fontSize: 12, color: 'var(--text3)' }}>{ref.label}</span>
+                <button onClick={() => restaurarRefeicao(ref.key)} style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  fontSize: 11, color: '#c9a96e', fontWeight: 600,
+                  display: 'flex', alignItems: 'center', gap: 3, padding: 0,
+                }}>
+                  <i className="ti ti-eye" style={{ fontSize: 11 }} aria-hidden="true"></i> Restaurar
+                </button>
               </div>
             ))}
           </div>
         </div>
-      ))}
+      )}
 
-      {/* Botão salvar no rodapé também */}
+      {/* Salvar rodapé */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', paddingBottom: 8 }}>
         <button className="btn" onClick={salvar} disabled={busy}>
           <i className="ti ti-device-floppy" aria-hidden="true"></i>
