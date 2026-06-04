@@ -951,52 +951,51 @@ ${secoes}
               )}
             </div>
 
-            {/* Categorias */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-            }}>
+            {/* Categorias — grid fixo 2 col; borda esquerda na col direita como divisória */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
               {grupo.categorias.map((cat, ci) => {
                 const allChk = cat.itens.every((_, i) => selecionados.has(`${cat.id}|${i}`));
                 const anyChk = cat.itens.some((_, i) => selecionados.has(`${cat.id}|${i}`));
                 const selCount = cat.itens.filter((_, i) => selecionados.has(`${cat.id}|${i}`)).length;
+                const isRightCol = ci % 2 !== 0;
 
                 return (
                   <div key={cat.id} style={{
-                    borderRight: ci % 2 === 0 ? '1px solid var(--border)' : 'none',
+                    borderLeft:   isRightCol ? '2px solid var(--border)' : 'none',
                     borderBottom: '1px solid var(--border)',
+                    background:   isRightCol ? '#fdfbf8' : '#fff',
                   }}>
+
                     {/* Header da categoria */}
                     <div style={{
                       display: 'flex', alignItems: 'center', gap: 6,
-                      padding: '10px 16px 8px',
+                      padding: '9px 14px 7px',
                       borderBottom: '1px solid var(--border)',
+                      background: isRightCol ? '#f7f3ed' : '#f5f1eb',
                     }}>
                       <span style={{
                         fontSize: 10, fontWeight: 700, letterSpacing: '0.08em',
-                        textTransform: 'uppercase', color: '#c9a96e', flex: 1,
+                        textTransform: 'uppercase', color: '#c9a96e', flex: 1, minWidth: 0,
                       }}>
                         {cat.label}
                         {selCount > 0 && (
-                          <span style={{ color: 'var(--text3)', fontWeight: 400, marginLeft: 5 }}>
-                            ({selCount}/{cat.itens.length})
+                          <span style={{ color: 'var(--text3)', fontWeight: 400, marginLeft: 5, fontSize: 9 }}>
+                            {selCount}/{cat.itens.length}
                           </span>
                         )}
                       </span>
                       {!allChk && (
                         <button onClick={() => marcarTodosCat(cat)} style={{
-                          background: 'none', border: '0.5px solid var(--border)',
+                          background: 'none', border: '0.5px solid #ccc',
                           borderRadius: 4, cursor: 'pointer',
-                          fontSize: 10, color: 'var(--text3)', padding: '1px 7px',
-                          lineHeight: '16px',
+                          fontSize: 10, color: 'var(--text3)', padding: '1px 6px', lineHeight: '16px',
                         }}>todos</button>
                       )}
                       {anyChk && (
                         <button onClick={() => limparCat(cat)} style={{
-                          background: 'none', border: '0.5px solid var(--border)',
+                          background: 'none', border: '0.5px solid #ccc',
                           borderRadius: 4, cursor: 'pointer',
-                          fontSize: 10, color: 'var(--red)', padding: '1px 7px',
-                          lineHeight: '16px',
+                          fontSize: 10, color: 'var(--red)', padding: '1px 6px', lineHeight: '16px',
                         }}>limpar</button>
                       )}
                     </div>
@@ -1008,28 +1007,26 @@ ${secoes}
                         const chk = selecionados.has(key);
                         return (
                           <label key={idx} style={{
-                            display: 'flex', alignItems: 'center', gap: 10,
-                            padding: '7px 16px',
-                            borderBottom: idx < cat.itens.length - 1
-                              ? '0.5px solid var(--border)' : 'none',
+                            display: 'flex', alignItems: 'baseline', gap: 8,
+                            padding: '6px 14px',
+                            borderBottom: idx < cat.itens.length - 1 ? '0.5px solid #ede8e0' : 'none',
                             cursor: 'pointer',
-                            background: chk ? '#fffbf6' : 'transparent',
-                            transition: 'background 0.1s',
+                            background: chk ? '#fffbf5' : 'transparent',
                           }}>
                             <input
                               type="checkbox"
                               checked={chk}
                               onChange={() => toggle(cat.id, idx)}
-                              style={{ flexShrink: 0, accentColor: '#c9a96e', cursor: 'pointer', margin: 0 }}
+                              style={{ flexShrink: 0, accentColor: '#c9a96e', cursor: 'pointer', margin: '1px 0 0' }}
                             />
                             <span style={{
+                              flex: 1,
+                              minWidth: 0,
                               fontSize: 13,
+                              lineHeight: 1.45,
                               color: chk ? 'var(--dark)' : 'var(--text3)',
                               fontWeight: chk ? 500 : 400,
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                            }} title={item}>
+                            }}>
                               {item}
                             </span>
                           </label>
