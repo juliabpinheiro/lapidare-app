@@ -28,6 +28,7 @@ import Previsibilidade from './app/nutri/Previsibilidade.jsx';
 import Financeiro from './app/nutri/Financeiro.jsx';
 import Biblioteca from './app/nutri/Biblioteca.jsx';
 import Personalizacao from './app/nutri/Personalizacao.jsx';
+import PersonalizacaoPaciente from './app/nutri/PersonalizacaoPaciente.jsx';
 
 import Inicio from './app/paciente/Inicio.jsx';
 import Plano from './app/paciente/Plano.jsx';
@@ -73,6 +74,7 @@ export default function App() {
             <Route path="/nutri/financeiro" element={<Financeiro />} />
             <Route path="/nutri/biblioteca" element={<Biblioteca />} />
             <Route path="/nutri/personalizacao" element={<Personalizacao />} />
+            <Route path="/nutri/personalizacao-paciente" element={<PersonalizacaoPaciente />} />
           </Route>
 
           {/* App da Paciente */}

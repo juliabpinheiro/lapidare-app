@@ -30,7 +30,8 @@ const NAV_CONFIG = [
       { id: 'servicos',         path: '/nutri/servicos',        label: 'Meus serviços',       icon: 'settings' },
       { id: 'previsibilidade',  path: '/nutri/previsibilidade', label: 'Previsibilidade',     icon: 'trending-up' },
       { id: 'financeiro',       path: '/nutri/financeiro',      label: 'Financeiro real',     icon: 'credit-card' },
-      { id: 'personalizacao',   path: '/nutri/personalizacao',  label: 'Personalização',      icon: 'palette' },
+      { id: 'personalizacao',         path: '/nutri/personalizacao',         label: 'Personalização',          icon: 'palette' },
+      { id: 'personalizacao-paciente', path: '/nutri/personalizacao-paciente', label: 'Cores da paciente',       icon: 'paint' },
     ],
   },
 ];

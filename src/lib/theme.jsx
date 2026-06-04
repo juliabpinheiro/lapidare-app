@@ -58,13 +58,18 @@ export function ThemeProvider({ children }) {
         });
         return;
       }
-      // Paciente logada: busca personalização da nutri dela
+      // Paciente logada: busca personalização da nutri + cores customizadas da paciente
       if (role === 'paciente' && profile?.nutri_id) {
-        const { data } = await supabase
-          .rpc('buscar_personalizacao_nutri', { p_nutri_id: profile.nutri_id });
+        const [personRes, configRes] = await Promise.all([
+          supabase.rpc('buscar_personalizacao_nutri', { p_nutri_id: profile.nutri_id }),
+          supabase.from('configuracoes').select('tema').eq('nutri_id', profile.nutri_id).maybeSingle(),
+        ]);
         if (!active) return;
-        const p = data?.[0];
-        setTema(p ? { ...DEFAULT_TEMA, ...p } : DEFAULT_TEMA);
+        const p = personRes.data?.[0];
+        const pacConfig = configRes.data?.tema ?? {};
+        setTema(p
+          ? { ...DEFAULT_TEMA, ...p, pacConfig }
+          : { ...DEFAULT_TEMA, pacConfig });
         return;
       }
       // Anônimo (Login, signup, etc): busca a marca da "dona" do deploy
@@ -149,7 +154,33 @@ export function ThemeProvider({ children }) {
     r.style.setProperty('--bg-deep', mistura(primaria, '#faf7f2', 0.86));
 
     r.dataset.tipografia = tema.tipografia ?? 'classica';
-  }, [tema.cor_primaria, tema.cor_secundaria, tema.cor_texto, tema.tipografia, tema.cor_texto_sidebar]);
+
+    // ─── Cores exclusivas do app da paciente ───
+    // Aplicadas por cima das cores de marca; só presentes quando role=paciente.
+    const pc = tema.pacConfig;
+    if (pc) {
+      if (pc.pac_bg) {
+        r.style.setProperty('--bg',      pc.pac_bg);
+        r.style.setProperty('--bg-soft', mistura(pc.pac_bg, '#ffffff', 0.5));
+        r.style.setProperty('--bg-deep', mistura(pc.pac_bg, '#000000', 0.08));
+      }
+      if (pc.pac_card) {
+        r.style.setProperty('--paper', pc.pac_card);
+      }
+      if (pc.pac_btn) {
+        r.style.setProperty('--dark',       pc.pac_btn);
+        r.style.setProperty('--dark-shade', mistura(pc.pac_btn, '#000000', 0.15));
+        r.style.setProperty('--dark-line',  mistura(pc.pac_btn, '#000000', 0.25));
+        r.style.setProperty('--gold-deep',  pc.pac_btn);
+        r.style.setProperty('--gold',       mistura(pc.pac_btn, '#ffffff', 0.2));
+        r.style.setProperty('--amber',      mistura(pc.pac_btn, '#ffffff', 0.2));
+      }
+      if (pc.pac_text) {
+        r.style.setProperty('--ink',      pc.pac_text);
+        r.style.setProperty('--ink-soft', mistura(pc.pac_text, '#ffffff', 0.25));
+      }
+    }
+  }, [tema.cor_primaria, tema.cor_secundaria, tema.cor_texto, tema.tipografia, tema.cor_texto_sidebar, tema.pacConfig]);
 
   return (
     <ThemeContext.Provider value={tema}>

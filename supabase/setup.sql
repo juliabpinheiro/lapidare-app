@@ -1677,7 +1677,39 @@ grant select, insert, update, delete on public.anamneses          to anon, authe
 
 
 -- =============================================================
--- 14. PLANO VISUAL (PDF Final personalizado)
+-- 14. CONFIGURAÇÕES DO APP DA PACIENTE (cores personalizadas)
+-- =============================================================
+
+create table if not exists public.configuracoes (
+  id          uuid primary key default gen_random_uuid(),
+  nutri_id    uuid not null references public.nutris(id) on delete cascade,
+  tema        jsonb not null default '{}',
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now(),
+  unique (nutri_id)
+);
+create index if not exists configuracoes_nutri_idx on public.configuracoes(nutri_id);
+
+alter table public.configuracoes enable row level security;
+
+-- Nutri gerencia as próprias configurações
+drop policy if exists configuracoes_nutri on public.configuracoes;
+create policy configuracoes_nutri on public.configuracoes
+  for all using (nutri_id = auth.uid()) with check (nutri_id = auth.uid());
+
+-- Paciente lê as configurações da sua nutri
+drop policy if exists configuracoes_paciente_read on public.configuracoes;
+create policy configuracoes_paciente_read on public.configuracoes
+  for select using (
+    nutri_id in (select nutri_id from public.pacientes where id = auth.uid())
+  );
+
+grant select, insert, update, delete on public.configuracoes
+  to anon, authenticated, service_role;
+
+
+-- =============================================================
+-- 15. PLANO VISUAL (PDF Final personalizado)
 -- =============================================================
 
 create table if not exists public.planos_visuais (
