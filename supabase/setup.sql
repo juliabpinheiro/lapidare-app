@@ -1677,6 +1677,39 @@ grant select, insert, update, delete on public.anamneses          to anon, authe
 
 
 -- =============================================================
+-- 14. PLANO VISUAL (PDF Final personalizado)
+-- =============================================================
+
+create table if not exists public.planos_visuais (
+  id            uuid primary key default gen_random_uuid(),
+  paciente_id   uuid not null references public.pacientes(id) on delete cascade,
+  nutri_id      uuid not null references public.nutris(id) on delete cascade,
+  dados         jsonb not null default '{}',
+  publicado     boolean not null default false,
+  publicado_em  timestamptz,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+create index if not exists planos_visuais_paciente_idx
+  on public.planos_visuais(paciente_id, created_at desc);
+create index if not exists planos_visuais_nutri_idx
+  on public.planos_visuais(nutri_id);
+
+alter table public.planos_visuais enable row level security;
+
+drop policy if exists planos_visuais_nutri on public.planos_visuais;
+create policy planos_visuais_nutri on public.planos_visuais
+  for all using (nutri_id = auth.uid()) with check (nutri_id = auth.uid());
+
+drop policy if exists planos_visuais_paciente_read on public.planos_visuais;
+create policy planos_visuais_paciente_read on public.planos_visuais
+  for select using (paciente_id = auth.uid() and publicado = true);
+
+grant select, insert, update, delete on public.planos_visuais
+  to anon, authenticated, service_role;
+
+
+-- =============================================================
 -- FIM — Lapidare setup
 -- =============================================================
 -- Pós-instalação na nutri:

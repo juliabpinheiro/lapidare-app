@@ -2,27 +2,31 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase.js';
 import { useSession } from '../../lib/session.jsx';
 import { dataBR } from '../../lib/utils.js';
+import { gerarPlanoHtml } from '../../lib/gerarPlanoHtml.js';
 
 export default function Plano() {
   const { user } = useSession();
   const [plano, setPlano] = useState(undefined); // undefined=loading, null=vazio
   const [validade, setValidade] = useState(null);
   const [openSubs, setOpenSubs] = useState({});
+  const [planoVisual, setPlanoVisual] = useState(null); // PDF final liberado
 
   useEffect(() => {
     let active = true;
     async function load() {
       if (!user) return;
-      const { data } = await supabase
-        .from('planos')
-        .select('dados, validade, publicado_em')
-        .eq('paciente_id', user.id)
-        .order('publicado_em', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      const [planRes, visualRes] = await Promise.all([
+        supabase.from('planos').select('dados, validade, publicado_em')
+          .eq('paciente_id', user.id)
+          .order('publicado_em', { ascending: false }).limit(1).maybeSingle(),
+        supabase.from('planos_visuais').select('dados')
+          .eq('paciente_id', user.id).eq('publicado', true)
+          .order('publicado_em', { ascending: false }).limit(1).maybeSingle(),
+      ]);
       if (!active) return;
-      setPlano(data?.dados ?? null);
-      setValidade(data?.validade ?? null);
+      setPlano(planRes.data?.dados ?? null);
+      setValidade(planRes.data?.validade ?? null);
+      setPlanoVisual(visualRes.data?.dados ?? null);
     }
     load();
     return () => { active = false; };
@@ -49,8 +53,51 @@ export default function Plano() {
   const totalFeitos = plano.refeicoes?.filter(r => r.feita).length ?? 0;
   const total = plano.refeicoes?.length ?? 0;
 
+  function abrirPlanoCompleto() {
+    if (!planoVisual) return;
+    const html = gerarPlanoHtml({
+      pacienteNome: user?.user_metadata?.nome ?? user?.email ?? '',
+      plano,
+      extras: planoVisual,
+      subsSelecionadas: new Set(Object.keys(planoVisual.subs_selecionadas ?? {}).filter(k => planoVisual.subs_selecionadas[k])),
+      nutriNome: '',
+      nutriCrn: '',
+      nutriEmail: '',
+    });
+    const win = window.open('', '_blank');
+    if (!win) { alert('Permita pop-ups para abrir o PDF.'); return; }
+    win.document.write(html);
+    win.document.close();
+  }
+
   return (
     <>
+      {/* Banner do plano completo */}
+      {planoVisual && (
+        <div style={{
+          margin: '0 0 12px', background: 'linear-gradient(135deg, #173103 0%, #95380A 100%)',
+          borderRadius: 12, padding: '14px 16px',
+          display: 'flex', alignItems: 'center', gap: 12,
+        }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#fff', marginBottom: 2 }}>
+              Plano alimentar completo disponível
+            </div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)' }}>
+              Prioridades, metas, substituições e orientações personalizadas
+            </div>
+          </div>
+          <button onClick={abrirPlanoCompleto} style={{
+            background: '#fff', color: '#95380A', border: 'none', borderRadius: 8,
+            padding: '8px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+            whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 5,
+          }}>
+            <i className="ti ti-download" style={{ fontSize: 14 }} aria-hidden="true"></i>
+            Baixar PDF
+          </button>
+        </div>
+      )}
+
       {/* Macros */}
       <div className="card" style={{ padding: '14px 16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>

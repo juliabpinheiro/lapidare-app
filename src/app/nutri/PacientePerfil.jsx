@@ -14,6 +14,8 @@ import Suplementacao from './_Suplementacao.jsx';
 import Habitos from './_Habitos.jsx';
 import Anamnese from './_Anamnese.jsx';
 import DicaJSON from '../../components/DicaJSON.jsx';
+import { SUBS_GRUPOS } from '../../lib/subsData.js';
+import { gerarPlanoHtml } from '../../lib/gerarPlanoHtml.js';
 
 export default function PacientePerfil() {
   const { id } = useParams();
@@ -21,6 +23,7 @@ export default function PacientePerfil() {
   const { user } = useSession();
   const [paciente, setPaciente] = useState(null);
   const [tab, setTab] = useState('plano');
+  const [subsSel, setSubsSel] = useState(new Set());
   const [editandoNasc, setEditandoNasc] = useState(false);
   const [novoNasc, setNovoNasc] = useState('');
   const [salvandoNasc, setSalvandoNasc] = useState(false);
@@ -217,6 +220,7 @@ export default function PacientePerfil() {
           { id: 'followup',    label: 'Follow-up',    icon: 'notebook' },
           { id: 'plano',          label: 'Plano',          icon: 'salad' },
           { id: 'substituicoes', label: 'Substituições', icon: 'replace' },
+          { id: 'pdf-final',     label: 'PDF Final',      icon: 'file-certificate' },
           { id: 'compras',       label: 'Compras',        icon: 'shopping-cart' },
           { id: 'suplementacao', label: 'Suplementação', icon: 'pill' },
           { id: 'habitos',       label: 'Hábitos',       icon: 'checklist' },
@@ -252,7 +256,8 @@ export default function PacientePerfil() {
       {tab === 'suplementacao' && <Suplementacao pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'habitos' && <Habitos pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'plano' && <PublicarPlano pacienteId={paciente.id} nutriId={user.id} />}
-      {tab === 'substituicoes' && <Substituicoes pacienteId={paciente.id} pacienteNome={paciente.nome} />}
+      {tab === 'substituicoes' && <Substituicoes pacienteId={paciente.id} pacienteNome={paciente.nome} selecionados={subsSel} setSelecionados={setSubsSel} />}
+      {tab === 'pdf-final' && <PdfFinal pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} subsSelecionadas={subsSel} />}
       {tab === 'compras' && <PublicarLista pacienteId={paciente.id} nutriId={user.id} />}
       {tab === 'prescricoes' && <EnviarPrescricao pacienteId={paciente.id} nutriId={user.id} />}
       {tab === 'ebooks' && <EbooksDaPaciente pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
@@ -757,184 +762,6 @@ function PublicarPlano({ pacienteId, nutriId }) {
 const _escHtmlSubs = s =>
   String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
-const _FRUTAS_SUBS = [
-  'Banana prata — 1 unidade',
-  'Uva — 15 unidades',
-  'Morango — 15 unidades',
-  'Melão — 300g',
-  'Mamão — 150g',
-  'Melancia — 350g',
-  'Manga — 200g',
-  'Maçã — 1 unidade',
-  'Tangerina — 1 unidade',
-  'Laranja — 1 unidade',
-  'Kiwi — 2 unidades',
-  'Abacate — 50g',
-  'Abacaxi — 150g',
-  'Pera — 1 unidade',
-  'Coco seco — 15g',
-  'Caqui — 1 unidade grande',
-  'Pêssego — 2 grandes',
-  'Acerola — 200g',
-  'Jabuticaba — 200g',
-  'Cajá — 200g',
-  'Figo — 150g',
-  'Goiaba — 200g',
-  'Jambo — 300g',
-  'Mangaba — 180g',
-  'Pitaya — 200g',
-];
-
-const _PROT_ALMJAN_SUBS = [
-  'Peito de frango — 100g',
-  'Sobrecoxa sem pele — 90g',
-  'Fígado — 100g',
-  'Moela — 100g',
-  'Picanha sem gordura — 80g',
-  'Músculo — 120g',
-  'Patinho moído — 100g',
-  'Bife de alcatra — 100g',
-  'Hambúrguer caseiro — 100g',
-  'Whey protein — 30g',
-  'Lombo suíno — 100g',
-  'Picanha suína — 90g',
-  'Tilápia — 150g',
-  'Salmão — 100g',
-  'Filé de merluza — 110g',
-  'Camarão — 120g',
-  'Sardinha enlatada em água — 105g',
-  'Atum enlatado em água — 100g',
-  'Ovo de galinha — 2 unidades',
-  'Drumette sem osso — 90g',
-  'Iogurte proteico — 1 unidade',
-];
-
-const _CARBO_ALMJAN_SUBS = [
-  'Arroz branco ou integral — 100g',
-  'Batata inglesa — 120g',
-  'Aipim (mandioca) — 100g',
-  'Batata doce — 105g',
-  'Inhame — 100g',
-  'Batata baroa (mandioquinha) — 150g',
-  'Milho para pipoca — 30g',
-  'Farelo de aveia — 30g',
-  'Quinoa já cozida — 80g',
-  'Macarrão tradicional ou integral — 100g',
-  'Macarrão sem glúten já cozido — 40g',
-  'Abóbora — 170g',
-  'Milho — 120g',
-  'Farofa — 25g',
-  'Cuscuz já pronto — 100g',
-  'Pão de forma — 2 fatias',
-  'Pão de hambúrguer — 50g',
-  'Rap10 — 1 unidade',
-];
-
-const _LEG_SUBS = [
-  'Feijão — 150g',
-  'Lentilha — 150g',
-  'Soja — 75g',
-  'Grão de bico — 75g',
-];
-
-const _CARBO_CAFE_SUBS = [
-  'Pão de forma tradicional ou integral sem grãos — 2 fatias',
-  'Pão francês sem miolo — 1 unidade',
-  'Torrada integral — 4 unidades',
-  'Rap10 — 1 unidade',
-  'Goma de tapioca — 45g',
-  'Pão sírio — 50g',
-  'Cuscuz já pronto — 100g',
-  '1 fatia pão de forma + 20g geleia light Linea',
-  'Pão bisnaguinha — 3 unidades',
-  'Torrada Lev Magic Toast — 7 unidades',
-];
-
-const SUBS_GRUPOS = [
-  {
-    refeicao: 'Café da Manhã',
-    categorias: [
-      { id: 'carbo-cafe', label: 'Carboidrato', itens: _CARBO_CAFE_SUBS },
-      {
-        id: 'prot-cafe', label: 'Proteína',
-        itens: [
-          'Ovo — 1 unidade',
-          'Queijo Minas Frescal — 30g',
-          'Queijo Minas Padrão — 20g',
-          'Queijo Meia Cura — 20g',
-          'Queijo Curado — 20g',
-          'Muçarela — 20g',
-          'Ricota — 40g',
-          'Muçarela de búfala — 20g',
-          'Queijo Coalho — 15g',
-        ],
-      },
-      { id: 'fruta-cafe', label: 'Fruta', itens: _FRUTAS_SUBS },
-      {
-        id: 'bebida-cafe', label: 'Bebida',
-        itens: [
-          'Café puro',
-          'Café com adoçante',
-          'Suco de limão com adoçante',
-          'Suco de morango com adoçante',
-          'Suco de melancia com adoçante',
-          'Suco de acerola com adoçante',
-          'Suco de maracujá com adoçante',
-        ],
-      },
-    ],
-  },
-  {
-    refeicao: 'Lanche da Manhã',
-    categorias: [
-      { id: 'carbo-lanche-manha', label: 'Carboidrato', itens: _CARBO_CAFE_SUBS },
-      { id: 'fruta-lanche-manha', label: 'Fruta', itens: _FRUTAS_SUBS },
-    ],
-  },
-  {
-    refeicao: 'Almoço',
-    categorias: [
-      { id: 'prot-almoco', label: 'Proteína', itens: _PROT_ALMJAN_SUBS },
-      { id: 'carbo-almoco', label: 'Carboidrato', itens: _CARBO_ALMJAN_SUBS },
-      { id: 'leg-almoco', label: 'Leguminosa', itens: _LEG_SUBS },
-    ],
-  },
-  {
-    refeicao: 'Lanche da Tarde',
-    categorias: [
-      {
-        id: 'prot-lanche-tarde', label: 'Proteína',
-        itens: [
-          'Iogurte natural desnatado — 160g',
-          'Itambé Fit sabor morango — 160ml',
-          'Iogurte grego zero — 1 unidade',
-          'Batavo Pense Zero — 160ml',
-          'Leite desnatado — 150ml',
-          'Leite em pó desnatado — 2 colheres de sopa',
-          'Piracanjuba Whey — 1 unidade',
-          'YoPro — 1 unidade',
-          'Itambé Pro Whey — 1 unidade',
-          'Verde Campo Natural Whey — 1 unidade',
-        ],
-      },
-      { id: 'fruta-lanche-tarde', label: 'Fruta', itens: _FRUTAS_SUBS },
-    ],
-  },
-  {
-    refeicao: 'Jantar',
-    categorias: [
-      { id: 'prot-jantar', label: 'Proteína', itens: _PROT_ALMJAN_SUBS },
-      { id: 'carbo-jantar', label: 'Carboidrato', itens: _CARBO_ALMJAN_SUBS },
-      { id: 'leg-jantar', label: 'Leguminosa', itens: _LEG_SUBS },
-    ],
-  },
-  {
-    refeicao: 'Ceia',
-    categorias: [
-      { id: 'fruta-ceia', label: 'Fruta', itens: _FRUTAS_SUBS },
-    ],
-  },
-];
 
 function _normSubs(s) {
   return s.toLowerCase()
@@ -975,8 +802,7 @@ function _presSelecionarSubs(plano, setSelecionados) {
   setSelecionados(novos);
 }
 
-function Substituicoes({ pacienteId, pacienteNome }) {
-  const [selecionados, setSelecionados] = useState(new Set());
+function Substituicoes({ pacienteId, pacienteNome, selecionados, setSelecionados }) {
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
@@ -991,12 +817,13 @@ function Substituicoes({ pacienteId, pacienteNome }) {
         .limit(1)
         .maybeSingle();
       if (!active) return;
-      if (data?.dados) _presSelecionarSubs(data.dados, setSelecionados);
+      // só pré-seleciona se o estado ainda estiver vazio (preserva seleções manuais)
+      if (data?.dados && selecionados.size === 0) _presSelecionarSubs(data.dados, setSelecionados);
       setCarregando(false);
     }
     load();
     return () => { active = false; };
-  }, [pacienteId]);
+  }, [pacienteId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function toggle(catId, idx) {
     setSelecionados(prev => {
@@ -1154,6 +981,305 @@ ${secoes}
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+/* ============================================================
+   PDF FINAL DO PLANO
+   ============================================================ */
+
+const _DADOS_PDF_DEFAULT = {
+  capa_info: '',
+  capa_objetivo: '',
+  consulta_info: '',
+  dados_paciente: '',
+  validade: '',
+  sugestoes: [],
+  notas: [],
+  prioridades: '',
+  metas: '',
+  suplementos: '',
+  orientacoes_gerais: '',
+  alimentos_reduzir: '',
+  obs_personalizadas: '',
+  atencao: '',
+  frase_encerramento: '"Quem você quer ser é inegociável."',
+  vegetais_liberados: 'Acelga, Agrião, Alface, Almeirão, Abobrinha, Berinjela, Beterraba, Brócolis, Cebola, Cenoura, Chicória, Chuchu, Couve, Couve-flor, Cogumelo, Espinafre, Maxixe, Nabo, Pepino, Pimentão, Quiabo, Rabanete, Repolho, Rúcula, Tomate',
+};
+
+function PdfFinal({ pacienteId, nutriId, pacienteNome, subsSelecionadas }) {
+  const [plano, setPlano] = useState(null);
+  const [dados, setDados] = useState({ ..._DADOS_PDF_DEFAULT });
+  const [idRascunho, setIdRascunho] = useState(null);
+  const [publicado, setPublicado] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [feedback, setFeedback] = useState(null);
+  const [nutriInfo, setNutriInfo] = useState({ nome: '', crn: '', email: '' });
+
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      const [planRes, draftRes, nutriRes] = await Promise.all([
+        supabase.from('planos').select('dados, validade')
+          .eq('paciente_id', pacienteId)
+          .order('publicado_em', { ascending: false }).limit(1).maybeSingle(),
+        supabase.from('planos_visuais').select('*')
+          .eq('paciente_id', pacienteId)
+          .order('created_at', { ascending: false }).limit(1).maybeSingle(),
+        supabase.from('nutris').select('nome, crn, email').eq('id', nutriId).maybeSingle(),
+      ]);
+      if (!active) return;
+
+      const planDados = planRes.data?.dados ?? null;
+      setPlano(planDados);
+
+      if (draftRes.data) {
+        setIdRascunho(draftRes.data.id);
+        setPublicado(draftRes.data.publicado ?? false);
+        setDados({ ..._DADOS_PDF_DEFAULT, ...draftRes.data.dados });
+      } else if (planDados) {
+        const refsLen = planDados.refeicoes?.length ?? 0;
+        setDados(prev => ({
+          ...prev,
+          validade: planRes.data.validade
+            ? new Date(planRes.data.validade).toLocaleDateString('pt-BR') : '',
+          sugestoes: Array(refsLen).fill(''),
+          notas: Array(refsLen).fill(''),
+        }));
+      }
+
+      if (nutriRes.data) setNutriInfo(nutriRes.data);
+    }
+    load();
+    return () => { active = false; };
+  }, [pacienteId, nutriId]);
+
+  const set = (key, value) => setDados(prev => ({ ...prev, [key]: value }));
+
+  async function salvar(publicar = false) {
+    setBusy(true);
+    setFeedback(null);
+    const payload = {
+      paciente_id: pacienteId,
+      nutri_id: nutriId,
+      dados: {
+        ...dados,
+        subs_selecionadas: Object.fromEntries([...subsSelecionadas].map(k => [k, true])),
+      },
+      publicado: publicar,
+      publicado_em: publicar ? new Date().toISOString() : null,
+    };
+    let error, newId;
+    if (idRascunho) {
+      ({ error } = await supabase.from('planos_visuais').update(payload).eq('id', idRascunho));
+    } else {
+      const res = await supabase.from('planos_visuais').insert(payload).select('id').single();
+      error = res.error;
+      newId = res.data?.id;
+    }
+    setBusy(false);
+    if (error) {
+      if (error.code === '42P01') {
+        return setFeedback({ tipo: 'erro', msg: 'Tabela planos_visuais não existe. Execute o SQL de migração no Supabase (seção 14 do setup.sql).' });
+      }
+      return setFeedback({ tipo: 'erro', msg: error.message });
+    }
+    if (newId) setIdRascunho(newId);
+    if (publicar) setPublicado(true);
+    setFeedback({ tipo: 'ok', msg: publicar ? 'Plano liberado! A paciente já pode ver.' : 'Rascunho salvo.' });
+  }
+
+  function visualizar() {
+    if (!plano) { alert('Publique um plano na aba Plano primeiro.'); return; }
+    const html = gerarPlanoHtml({
+      pacienteNome,
+      plano,
+      extras: dados,
+      subsSelecionadas,
+      nutriNome: nutriInfo.nome,
+      nutriCrn: nutriInfo.crn,
+      nutriEmail: nutriInfo.email,
+    });
+    const win = window.open('', '_blank');
+    if (!win) { alert('Permita pop-ups para visualizar o PDF.'); return; }
+    win.document.write(html);
+    win.document.close();
+  }
+
+  const refeicoes = plano?.refeicoes ?? [];
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+      {/* Cabeçalho com botões */}
+      <div className="card">
+        <div className="card-header">
+          <div>
+            <div className="card-title">PDF Final do Plano</div>
+            <div className="card-sub">
+              {publicado
+                ? '✓ Plano liberado para a paciente.'
+                : 'Preencha, visualize e libere o plano personalizado.'}
+              {subsSelecionadas.size > 0
+                ? ` · ${subsSelecionadas.size} substituições da aba anterior incluídas.`
+                : ' · Selecione substituições na aba anterior.'}
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            <button className="btn-outline" onClick={() => salvar(false)} disabled={busy}>
+              <i className="ti ti-device-floppy" aria-hidden="true"></i> Salvar rascunho
+            </button>
+            <button className="btn-outline" onClick={visualizar}>
+              <i className="ti ti-eye" aria-hidden="true"></i> Visualizar PDF
+            </button>
+            <button className="btn" onClick={() => salvar(true)} disabled={busy || !plano}>
+              <i className="ti ti-send" aria-hidden="true"></i> Liberar para paciente
+            </button>
+          </div>
+        </div>
+        {feedback && <FeedbackInline f={feedback} />}
+        {!plano && (
+          <div style={{ padding: '10px 20px', fontSize: 13, color: 'var(--text3)' }}>
+            ⚠ Nenhum plano publicado encontrado. Publique um plano na aba <strong>Plano</strong> primeiro.
+          </div>
+        )}
+      </div>
+
+      {/* Capa e dados da paciente */}
+      <div className="card">
+        <div className="card-header"><div className="card-title">Capa e Dados da Paciente</div></div>
+        <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div>
+            <label className="field-label">Linha de perfil</label>
+            <input value={dados.capa_info} onChange={e => set('capa_info', e.target.value)}
+              placeholder="32 anos · Designer · 74kg · 1,65m · IMC 27,2" />
+          </div>
+          <div>
+            <label className="field-label">Objetivo</label>
+            <input value={dados.capa_objetivo} onChange={e => set('capa_objetivo', e.target.value)}
+              placeholder="Emagrecimento + Controle do Inchaço · SOP · Anti-inflamatório" />
+          </div>
+          <div>
+            <label className="field-label">Info da consulta</label>
+            <input value={dados.consulta_info} onChange={e => set('consulta_info', e.target.value)}
+              placeholder={`Consulta Nº 01 · ${new Date().toLocaleDateString('pt-BR')} · Nutricionista ${nutriInfo.nome || '…'} | CRN ${nutriInfo.crn || '…'}`} />
+          </div>
+          <div>
+            <label className="field-label">Dados clínicos (1 dado por linha, aparece no lado esquerdo da capa)</label>
+            <textarea value={dados.dados_paciente} onChange={e => set('dados_paciente', e.target.value)}
+              rows={6} placeholder={'Peso: 74kg | Altura: 1,65m\nIMC: 27,2 — Sobrepeso leve\n% Gordura: 35% · MLG: 48,1kg\nCirc. Abdominal: 88cm\nRetorno: 30 dias'} />
+          </div>
+          <div>
+            <label className="field-label">Validade do plano (ex: 03/07/2026)</label>
+            <input value={dados.validade} onChange={e => set('validade', e.target.value)}
+              placeholder="03/07/2026" style={{ maxWidth: 200 }} />
+          </div>
+        </div>
+      </div>
+
+      {/* Sugestão e nota por refeição */}
+      {refeicoes.length > 0 && (
+        <div className="card">
+          <div className="card-header"><div className="card-title">Sugestão da Nutri por Refeição</div></div>
+          <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            {refeicoes.map((ref, i) => (
+              <div key={i} style={{ borderBottom: i < refeicoes.length - 1 ? '1px solid var(--border)' : 'none', paddingBottom: i < refeicoes.length - 1 ? 18 : 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--dark)', marginBottom: 8 }}>
+                  {ref.emoji ?? ''} {ref.nome}
+                  {ref.horario ? <span style={{ fontWeight: 400, color: 'var(--text3)', fontSize: 11, marginLeft: 8 }}>{ref.horario}</span> : null}
+                </div>
+                <label className="field-label">Sugestão da nutri</label>
+                <textarea
+                  value={dados.sugestoes?.[i] ?? ''}
+                  onChange={e => {
+                    const a = [...(dados.sugestoes ?? Array(refeicoes.length).fill(''))];
+                    a[i] = e.target.value;
+                    set('sugestoes', a);
+                  }}
+                  rows={2}
+                  placeholder={`Sugestão personalizada para ${ref.nome}...`}
+                />
+                <label className="field-label" style={{ marginTop: 6 }}>Nota de destaque (aparece em laranja)</label>
+                <input
+                  value={dados.notas?.[i] ?? ''}
+                  onChange={e => {
+                    const a = [...(dados.notas ?? Array(refeicoes.length).fill(''))];
+                    a[i] = e.target.value;
+                    set('notas', a);
+                  }}
+                  placeholder="Ex: O farelo de aveia tem função além da fibra — ajuda no controle glicêmico..."
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Prioridades / Metas / Suplementos */}
+      <div className="card">
+        <div className="card-header"><div className="card-title">Prioridades, Metas e Suplementos</div></div>
+        <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div>
+            <label className="field-label">Prioridades (1 por linha → vira bullet)</label>
+            <textarea value={dados.prioridades} onChange={e => set('prioridades', e.target.value)} rows={8}
+              placeholder={'Não pular o almoço — essa refeição é inegociável\nProteína em todas as 5 refeições, sem exceção\nNada de açúcar simples isolado — sempre com fibra ou proteína'} />
+          </div>
+          <div>
+            <label className="field-label">Metas (1 por linha)</label>
+            <textarea value={dados.metas} onChange={e => set('metas', e.target.value)} rows={6}
+              placeholder={'Reduzir circunferência abdominal de 88cm → meta 83cm em 60 dias\nEvacuar pelo menos 1x/dia em 2 semanas'} />
+          </div>
+          <div>
+            <label className="field-label">Suplementos (1 por linha)</label>
+            <textarea value={dados.suplementos} onChange={e => set('suplementos', e.target.value)} rows={5}
+              placeholder={'Ômega-3 — 2g/dia (EPA+DHA) — com almoço ou jantar\nMagnésio bisglícinato — 300mg — à noite antes de dormir'} />
+          </div>
+        </div>
+      </div>
+
+      {/* Orientações */}
+      <div className="card">
+        <div className="card-header"><div className="card-title">Orientações e Atenção</div></div>
+        <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div>
+            <label className="field-label">Orientações gerais (1 por linha)</label>
+            <textarea value={dados.orientacoes_gerais} onChange={e => set('orientacoes_gerais', e.target.value)} rows={7}
+              placeholder={'Fixe horários como âncoras — não dependa de sentir fome para comer\nTome o magnésio todo dia à noite — sono melhor em 1 semana'} />
+          </div>
+          <div>
+            <label className="field-label">Alimentos a reduzir (1 por linha)</label>
+            <textarea value={dados.alimentos_reduzir} onChange={e => set('alimentos_reduzir', e.target.value)} rows={5}
+              placeholder={'Açúcar refinado e mel em excesso — alimentam candidíase e pioram RI\nUltraprocessados doces'} />
+          </div>
+          <div>
+            <label className="field-label">Observações personalizadas (aparece como card destacado)</label>
+            <textarea value={dados.obs_personalizadas} onChange={e => set('obs_personalizadas', e.target.value)} rows={4}
+              placeholder="Ex: A sexta não precisa ser perfeita — ela precisa ser consciente. Uma refeição livre não desfaz uma semana." />
+          </div>
+          <div>
+            <label className="field-label">Atenção (1 por linha)</label>
+            <textarea value={dados.atencao} onChange={e => set('atencao', e.target.value)} rows={7}
+              placeholder={'Perceba os sinais de saciedade — comer devagar ajuda muito\nPese os alimentos pelo menos nas primeiras 2 semanas'} />
+          </div>
+        </div>
+      </div>
+
+      {/* Vegetais e encerramento */}
+      <div className="card">
+        <div className="card-header"><div className="card-title">Alimentos Liberados e Encerramento</div></div>
+        <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div>
+            <label className="field-label">Vegetais/alimentos liberados à vontade (separados por vírgula)</label>
+            <textarea value={dados.vegetais_liberados} onChange={e => set('vegetais_liberados', e.target.value)} rows={3} />
+          </div>
+          <div>
+            <label className="field-label">Frase de encerramento</label>
+            <input value={dados.frase_encerramento} onChange={e => set('frase_encerramento', e.target.value)}
+              placeholder='"Quem você quer ser é inegociável."' />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
