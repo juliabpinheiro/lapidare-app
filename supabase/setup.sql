@@ -1688,8 +1688,12 @@ create table if not exists public.planos_visuais (
   publicado     boolean not null default false,
   publicado_em  timestamptz,
   created_at    timestamptz not null default now(),
-  updated_at    timestamptz not null default now()
+  updated_at    timestamptz not null default now(),
+  arquivo_url   text,
+  arquivo_tipo  text
 );
+alter table public.planos_visuais add column if not exists arquivo_url  text;
+alter table public.planos_visuais add column if not exists arquivo_tipo text;
 create index if not exists planos_visuais_paciente_idx
   on public.planos_visuais(paciente_id, created_at desc);
 create index if not exists planos_visuais_nutri_idx
