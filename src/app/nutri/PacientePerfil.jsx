@@ -14,7 +14,6 @@ import Suplementacao from './_Suplementacao.jsx';
 import Habitos from './_Habitos.jsx';
 import Anamnese from './_Anamnese.jsx';
 import DicaJSON from '../../components/DicaJSON.jsx';
-import { SUBS_GRUPOS } from '../../lib/subsData.js';
 import { gerarPlanoHtml } from '../../lib/gerarPlanoHtml.js';
 
 export default function PacientePerfil() {
@@ -23,7 +22,6 @@ export default function PacientePerfil() {
   const { user } = useSession();
   const [paciente, setPaciente] = useState(null);
   const [tab, setTab] = useState('plano');
-  const [subsSel, setSubsSel] = useState(new Set());
   const [editandoNasc, setEditandoNasc] = useState(false);
   const [novoNasc, setNovoNasc] = useState('');
   const [salvandoNasc, setSalvandoNasc] = useState(false);
@@ -256,8 +254,8 @@ export default function PacientePerfil() {
       {tab === 'suplementacao' && <Suplementacao pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'habitos' && <Habitos pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'plano' && <PublicarPlano pacienteId={paciente.id} nutriId={user.id} />}
-      {tab === 'substituicoes' && <Substituicoes pacienteId={paciente.id} pacienteNome={paciente.nome} selecionados={subsSel} setSelecionados={setSubsSel} />}
-      {tab === 'pdf-final' && <PdfFinal pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} subsSelecionadas={subsSel} />}
+      {tab === 'substituicoes' && <Substituicoes pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
+      {tab === 'pdf-final' && <PdfFinal pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'compras' && <PublicarLista pacienteId={paciente.id} nutriId={user.id} />}
       {tab === 'prescricoes' && <EnviarPrescricao pacienteId={paciente.id} nutriId={user.id} />}
       {tab === 'ebooks' && <EbooksDaPaciente pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
@@ -756,290 +754,246 @@ function PublicarPlano({ pacienteId, nutriId }) {
 }
 
 /* ============================================================
-   SUBSTITUIÇÕES ALIMENTARES
+   SUBSTITUIÇÕES ALIMENTARES — editor de texto livre
    ============================================================ */
 
-const _escHtmlSubs = s =>
-  String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const _FRUTAS_DEFAULT = 'Banana prata – 1 unidade ou Uva 15 unidades ou Morango 15 unidades ou Melão 300g ou Mamão 150g ou Melancia 350g ou Manga 200g ou Maçã 1 unidade ou Tangerina 1 unidade ou Laranja 1 unidade ou Kiwi 2 unidades ou Abacate 50g ou Abacaxi 150g ou 1 pera ou Coco seco 15g';
+const _PROT_ALM_DEFAULT = 'Peito de frango 100g ou Sobrecoxa sem pele 90g ou Fígado 100g ou Moela 100g ou Picanha sem gordura 80g ou Músculo 120g ou Patinho moído 100g ou Bife de alcatra 100g ou Whey protein 30g ou Lombo suíno 100g ou Tilápia 150g ou Salmão 100g ou Camarão 120g ou Sardinha enlatada em água 105g ou Atum enlatado em água 100g ou Ovo de galinha 2 unidades';
+const _CARBO_ALM_DEFAULT = 'Arroz branco ou integral 100g ou Batata inglesa 120g ou Aipim/mandioca 100g ou Batata doce 105g ou Inhame 100g ou Batata baroa/mandioquinha 150g ou Quinoa já cozida 80g ou Macarrão tradicional ou integral 100g ou Abóbora 170g ou Milho 120g ou Cuscuz já pronto 100g';
+const _LEG_DEFAULT = 'Feijão 150g ou Lentilha 150g ou Soja 75g ou Grão de bico 75g';
 
+const SUBS_TEXTO_PADRAO = {
+  cafe_manha: {
+    carbo:  'Pão de forma tradicional ou integral sem grãos – 2 fatias ou Pão francês sem miolo – 1 unidade ou Torrada integral – 4 unidades ou Rap10 – 1 unidade ou Goma de tapioca 45g ou Pão sírio 50g ou Cuscuz (já pronto) 100g ou 1 fatia de pão de forma + 20g de geleia light Linea ou Pão bisnaguinha 3 unidades ou Torrada Lev Magic Toast 7 unidades',
+    prot:   'Ovo – 1 unidade ou Queijo Minas Frescal – 30g ou Queijo minas padrão 20g ou Queijo meia cura 20g ou Queijo curado 20g ou Muçarela 20g ou Ricota 40g ou Muçarela de búfala 20g ou Queijo coalho 15g',
+    fruta:  _FRUTAS_DEFAULT,
+    bebida: 'Café puro ou adoçado com adoçante ou Suco de limão, morango, melancia, acerola ou maracujá com adoçante ou puro',
+  },
+  lanche_manha: {
+    fruta: _FRUTAS_DEFAULT,
+  },
+  almoco: {
+    prot:  _PROT_ALM_DEFAULT,
+    carbo: _CARBO_ALM_DEFAULT,
+    leg:   _LEG_DEFAULT,
+  },
+  lanche_tarde: {
+    prot:  'Iogurte natural desnatado 160g ou Itambé Fit sabor morango 160ml ou Iogurte grego zero 1 unidade ou Batavo Pense Zero 160ml ou Leite desnatado 150ml',
+    fruta: 'Banana prata – 1 unidade ou Uva 15 unidades ou Morango 15 unidades ou Melão 300g ou Mamão 150g ou Melancia 350g ou Manga 200g ou Maçã 1 unidade ou Tangerina 1 unidade ou Laranja 1 unidade ou Kiwi 2 unidades ou Abacate 50g',
+  },
+  jantar: {
+    prot:  _PROT_ALM_DEFAULT,
+    carbo: _CARBO_ALM_DEFAULT,
+    leg:   _LEG_DEFAULT,
+  },
+  ceia: {
+    fruta: _FRUTAS_DEFAULT,
+  },
+};
 
-function _normSubs(s) {
-  return s.toLowerCase()
-    .normalize('NFD').replace(/[̀-ͯ]/g, '')
-    .replace(/\d+\s*(g|ml|kg)\b/gi, '')
-    .replace(/[^a-z\s]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
+const SUBS_ESTRUTURA = [
+  { key: 'cafe_manha',   label: 'Café da Manhã',   cats: [
+    { key: 'carbo',  label: 'Carboidrato (ESCOLHA 1 OPÇÃO)' },
+    { key: 'prot',   label: 'Proteína (ESCOLHA 1 OPÇÃO)' },
+    { key: 'fruta',  label: 'Fruta (ESCOLHA 1 OPÇÃO)' },
+    { key: 'bebida', label: 'Bebida (ESCOLHA 1 OPÇÃO)' },
+  ]},
+  { key: 'lanche_manha', label: 'Lanche da Manhã', cats: [
+    { key: 'fruta', label: 'Fruta (ESCOLHA 1 OPÇÃO)' },
+  ]},
+  { key: 'almoco',       label: 'Almoço',           cats: [
+    { key: 'prot',  label: 'Proteína (ESCOLHA 1 OPÇÃO)' },
+    { key: 'carbo', label: 'Carboidrato (ESCOLHA 1 OPÇÃO)' },
+    { key: 'leg',   label: 'Leguminosa (ESCOLHA 1 OPÇÃO)' },
+  ]},
+  { key: 'lanche_tarde', label: 'Lanche da Tarde',  cats: [
+    { key: 'prot',  label: 'Proteína (ESCOLHA 1 OPÇÃO)' },
+    { key: 'fruta', label: 'Fruta (ESCOLHA 1 OPÇÃO)' },
+  ]},
+  { key: 'jantar',       label: 'Jantar',           cats: [
+    { key: 'prot',  label: 'Proteína (ESCOLHA 1 OPÇÃO)' },
+    { key: 'carbo', label: 'Carboidrato (ESCOLHA 1 OPÇÃO)' },
+    { key: 'leg',   label: 'Leguminosa (ESCOLHA 1 OPÇÃO)' },
+  ]},
+  { key: 'ceia',         label: 'Ceia',             cats: [
+    { key: 'fruta', label: 'Fruta (ESCOLHA 1 OPÇÃO)' },
+  ]},
+];
 
-function _bateComSub(nomeAlimento, itemSub) {
-  const STOP = new Set(['de','da','do','com','sem','em','ou','ja','por','um','uma','tipo','zero','light','fit']);
-  const kw = s => _normSubs(s).split(/\s+/).filter(w => w.length >= 4 && !STOP.has(w));
-  const k1 = kw(nomeAlimento), k2 = kw(itemSub);
-  return k1.length > 0 && k2.length > 0 && k1.some(w => k2.includes(w));
-}
-
-function _presSelecionarSubs(plano, setSelecionados) {
-  const nomes = [];
-  for (const ref of (plano.refeicoes ?? [])) {
-    for (const al of (ref.alimentos ?? [])) {
-      if (al.nome) nomes.push(al.nome);
-      for (const sub of (al.subs ?? [])) {
-        const n = typeof sub === 'string' ? sub : sub?.nome;
-        if (n) nomes.push(n);
-      }
-    }
-  }
-  if (!nomes.length) return;
-  const novos = new Set();
-  for (const grupo of SUBS_GRUPOS) {
-    for (const cat of grupo.categorias) {
-      cat.itens.forEach((item, i) => {
-        if (nomes.some(n => _bateComSub(n, item))) novos.add(`${cat.id}|${i}`);
-      });
-    }
-  }
-  setSelecionados(novos);
-}
-
-function Substituicoes({ pacienteId, pacienteNome, selecionados, setSelecionados }) {
-  const [carregando, setCarregando] = useState(true);
+function Substituicoes({ pacienteId, nutriId, pacienteNome }) {
+  const [texto, setTexto] = useState(
+    () => JSON.parse(JSON.stringify(SUBS_TEXTO_PADRAO)) // deep clone defaults
+  );
+  const [busy, setBusy] = useState(false);
+  const [feedback, setFeedback] = useState(null);
 
   useEffect(() => {
     let active = true;
     async function load() {
-      setCarregando(true);
       const { data } = await supabase
-        .from('planos')
-        .select('dados')
+        .from('planos_visuais')
+        .select('subs_texto')
         .eq('paciente_id', pacienteId)
-        .order('publicado_em', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
       if (!active) return;
-      // só pré-seleciona se o estado ainda estiver vazio (preserva seleções manuais)
-      if (data?.dados && selecionados.size === 0) _presSelecionarSubs(data.dados, setSelecionados);
-      setCarregando(false);
+      if (data?.subs_texto) {
+        setTexto(prev => {
+          // merge: mantém estrutura padrão, sobrepõe com o salvo
+          const merged = JSON.parse(JSON.stringify(SUBS_TEXTO_PADRAO));
+          for (const ref of Object.keys(data.subs_texto)) {
+            if (merged[ref]) Object.assign(merged[ref], data.subs_texto[ref]);
+          }
+          return merged;
+        });
+      }
     }
     load();
     return () => { active = false; };
-  }, [pacienteId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [pacienteId]);
 
-  function toggle(catId, idx) {
-    setSelecionados(prev => {
-      const next = new Set(prev);
-      const k = `${catId}|${idx}`;
-      next.has(k) ? next.delete(k) : next.add(k);
-      return next;
-    });
+  function setCategoria(refKey, catKey, valor) {
+    setTexto(prev => ({
+      ...prev,
+      [refKey]: { ...prev[refKey], [catKey]: valor },
+    }));
+    setFeedback(null);
   }
 
-  function marcarTodosCat(cat) {
-    setSelecionados(prev => {
-      const next = new Set(prev);
-      cat.itens.forEach((_, i) => next.add(`${cat.id}|${i}`));
-      return next;
-    });
+  function restaurarPadrao(refKey, catKey) {
+    setTexto(prev => ({
+      ...prev,
+      [refKey]: { ...prev[refKey], [catKey]: SUBS_TEXTO_PADRAO[refKey]?.[catKey] ?? '' },
+    }));
   }
 
-  function limparCat(cat) {
-    setSelecionados(prev => {
-      const next = new Set(prev);
-      cat.itens.forEach((_, i) => next.delete(`${cat.id}|${i}`));
-      return next;
-    });
+  async function salvar() {
+    setBusy(true);
+    setFeedback(null);
+    const { data: existing } = await supabase
+      .from('planos_visuais')
+      .select('id')
+      .eq('paciente_id', pacienteId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    let error;
+    if (existing?.id) {
+      ({ error } = await supabase
+        .from('planos_visuais')
+        .update({ subs_texto: texto, updated_at: new Date().toISOString() })
+        .eq('id', existing.id));
+    } else {
+      ({ error } = await supabase
+        .from('planos_visuais')
+        .insert({ paciente_id: pacienteId, nutri_id: nutriId, dados: {}, subs_texto: texto, publicado: false }));
+    }
+    setBusy(false);
+    if (error) return setFeedback({ tipo: 'erro', msg: error.message });
+    setFeedback({ tipo: 'ok', msg: 'Substituições salvas! Aparecerão no PDF Final.' });
   }
-
-  function gerarPDF() {
-    const secoes = SUBS_GRUPOS.map(grupo => {
-      const catsHtml = grupo.categorias.map(cat => {
-        const itens = cat.itens.filter((_, i) => selecionados.has(`${cat.id}|${i}`));
-        if (!itens.length) return '';
-        return `<div class="cat"><div class="cat-label">${_escHtmlSubs(cat.label)}</div><ul>${
-          itens.map(it => `<li>${_escHtmlSubs(it)}</li>`).join('')
-        }</ul></div>`;
-      }).join('');
-      if (!catsHtml.trim()) return '';
-      return `<div class="grupo"><div class="grupo-titulo">${_escHtmlSubs(grupo.refeicao)}</div>${catsHtml}</div>`;
-    }).join('');
-
-    if (!secoes.trim()) { alert('Selecione pelo menos um alimento antes de gerar o PDF.'); return; }
-
-    const win = window.open('', '_blank');
-    if (!win) { alert('Permita pop-ups para gerar o PDF.'); return; }
-    win.document.write(`<!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8">
-<title>Substituições · ${_escHtmlSubs(pacienteNome ?? '')}</title>
-<style>
-@page{size:A4;margin:20mm}
-*{box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#2b2b2b;max-width:680px;margin:0 auto;font-size:13px}
-h1{font-size:20px;margin:0 0 4px;color:#1a1a1a}
-.meta{font-size:11px;color:#888;margin-bottom:26px}
-.header{border-bottom:2px solid #c9a96e;padding-bottom:14px;margin-bottom:20px}
-.intro{font-size:12px;color:#555;background:#faf7f2;padding:10px 14px;border-radius:6px;margin-bottom:22px;line-height:1.6}
-.grupo{margin-bottom:22px;page-break-inside:avoid}
-.grupo-titulo{font-size:13px;font-weight:700;color:#c9a96e;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid #e8dcc8;padding-bottom:4px;margin-bottom:10px}
-.cat{margin-bottom:10px;padding-left:8px}
-.cat-label{font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
-ul{margin:0;padding-left:16px}
-li{margin-bottom:3px;font-size:13px;line-height:1.5}
-.footer{margin-top:30px;font-size:10px;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:10px}
-</style></head>
-<body>
-<div class="header"><h1>Substituições Alimentares</h1>
-<div class="meta">Paciente: <strong>${_escHtmlSubs(pacienteNome ?? '')}</strong></div></div>
-<div class="intro">Escolha <strong>uma opção por categoria</strong> em cada refeição. Mantenha as quantidades indicadas e prefira alimentos frescos e minimamente processados.</div>
-${secoes}
-<div class="footer">Gerado pela Lapidare</div>
-<script>window.onload=()=>setTimeout(()=>window.print(),400)</script>
-</body></html>`);
-    win.document.close();
-  }
-
-  const total = selecionados.size;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
-      {/* Barra de ações global */}
+      {/* Cabeçalho com botão salvar */}
       <div className="card">
         <div className="card-header">
           <div>
             <div className="card-title">Substituições Alimentares</div>
             <div className="card-sub">
-              {carregando
-                ? 'Carregando plano ativo...'
-                : `${total} item${total !== 1 ? 's' : ''} selecionado${total !== 1 ? 's' : ''}. Edite livremente e gere o PDF para a paciente.`}
+              Textos pré-preenchidos com o padrão do método. Edite livremente — o que estiver aqui aparece no PDF Final.
             </div>
           </div>
-          <button className="btn" onClick={gerarPDF} disabled={total === 0 || carregando}>
-            <i className="ti ti-download" aria-hidden="true"></i> Gerar PDF
+          <button className="btn" onClick={salvar} disabled={busy}>
+            <i className="ti ti-device-floppy" aria-hidden="true"></i>
+            {busy ? 'Salvando…' : 'Salvar substituições'}
           </button>
         </div>
+        {feedback && (
+          <div style={{
+            margin: '0 20px 14px', padding: '9px 12px', borderRadius: 7, fontSize: 13,
+            background: feedback.tipo === 'ok' ? '#e6f0d4' : '#fbeaf0',
+            color: feedback.tipo === 'ok' ? 'var(--green)' : 'var(--red)',
+          }}>
+            <i className={`ti ti-${feedback.tipo === 'ok' ? 'check' : 'alert-circle'}`} style={{ marginRight: 6 }} />
+            {feedback.msg}
+          </div>
+        )}
       </div>
 
       {/* Um card por refeição */}
-      {SUBS_GRUPOS.map(grupo => {
-        const totalGrupo = grupo.categorias.reduce((acc, cat) =>
-          acc + cat.itens.filter((_, i) => selecionados.has(`${cat.id}|${i}`)).length, 0);
+      {SUBS_ESTRUTURA.map(ref => (
+        <div key={ref.key} className="card" style={{ overflow: 'hidden', padding: 0 }}>
 
-        return (
-          <div key={grupo.refeicao} className="card" style={{ overflow: 'hidden', padding: 0 }}>
-
-            {/* Header da refeição */}
+          {/* Header da refeição */}
+          <div style={{
+            padding: '11px 20px',
+            borderBottom: '1px solid var(--border)',
+            background: '#f5f1eb',
+          }}>
             <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              padding: '12px 20px',
-              borderBottom: '1px solid var(--border)',
-              background: 'var(--bg2, #faf7f2)',
+              fontSize: 12, fontWeight: 700, color: 'var(--dark)',
+              textTransform: 'uppercase', letterSpacing: '0.07em',
             }}>
-              <div style={{
-                fontSize: 13, fontWeight: 700, color: 'var(--dark)',
-                textTransform: 'uppercase', letterSpacing: '0.06em',
-              }}>
-                {grupo.refeicao}
-              </div>
-              {totalGrupo > 0 && (
-                <span style={{
-                  fontSize: 11, color: '#c9a96e', fontWeight: 600,
-                  background: '#fdf3ee', borderRadius: 20,
-                  padding: '2px 10px',
-                }}>
-                  {totalGrupo} selecionado{totalGrupo !== 1 ? 's' : ''}
-                </span>
-              )}
-            </div>
-
-            {/* Categorias — grid fixo 2 col; borda esquerda na col direita como divisória */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
-              {grupo.categorias.map((cat, ci) => {
-                const allChk = cat.itens.every((_, i) => selecionados.has(`${cat.id}|${i}`));
-                const anyChk = cat.itens.some((_, i) => selecionados.has(`${cat.id}|${i}`));
-                const selCount = cat.itens.filter((_, i) => selecionados.has(`${cat.id}|${i}`)).length;
-                const isRightCol = ci % 2 !== 0;
-
-                return (
-                  <div key={cat.id} style={{
-                    borderLeft:   isRightCol ? '2px solid var(--border)' : 'none',
-                    borderBottom: '1px solid var(--border)',
-                    background:   isRightCol ? '#fdfbf8' : '#fff',
-                  }}>
-
-                    {/* Header da categoria */}
-                    <div style={{
-                      display: 'flex', alignItems: 'center', gap: 6,
-                      padding: '9px 14px 7px',
-                      borderBottom: '1px solid var(--border)',
-                      background: isRightCol ? '#f7f3ed' : '#f5f1eb',
-                    }}>
-                      <span style={{
-                        fontSize: 10, fontWeight: 700, letterSpacing: '0.08em',
-                        textTransform: 'uppercase', color: '#c9a96e', flex: 1, minWidth: 0,
-                      }}>
-                        {cat.label}
-                        {selCount > 0 && (
-                          <span style={{ color: 'var(--text3)', fontWeight: 400, marginLeft: 5, fontSize: 9 }}>
-                            {selCount}/{cat.itens.length}
-                          </span>
-                        )}
-                      </span>
-                      {!allChk && (
-                        <button onClick={() => marcarTodosCat(cat)} style={{
-                          background: 'none', border: '0.5px solid #ccc',
-                          borderRadius: 4, cursor: 'pointer',
-                          fontSize: 10, color: 'var(--text3)', padding: '1px 6px', lineHeight: '16px',
-                        }}>todos</button>
-                      )}
-                      {anyChk && (
-                        <button onClick={() => limparCat(cat)} style={{
-                          background: 'none', border: '0.5px solid #ccc',
-                          borderRadius: 4, cursor: 'pointer',
-                          fontSize: 10, color: 'var(--red)', padding: '1px 6px', lineHeight: '16px',
-                        }}>limpar</button>
-                      )}
-                    </div>
-
-                    {/* Lista de itens */}
-                    <div>
-                      {cat.itens.map((item, idx) => {
-                        const key = `${cat.id}|${idx}`;
-                        const chk = selecionados.has(key);
-                        return (
-                          <label key={idx} style={{
-                            display: 'flex', alignItems: 'baseline', gap: 8,
-                            padding: '6px 14px',
-                            borderBottom: idx < cat.itens.length - 1 ? '0.5px solid #ede8e0' : 'none',
-                            cursor: 'pointer',
-                            background: chk ? '#fffbf5' : 'transparent',
-                          }}>
-                            <input
-                              type="checkbox"
-                              checked={chk}
-                              onChange={() => toggle(cat.id, idx)}
-                              style={{ flexShrink: 0, accentColor: '#c9a96e', cursor: 'pointer', margin: '1px 0 0' }}
-                            />
-                            <span style={{
-                              flex: 1,
-                              minWidth: 0,
-                              fontSize: 13,
-                              lineHeight: 1.45,
-                              color: chk ? 'var(--dark)' : 'var(--text3)',
-                              fontWeight: chk ? 500 : 400,
-                            }}>
-                              {item}
-                            </span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
+              {ref.label}
             </div>
           </div>
-        );
-      })}
+
+          {/* Categorias — separadas por linha */}
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {ref.cats.map((cat, ci) => (
+              <div key={cat.key} style={{
+                borderTop: ci > 0 ? '1px solid var(--border)' : 'none',
+                padding: '14px 20px',
+              }}>
+                {/* Label + botão restaurar */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7 }}>
+                  <label style={{
+                    fontSize: 11, fontWeight: 700, letterSpacing: '0.07em',
+                    textTransform: 'uppercase', color: '#c9a96e', flex: 1,
+                  }}>
+                    {cat.label}
+                  </label>
+                  <button
+                    onClick={() => restaurarPadrao(ref.key, cat.key)}
+                    style={{
+                      background: 'none', border: '0.5px solid #ccc', borderRadius: 4,
+                      cursor: 'pointer', fontSize: 10, color: 'var(--text3)',
+                      padding: '2px 8px', lineHeight: '16px', flexShrink: 0,
+                    }}
+                  >
+                    restaurar padrão
+                  </button>
+                </div>
+                {/* Textarea editável */}
+                <textarea
+                  value={texto[ref.key]?.[cat.key] ?? ''}
+                  onChange={e => setCategoria(ref.key, cat.key, e.target.value)}
+                  rows={3}
+                  style={{
+                    width: '100%', boxSizing: 'border-box',
+                    fontFamily: 'inherit', fontSize: 13, lineHeight: 1.55,
+                    color: 'var(--dark)', resize: 'vertical',
+                    border: '1px solid var(--border)', borderRadius: 6,
+                    padding: '8px 10px', background: '#fff',
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      {/* Botão salvar no rodapé também */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', paddingBottom: 8 }}>
+        <button className="btn" onClick={salvar} disabled={busy}>
+          <i className="ti ti-device-floppy" aria-hidden="true"></i>
+          {busy ? 'Salvando…' : 'Salvar substituições'}
+        </button>
+      </div>
     </div>
   );
 }
@@ -1067,9 +1021,10 @@ const _DADOS_PDF_DEFAULT = {
   vegetais_liberados: 'Acelga, Agrião, Alface, Almeirão, Abobrinha, Berinjela, Beterraba, Brócolis, Cebola, Cenoura, Chicória, Chuchu, Couve, Couve-flor, Cogumelo, Espinafre, Maxixe, Nabo, Pepino, Pimentão, Quiabo, Rabanete, Repolho, Rúcula, Tomate',
 };
 
-function PdfFinal({ pacienteId, nutriId, pacienteNome, subsSelecionadas }) {
+function PdfFinal({ pacienteId, nutriId, pacienteNome }) {
   const [plano, setPlano] = useState(null);
   const [dados, setDados] = useState({ ..._DADOS_PDF_DEFAULT });
+  const [subsTexto, setSubsTexto] = useState(null);
   const [idRascunho, setIdRascunho] = useState(null);
   const [publicado, setPublicado] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -1097,6 +1052,7 @@ function PdfFinal({ pacienteId, nutriId, pacienteNome, subsSelecionadas }) {
         setIdRascunho(draftRes.data.id);
         setPublicado(draftRes.data.publicado ?? false);
         setDados({ ..._DADOS_PDF_DEFAULT, ...draftRes.data.dados });
+        setSubsTexto(draftRes.data.subs_texto ?? null);
       } else if (planDados) {
         const refsLen = planDados.refeicoes?.length ?? 0;
         setDados(prev => ({
@@ -1122,10 +1078,7 @@ function PdfFinal({ pacienteId, nutriId, pacienteNome, subsSelecionadas }) {
     const payload = {
       paciente_id: pacienteId,
       nutri_id: nutriId,
-      dados: {
-        ...dados,
-        subs_selecionadas: Object.fromEntries([...subsSelecionadas].map(k => [k, true])),
-      },
+      dados,
       publicado: publicar,
       publicado_em: publicar ? new Date().toISOString() : null,
     };
@@ -1155,7 +1108,7 @@ function PdfFinal({ pacienteId, nutriId, pacienteNome, subsSelecionadas }) {
       pacienteNome,
       plano,
       extras: dados,
-      subsSelecionadas,
+      subsTexto,
       nutriNome: nutriInfo.nome,
       nutriCrn: nutriInfo.crn,
       nutriEmail: nutriInfo.email,

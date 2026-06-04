@@ -1726,6 +1726,7 @@ create table if not exists public.planos_visuais (
 );
 alter table public.planos_visuais add column if not exists arquivo_url  text;
 alter table public.planos_visuais add column if not exists arquivo_tipo text;
+alter table public.planos_visuais add column if not exists subs_texto   jsonb;
 create index if not exists planos_visuais_paciente_idx
   on public.planos_visuais(paciente_id, created_at desc);
 create index if not exists planos_visuais_nutri_idx

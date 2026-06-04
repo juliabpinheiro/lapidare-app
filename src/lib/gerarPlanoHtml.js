@@ -1,7 +1,19 @@
-import { SUBS_GRUPOS, getMealSubsIdx } from './subsData.js';
-
 function esc(s) {
   return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+const _CAT_LABELS = { carbo: 'Carboidrato', prot: 'Proteína', leg: 'Leguminosa', fruta: 'Fruta', bebida: 'Bebida' };
+const _CAT_ORDER = { cafe_manha: ['carbo','prot','fruta','bebida'], lanche_manha: ['fruta'], almoco: ['prot','carbo','leg'], lanche_tarde: ['prot','fruta'], jantar: ['prot','carbo','leg'], ceia: ['fruta'] };
+const _MEAL_KEYS = ['cafe_manha','lanche_manha','almoco','lanche_tarde','jantar','ceia'];
+
+function normMealKey(nomeMeal) {
+  const n = (nomeMeal ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9\s]/g,'').trim();
+  if (n.includes('ceia')) return 'ceia';
+  if (n.includes('jantar')) return 'jantar';
+  if (n.includes('lanche') && (n.includes('tarde') || n.includes('16') || n.includes('15'))) return 'lanche_tarde';
+  if (n.includes('almoco')) return 'almoco';
+  if (n.includes('lanche')) return 'lanche_manha';
+  return 'cafe_manha';
 }
 
 function bullets(text) {
@@ -9,16 +21,17 @@ function bullets(text) {
   return (text + '').split('\n').filter(l => l.trim()).map(l => `<li>${esc(l.trim())}</li>`).join('');
 }
 
-function subsHtml(grupoIdx, sel) {
-  if (grupoIdx < 0) return '';
-  const grupo = SUBS_GRUPOS[grupoIdx];
-  if (!grupo) return '';
-  return grupo.categorias.map(cat => {
-    const itens = cat.itens.filter((_, i) => sel.has(`${cat.id}|${i}`));
-    if (!itens.length) return '';
+function subsHtml(mealKey, subsTexto) {
+  if (!subsTexto || !mealKey) return '';
+  const cats = subsTexto[mealKey];
+  if (!cats) return '';
+  const order = _CAT_ORDER[mealKey] ?? Object.keys(cats);
+  return order.map(catKey => {
+    const texto = cats[catKey];
+    if (!texto?.trim()) return '';
     return `<div class="grupo">
-      <div class="grupo-label">${esc(cat.label)} (Escolha 1 Opção)</div>
-      <div class="grupo-caixa">${itens.map(it => esc(it)).join(' · ')}</div>
+      <div class="grupo-label">${esc(_CAT_LABELS[catKey] ?? catKey)} (Escolha 1 Opção)</div>
+      <div class="grupo-caixa">${esc(texto)}</div>
     </div>`;
   }).join('');
 }
@@ -125,11 +138,11 @@ function pag2(e) {
   </div>`);
 }
 
-function pagRef(ref, idx, e, sel) {
+function pagRef(ref, idx, e, subsTexto) {
   const sugestao = e.sugestoes?.[idx] ?? '';
   const nota = e.notas?.[idx] ?? '';
-  const grupoIdx = getMealSubsIdx(ref.nome ?? '');
-  const subs = subsHtml(grupoIdx, sel);
+  const mealKey = normMealKey(ref.nome ?? '');
+  const subs = subsHtml(mealKey, subsTexto);
   const horarioLinha = [ref.horario, ref.kcal ? ref.kcal + ' kcal' : null].filter(Boolean).join(' · ');
 
   return pagina(`
@@ -266,18 +279,15 @@ h1,h2,h3{page-break-after:avoid}
 .enc-validade{font-size:9px;color:var(--txtL);margin-top:14px;text-align:center}
 `;
 
-export function gerarPlanoHtml({ pacienteNome, plano, extras, subsSelecionadas, nutriNome, nutriCrn, nutriEmail }) {
+export function gerarPlanoHtml({ pacienteNome, plano, extras, subsTexto, nutriNome, nutriCrn, nutriEmail }) {
   const e = extras ?? {};
   const macros = plano?.macros ?? {};
   const refeicoes = plano?.refeicoes ?? [];
-  const sel = subsSelecionadas instanceof Set
-    ? subsSelecionadas
-    : new Set(Object.keys(subsSelecionadas ?? {}).filter(k => subsSelecionadas[k]));
 
   const paginas = [
     pag1(pacienteNome, macros, e),
     pag2(e),
-    ...refeicoes.map((ref, i) => pagRef(ref, i, e, sel)),
+    ...refeicoes.map((ref, i) => pagRef(ref, i, e, subsTexto)),
     pagTotais(e),
     pagOrientacoes(e),
     pagEncerramento(pacienteNome, e, nutriNome, nutriCrn, nutriEmail),

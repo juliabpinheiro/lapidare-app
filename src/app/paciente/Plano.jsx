@@ -59,7 +59,7 @@ export default function Plano() {
       pacienteNome: user?.user_metadata?.nome ?? user?.email ?? '',
       plano,
       extras: planoVisual,
-      subsSelecionadas: new Set(Object.keys(planoVisual.subs_selecionadas ?? {}).filter(k => planoVisual.subs_selecionadas[k])),
+      subsTexto: planoVisual.subs_texto ?? null,
       nutriNome: '',
       nutriCrn: '',
       nutriEmail: '',
