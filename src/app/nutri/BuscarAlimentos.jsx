@@ -43,7 +43,8 @@ export default function BuscarAlimentos() {
     try {
       const res  = await fetch(`/.netlify/functions/fatsecret?q=${encodeURIComponent(termo)}`);
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || `Erro ${res.status}`);
+      // Mostra erro real tanto de HTTP 4xx/5xx quanto do campo error no JSON
+      if (!res.ok || data.error) throw new Error(data.error || `Erro HTTP ${res.status}`);
       setResultados(data.foods ?? []);
       setTotal(data.total ?? null);
     } catch (e) {
