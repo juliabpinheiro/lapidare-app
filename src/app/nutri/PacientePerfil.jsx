@@ -13,6 +13,7 @@ import FollowUp from './_FollowUp.jsx';
 import Suplementacao from './_Suplementacao.jsx';
 import Habitos from './_Habitos.jsx';
 import Anamnese from './_Anamnese.jsx';
+import MapaGeral from './_MapaGeral.jsx';
 import DicaJSON from '../../components/DicaJSON.jsx';
 import { gerarPlanoHtml } from '../../lib/gerarPlanoHtml.js';
 
@@ -213,6 +214,7 @@ export default function PacientePerfil() {
       }}>
         {[
           { id: 'evolucao',    label: 'Evolução',     icon: 'chart-line' },
+          { id: 'mapa-geral',  label: 'Mapa Geral',   icon: 'map-2' },
           { id: 'anamnese',    label: 'Anamnese',     icon: 'clipboard-text' },
           { id: 'calculo',     label: 'Cálculo',      icon: 'calculator' },
           { id: 'followup',    label: 'Follow-up',    icon: 'notebook' },
@@ -247,8 +249,9 @@ export default function PacientePerfil() {
         ))}
       </div>
 
-      {tab === 'evolucao' && <Evolucao pacienteId={paciente.id} paciente={paciente} nutriId={user.id} />}
-      {tab === 'anamnese' && <Anamnese pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
+      {tab === 'evolucao'   && <Evolucao pacienteId={paciente.id} paciente={paciente} nutriId={user.id} />}
+      {tab === 'mapa-geral' && <MapaGeral pacienteId={paciente.id} nutriId={user.id} />}
+      {tab === 'anamnese'   && <Anamnese pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'calculo'  && <CalculoEnergetico paciente={paciente} />}
       {tab === 'followup' && <FollowUp pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'suplementacao' && <Suplementacao pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
