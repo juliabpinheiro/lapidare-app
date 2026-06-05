@@ -4,12 +4,12 @@ import { useSession } from '../../lib/session.jsx';
 
 /* ── Refeições padrão ──────────────────────────────────────── */
 const REFEICOES = [
-  { nome: 'Café da Manhã',   horario: '08:00', emoji: '☕' },
-  { nome: 'Lanche da Manhã', horario: '10:30', emoji: '🍎' },
-  { nome: 'Almoço',          horario: '12:30', emoji: '🍽️' },
-  { nome: 'Lanche da Tarde', horario: '15:30', emoji: '🥤' },
-  { nome: 'Jantar',          horario: '19:00', emoji: '🌙' },
-  { nome: 'Ceia',            horario: '21:00', emoji: '🌛' },
+  { nome: 'Café da Manhã',   horario: '08:00' },
+  { nome: 'Lanche da Manhã', horario: '10:30' },
+  { nome: 'Almoço',          horario: '12:30' },
+  { nome: 'Lanche da Tarde', horario: '15:30' },
+  { nome: 'Jantar',          horario: '19:00' },
+  { nome: 'Ceia',            horario: '21:00' },
 ];
 
 function planoVazio() {
@@ -204,7 +204,6 @@ export default function BuscarAlimentos() {
       refeicoes: refsComAlimentos.map(r => ({
         nome:      r.nome,
         horario:   plano[r.nome].horario,
-        emoji:     r.emoji,
         alimentos: plano[r.nome].alimentos,
       })),
     };
@@ -254,7 +253,7 @@ export default function BuscarAlimentos() {
             <div style={{ flex: '1 1 200px' }}>
               <label className="field-label">Adicionar alimentos na refeição</label>
               <select value={refAtiva} onChange={e => setRefAtiva(e.target.value)}>
-                {REFEICOES.map(r => <option key={r.nome} value={r.nome}>{r.emoji} {r.nome}</option>)}
+                {REFEICOES.map(r => <option key={r.nome} value={r.nome}>{r.nome}</option>)}
               </select>
             </div>
             <div style={{ fontSize: 11, color: 'var(--text3)', paddingBottom: 6 }}>
@@ -455,7 +454,7 @@ export default function BuscarAlimentos() {
                     {/* Header da refeição */}
                     <div style={{ display: 'flex', alignItems: 'center', padding: '7px 14px', background: '#faf7f2' }}>
                       <span style={{ flex: 1, fontSize: 11, fontWeight: 700, color: 'var(--dark)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        {r.emoji} {r.nome}
+                        {r.nome}
                       </span>
                       <span style={{ fontSize: 10, color: '#c9a96e', fontWeight: 600 }}>{fmt(tot.kcal, 0)} kcal</span>
                     </div>
