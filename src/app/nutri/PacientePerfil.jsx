@@ -15,6 +15,7 @@ import Habitos from './_Habitos.jsx';
 import Anamnese from './_Anamnese.jsx';
 import MapaGeral from './_MapaGeral.jsx';
 import Bioimpedancia from './_Bioimpedancia.jsx';
+import PlanoBuilder from './_PlanoBuilder.jsx';
 import DicaJSON from '../../components/DicaJSON.jsx';
 import { gerarPlanoHtml } from '../../lib/gerarPlanoHtml.js';
 
@@ -259,7 +260,7 @@ export default function PacientePerfil() {
       {tab === 'followup' && <FollowUp pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'suplementacao' && <Suplementacao pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'habitos' && <Habitos pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
-      {tab === 'plano' && <PublicarPlano pacienteId={paciente.id} nutriId={user.id} />}
+      {tab === 'plano' && <PlanoBuilder pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'substituicoes' && <Substituicoes pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'pdf-final' && <PdfFinal pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'compras' && <PublicarLista pacienteId={paciente.id} nutriId={user.id} />}
