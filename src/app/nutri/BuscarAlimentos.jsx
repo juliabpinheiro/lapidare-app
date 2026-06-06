@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../lib/supabase.js';
 import { useSession } from '../../lib/session.jsx';
+import { gerarPlanoHtml } from '../../lib/gerarPlanoHtml.js';
 
 /* ── Refeições padrão ──────────────────────────────────────── */
 const REFEICOES = [
@@ -12,10 +13,34 @@ const REFEICOES = [
   { nome: 'Ceia',            horario: '21:00' },
 ];
 
+const CATEGORIAS = [
+  { key: 'carbo', label: 'Carboidrato' },
+  { key: 'prot',  label: 'Proteína' },
+  { key: 'fruta', label: 'Fruta' },
+  { key: 'leg',   label: 'Leguminosa' },
+  { key: 'bebida',label: 'Bebida' },
+  { key: 'outro', label: 'Outro' },
+];
+
+function normMealKey(nome) {
+  const n = (nome ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9\s]/g,'').trim();
+  if (n.includes('ceia')) return 'ceia';
+  if (n.includes('jantar')) return 'jantar';
+  if (n.includes('lanche') && (n.includes('tarde') || n.includes('16') || n.includes('15'))) return 'lanche_tarde';
+  if (n.includes('almoco')) return 'almoco';
+  if (n.includes('lanche')) return 'lanche_manha';
+  return 'cafe_manha';
+}
+
 function planoVazio() {
   return Object.fromEntries(
     REFEICOES.map(r => [r.nome, { horario: r.horario, alimentos: [] }])
   );
+}
+
+function subsVazia() {
+  // { [refNome]: { [catKey]: string } }
+  return Object.fromEntries(REFEICOES.map(r => [r.nome, {}]));
 }
 
 /* ── Helpers numéricos ─────────────────────────────────────── */
@@ -30,7 +55,6 @@ function rd(v, dec = 1) {
   return Math.round(v * m) / m;
 }
 
-// Tamanho do serving em gramas (fallback 100g)
 function servingG(food) {
   if (food?.serving_g > 0) return food.serving_g;
   const s = food?.serving ?? '';
@@ -38,7 +62,6 @@ function servingG(food) {
   return m ? parseFloat(m[1]) : 100;
 }
 
-// Escala os macros do alimento para a quantidade desejada
 function calcMacros(food, gramas) {
   const factor = gramas / servingG(food);
   const al = {
@@ -54,7 +77,6 @@ function calcMacros(food, gramas) {
   return al;
 }
 
-// Preview ao vivo dos macros conforme qtd digitada
 function previewMacros(food, qtd) {
   const g = parseFloat(qtd);
   if (!food || !g || g <= 0) return null;
@@ -67,7 +89,6 @@ function previewMacros(food, qtd) {
   };
 }
 
-// Soma de macros de uma refeição
 function somaRef(ref) {
   return ref.alimentos.reduce((a, al) => ({
     kcal:    a.kcal    + (al.kcal    ?? 0),
@@ -78,7 +99,60 @@ function somaRef(ref) {
   }), { kcal: 0, prot_g: 0, cho_g: 0, lip_g: 0, fibra_g: 0 });
 }
 
-/* ── Componente ────────────────────────────────────────────── */
+/* ── Sub-componente: busca FatSecret inline para substituições ── */
+function BuscaSubsInline({ onSelecionar }) {
+  const [busca, setBusca]       = useState('');
+  const [resultados, setRes]    = useState([]);
+  const [loading, setLoading]   = useState(false);
+  const [erro, setErro]         = useState(null);
+
+  async function buscar() {
+    const termo = busca.trim();
+    if (!termo) return;
+    setLoading(true); setErro(null); setRes([]);
+    try {
+      const res  = await fetch(`/.netlify/functions/fatsecret?q=${encodeURIComponent(termo)}`);
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || `Erro ${res.status}`);
+      setRes((data.foods ?? []).slice(0, 10));
+    } catch (e) { setErro(e.message); }
+    finally { setLoading(false); }
+  }
+
+  return (
+    <div style={{ marginTop: 8 }}>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
+        <input
+          value={busca}
+          onChange={e => setBusca(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && buscar()}
+          placeholder="Buscar no FatSecret (ex: banana, rice…)"
+          style={{ flex: 1, fontSize: 12 }}
+        />
+        <button className="btn-outline" style={{ fontSize: 11, padding: '4px 10px' }} onClick={buscar} disabled={loading || !busca.trim()}>
+          {loading ? '…' : 'Buscar'}
+        </button>
+      </div>
+      {erro && <div style={{ fontSize: 11, color: 'var(--red)' }}>{erro}</div>}
+      {resultados.map(f => (
+        <button
+          key={f.food_id}
+          onClick={() => { onSelecionar(f); setBusca(''); setRes([]); }}
+          style={{
+            display: 'block', width: '100%', textAlign: 'left', background: 'none',
+            border: '0.5px solid var(--border)', borderRadius: 5, padding: '5px 8px',
+            cursor: 'pointer', marginBottom: 3, fontSize: 11, color: 'var(--dark)',
+          }}
+        >
+          {f.name}
+          {f.serving && <span style={{ color: 'var(--text3)', marginLeft: 4 }}>({f.serving})</span>}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/* ── Componente principal ──────────────────────────────────── */
 export default function BuscarAlimentos() {
   const { user } = useSession();
 
@@ -90,8 +164,8 @@ export default function BuscarAlimentos() {
   const [erroBusca, setErroBusca]       = useState(null);
 
   // Seleção de alimento
-  const [selecionado, setSelecionado]       = useState(null);  // item clicado (dados da busca)
-  const [detalhe, setDetalhe]               = useState(null);  // dados completos (food.get)
+  const [selecionado, setSelecionado]       = useState(null);
+  const [detalhe, setDetalhe]               = useState(null);
   const [loadingDetalhe, setLoadingDetalhe] = useState(false);
   const [qtdGramas, setQtdGramas]           = useState('100');
 
@@ -103,9 +177,18 @@ export default function BuscarAlimentos() {
   const [salvando, setSalvando]           = useState(false);
   const [feedbackSalvar, setFeedbackSalvar] = useState(null);
 
+  // Painel direito: "plano" ou "subs"
+  const [painelDir, setPainelDir] = useState('plano');
+
+  // Substituições: { [refNome]: { [catKey]: string } }
+  const [subs, setSubs] = useState(subsVazia);
+  // Qual alimento está com o painel de subs expandido: `${refNome}__${idx}`
+  const [subsAberta, setSubsAberta] = useState(null);
+  // Categoria selecionada por alimento: { [`${refNome}__${idx}`]: catKey }
+  const [alimCat, setAlimCat] = useState({});
+
   const inputRef = useRef(null);
 
-  /* carregar pacientes da nutri */
   useEffect(() => {
     if (!user?.id) return;
     supabase.from('pacientes').select('id, nome')
@@ -113,7 +196,6 @@ export default function BuscarAlimentos() {
       .then(({ data }) => { if (data) setPacientes(data); });
   }, [user?.id]);
 
-  /* buscar detalhe quando um alimento é selecionado */
   useEffect(() => {
     if (!selecionado) { setDetalhe(null); return; }
     setDetalhe(null);
@@ -151,7 +233,7 @@ export default function BuscarAlimentos() {
   function adicionarAlimento() {
     const g = parseFloat(qtdGramas);
     if (!g || g <= 0 || !selecionado) return;
-    const src = detalhe ?? selecionado;        // prefere detalhe para macros precisos
+    const src = detalhe ?? selecionado;
     const al  = calcMacros(src, g);
     setPlano(prev => ({
       ...prev,
@@ -174,15 +256,60 @@ export default function BuscarAlimentos() {
         alimentos: prev[refNome].alimentos.filter((_, i) => i !== idx),
       },
     }));
+    // limpa cat e subs expandidos para esse alimento
+    const key = `${refNome}__${idx}`;
+    setAlimCat(prev => { const n = { ...prev }; delete n[key]; return n; });
+    if (subsAberta === key) setSubsAberta(null);
   }
 
   function limparPlano() {
     if (!window.confirm('Limpar todo o plano em montagem?')) return;
     setPlano(planoVazio());
+    setSubs(subsVazia());
+    setAlimCat({});
+    setSubsAberta(null);
     setFeedbackSalvar(null);
   }
 
-  /* ── Salvar plano no Supabase ────────────────────────────── */
+  /* ── Adicionar alimento como substituição via FatSecret ──── */
+  function adicionarSubFatSecret(refNome, catKey, food) {
+    const porcao = food.serving ? `${food.name} ${food.serving}` : food.name;
+    setSubs(prev => {
+      const refSubs = prev[refNome] ?? {};
+      const atual = refSubs[catKey] ?? '';
+      const sep = atual.trim() ? ' · ' : '';
+      return {
+        ...prev,
+        [refNome]: { ...refSubs, [catKey]: atual + sep + porcao },
+      };
+    });
+  }
+
+  function setSubsTexto(refNome, catKey, val) {
+    setSubs(prev => ({
+      ...prev,
+      [refNome]: { ...(prev[refNome] ?? {}), [catKey]: val },
+    }));
+  }
+
+  /* ── Converter subs para formato subsTexto (planos_visuais) ─ */
+  function buildSubsTexto() {
+    const result = {};
+    for (const ref of REFEICOES) {
+      const mealKey = normMealKey(ref.nome);
+      const cats = subs[ref.nome] ?? {};
+      const temConteudo = Object.values(cats).some(v => v?.trim());
+      if (temConteudo) {
+        result[mealKey] = {};
+        for (const [catKey, texto] of Object.entries(cats)) {
+          if (texto?.trim()) result[mealKey][catKey] = texto.trim();
+        }
+      }
+    }
+    return Object.keys(result).length ? result : null;
+  }
+
+  /* ── Salvar plano + substituições no Supabase ────────────── */
   async function salvarPlano() {
     if (!pacienteId) return setFeedbackSalvar({ tipo: 'erro', msg: 'Selecione uma paciente antes de salvar.' });
     const refsComAlimentos = REFEICOES.filter(r => plano[r.nome].alimentos.length > 0);
@@ -193,6 +320,8 @@ export default function BuscarAlimentos() {
       return { kcal: acc.kcal + t.kcal, prot_g: acc.prot_g + t.prot_g, cho_g: acc.cho_g + t.cho_g, lip_g: acc.lip_g + t.lip_g, fibra_g: acc.fibra_g + t.fibra_g };
     }, { kcal: 0, prot_g: 0, cho_g: 0, lip_g: 0, fibra_g: 0 });
 
+    const subsTexto = buildSubsTexto();
+
     const dados = {
       macros: {
         kcal:    rd(totDia.kcal, 0),
@@ -201,11 +330,19 @@ export default function BuscarAlimentos() {
         lip_g:   rd(totDia.lip_g, 1),
         ...(totDia.fibra_g > 0 ? { fibras_g: rd(totDia.fibra_g, 1) } : {}),
       },
-      refeicoes: refsComAlimentos.map(r => ({
-        nome:      r.nome,
-        horario:   plano[r.nome].horario,
-        alimentos: plano[r.nome].alimentos,
-      })),
+      refeicoes: refsComAlimentos.map(r => {
+        const tot = somaRef(plano[r.nome]);
+        return {
+          nome:      r.nome,
+          horario:   plano[r.nome].horario,
+          kcal:      rd(tot.kcal, 0),
+          prot_g:    rd(tot.prot_g, 1),
+          cho_g:     rd(tot.cho_g, 1),
+          lip_g:     rd(tot.lip_g, 1),
+          alimentos: plano[r.nome].alimentos,
+        };
+      }),
+      ...(subsTexto ? { subs_texto: subsTexto } : {}),
     };
 
     setSalvando(true);
@@ -219,7 +356,56 @@ export default function BuscarAlimentos() {
 
     if (error) return setFeedbackSalvar({ tipo: 'erro', msg: error.message });
     const pacNome = pacientes.find(p => p.id === pacienteId)?.nome ?? 'paciente';
-    setFeedbackSalvar({ tipo: 'ok', msg: `Plano salvo para ${pacNome}! Já aparece na aba Plano dela.` });
+    setFeedbackSalvar({ tipo: 'ok', msg: `Plano salvo para ${pacNome}! Substituições incluídas — abre na aba PDF Final.` });
+  }
+
+  /* ── PDF rascunho (uso interno da nutri) ────────────────── */
+  function baixarPdfRascunho() {
+    const refsComAlimentos = REFEICOES.filter(r => plano[r.nome].alimentos.length > 0);
+    if (!refsComAlimentos.length) return;
+
+    const totDiaLocal = REFEICOES.reduce((acc, r) => {
+      const t = somaRef(plano[r.nome]);
+      return { kcal: acc.kcal + t.kcal, prot_g: acc.prot_g + t.prot_g, cho_g: acc.cho_g + t.cho_g, lip_g: acc.lip_g + t.lip_g, fibra_g: acc.fibra_g + t.fibra_g };
+    }, { kcal: 0, prot_g: 0, cho_g: 0, lip_g: 0, fibra_g: 0 });
+
+    const planoParaPdf = {
+      macros: {
+        kcal:    rd(totDiaLocal.kcal, 0),
+        prot_g:  rd(totDiaLocal.prot_g, 1),
+        cho_g:   rd(totDiaLocal.cho_g, 1),
+        lip_g:   rd(totDiaLocal.lip_g, 1),
+        ...(totDiaLocal.fibra_g > 0 ? { fibras_g: rd(totDiaLocal.fibra_g, 1) } : {}),
+      },
+      refeicoes: refsComAlimentos.map(r => {
+        const tot = somaRef(plano[r.nome]);
+        return {
+          nome:      r.nome,
+          horario:   plano[r.nome].horario,
+          kcal:      rd(tot.kcal, 0),
+          prot_g:    rd(tot.prot_g, 1),
+          cho_g:     rd(tot.cho_g, 1),
+          lip_g:     rd(tot.lip_g, 1),
+          alimentos: plano[r.nome].alimentos,
+        };
+      }),
+    };
+
+    const pacNome = pacientes.find(p => p.id === pacienteId)?.nome ?? 'Rascunho';
+    const html = gerarPlanoHtml({
+      pacienteNome: pacNome,
+      plano:        planoParaPdf,
+      extras:       {},
+      subsTexto:    buildSubsTexto(),
+      nutriNome:    '',
+      nutriCrn:     '',
+      nutriEmail:   '',
+    });
+
+    const win = window.open('', '_blank');
+    if (!win) { alert('Permita pop-ups para abrir o PDF.'); return; }
+    win.document.write(html);
+    win.document.close();
   }
 
   /* ── Derivados ───────────────────────────────────────────── */
@@ -231,12 +417,14 @@ export default function BuscarAlimentos() {
     return { kcal: acc.kcal + t.kcal, prot_g: acc.prot_g + t.prot_g, cho_g: acc.cho_g + t.cho_g, lip_g: acc.lip_g + t.lip_g };
   }, { kcal: 0, prot_g: 0, cho_g: 0, lip_g: 0 });
 
+  const refsComAlimentos = REFEICOES.filter(r => plano[r.nome].alimentos.length > 0);
+
   /* ── JSX ─────────────────────────────────────────────────── */
   return (
     <div style={{ maxWidth: 1120, margin: '0 auto' }}>
       <div className="page-header" style={{ marginBottom: 20 }}>
         <div className="page-title">Buscar Alimentos</div>
-        <div className="page-sub">Monte planos alimentares com a base FatSecret. Busque, ajuste a quantidade e salve direto para a paciente.</div>
+        <div className="page-sub">Monte planos alimentares com a base FatSecret. Busque, ajuste a quantidade e defina substituições.</div>
       </div>
 
       {/* ── Seletores: paciente + refeição ── */}
@@ -257,18 +445,17 @@ export default function BuscarAlimentos() {
               </select>
             </div>
             <div style={{ fontSize: 11, color: 'var(--text3)', paddingBottom: 6 }}>
-              Busque abaixo → clique no alimento → ajuste os gramas → <strong>Adicionar</strong>
+              Busque → clique → ajuste gramas → <strong>Adicionar</strong>
             </div>
           </div>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 16, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 16, alignItems: 'start' }}>
 
         {/* ── Coluna esquerda: busca + resultados ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 
-          {/* Barra de busca */}
           <div className="card">
             <div className="card-body">
               <div style={{ display: 'flex', gap: 10 }}>
@@ -298,14 +485,12 @@ export default function BuscarAlimentos() {
             </div>
           </div>
 
-          {/* Loading */}
           {loadingBusca && (
             <div style={{ padding: '20px 0', textAlign: 'center', color: 'var(--text3)', fontSize: 13 }}>
               Buscando na base FatSecret…
             </div>
           )}
 
-          {/* Resultados */}
           {!loadingBusca && resultados.length > 0 && (
             <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
               <div style={{ padding: '6px 14px', background: '#faf7f2', borderBottom: '1px solid var(--border)', fontSize: 11, color: 'var(--text3)' }}>
@@ -315,8 +500,6 @@ export default function BuscarAlimentos() {
                 const ativo = selecionado?.food_id === food.food_id;
                 return (
                   <div key={food.food_id} style={{ borderBottom: i < resultados.length - 1 ? '0.5px solid var(--border)' : 'none' }}>
-
-                    {/* Linha do alimento */}
                     <button
                       onClick={() => {
                         if (ativo) { setSelecionado(null); setDetalhe(null); }
@@ -344,18 +527,15 @@ export default function BuscarAlimentos() {
                       <i className={`ti ti-chevron-${ativo ? 'up' : 'down'}`} style={{ fontSize: 13, color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true"></i>
                     </button>
 
-                    {/* Painel expandido: qtd + adicionar */}
                     {ativo && (
                       <div style={{ padding: '10px 14px 14px', borderTop: '1px solid var(--border)', background: '#fffbf5' }}>
-
-                        {/* Preview de macros ao vivo */}
                         {preview && (
                           <div style={{ display: 'flex', gap: 14, marginBottom: 10 }}>
                             {[
-                              { l: 'kcal', v: preview.kcal, unit: '' },
-                              { l: 'prot', v: preview.prot, unit: '' },
-                              { l: 'carb', v: preview.carb, unit: '' },
-                              { l: 'gord', v: preview.gord, unit: '' },
+                              { l: 'kcal', v: preview.kcal },
+                              { l: 'prot', v: preview.prot },
+                              { l: 'carb', v: preview.carb },
+                              { l: 'gord', v: preview.gord },
                             ].map(m => (
                               <div key={m.l} style={{ textAlign: 'center', minWidth: 44 }}>
                                 <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--dark)', lineHeight: 1 }}>{m.v}</div>
@@ -367,14 +547,10 @@ export default function BuscarAlimentos() {
                             )}
                           </div>
                         )}
-
-                        {/* Entrada de quantidade */}
                         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                             <input
-                              type="number"
-                              min="1"
-                              max="5000"
+                              type="number" min="1" max="5000"
                               value={qtdGramas}
                               onChange={e => setQtdGramas(e.target.value)}
                               onKeyDown={e => e.key === 'Enter' && adicionarAlimento()}
@@ -407,14 +583,12 @@ export default function BuscarAlimentos() {
             </div>
           )}
 
-          {/* Sem resultados */}
           {!loadingBusca && resultados.length === 0 && busca && !erroBusca && (
             <div className="card empty-card">
               <div className="empty-sub">Nenhum resultado para "{busca}". Tente em inglês (ex: chicken breast, sweet potato).</div>
             </div>
           )}
 
-          {/* Estado inicial */}
           {!loadingBusca && resultados.length === 0 && !busca && (
             <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--text3)' }}>
               <i className="ti ti-salad" style={{ fontSize: 40, display: 'block', marginBottom: 10, opacity: 0.35 }} aria-hidden="true"></i>
@@ -424,98 +598,212 @@ export default function BuscarAlimentos() {
           )}
         </div>
 
-        {/* ── Coluna direita: plano em montagem ── */}
+        {/* ── Coluna direita: plano + substituições ── */}
         <div style={{ position: 'sticky', top: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
           <div className="card" style={{ overflow: 'hidden', padding: 0 }}>
 
-            {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 16px', borderBottom: '1px solid var(--border)', background: '#f5f1eb' }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--dark)' }}>Plano em montagem</div>
-                <div style={{ fontSize: 11, color: 'var(--text3)' }}>
-                  {totalAlimentos === 0 ? 'Nenhum alimento ainda' : `${totalAlimentos} alimento${totalAlimentos !== 1 ? 's' : ''}`}
-                </div>
-              </div>
-              {totalAlimentos > 0 && (
-                <button onClick={limparPlano} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: 'var(--red)', padding: '2px 4px', display: 'flex', alignItems: 'center', gap: 3 }}>
-                  <i className="ti ti-trash" style={{ fontSize: 12 }} aria-hidden="true"></i> limpar
+            {/* Tabs do painel direito */}
+            <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', background: '#f5f1eb' }}>
+              {[
+                { id: 'plano', label: 'Plano Base' },
+                { id: 'subs',  label: `Substituições${refsComAlimentos.length > 0 ? ` (${refsComAlimentos.length})` : ''}` },
+              ].map(t => (
+                <button key={t.id} onClick={() => setPainelDir(t.id)} style={{
+                  flex: 1, padding: '9px 6px', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600,
+                  background: painelDir === t.id ? '#fff' : 'transparent',
+                  color: painelDir === t.id ? 'var(--dark)' : 'var(--text3)',
+                  borderBottom: painelDir === t.id ? '2px solid var(--green)' : '2px solid transparent',
+                }}>
+                  {t.label}
                 </button>
-              )}
+              ))}
             </div>
 
-            {/* Refeições */}
-            <div style={{ maxHeight: 420, overflowY: 'auto' }}>
-              {REFEICOES.map(r => {
-                const ref = plano[r.nome];
-                if (!ref.alimentos.length) return null;
-                const tot = somaRef(ref);
-                return (
-                  <div key={r.nome} style={{ borderBottom: '1px solid var(--border)' }}>
-                    {/* Header da refeição */}
-                    <div style={{ display: 'flex', alignItems: 'center', padding: '7px 14px', background: '#faf7f2' }}>
-                      <span style={{ flex: 1, fontSize: 11, fontWeight: 700, color: 'var(--dark)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        {r.nome}
-                      </span>
-                      <span style={{ fontSize: 10, color: '#c9a96e', fontWeight: 600 }}>{fmt(tot.kcal, 0)} kcal</span>
-                    </div>
-                    {/* Alimentos */}
-                    {ref.alimentos.map((al, idx) => (
-                      <div key={idx} style={{ display: 'flex', alignItems: 'center', padding: '5px 14px', gap: 6, borderTop: '0.5px solid #f0ebe3' }}>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 12, color: 'var(--dark)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{al.nome}</div>
-                          <div style={{ fontSize: 10, color: 'var(--text3)' }}>
-                            {al.qty} · {al.kcal}kcal · P:{al.prot_g}g C:{al.cho_g}g G:{al.lip_g}g
-                          </div>
-                        </div>
-                        <button onClick={() => removerAlimento(r.nome, idx)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', padding: '2px', flexShrink: 0 }}>
-                          <i className="ti ti-x" style={{ fontSize: 12 }} aria-hidden="true"></i>
-                        </button>
-                      </div>
-                    ))}
-                    {/* Subtotal da refeição */}
-                    <div style={{ display: 'flex', gap: 8, padding: '5px 14px 8px', fontSize: 10, color: 'var(--text3)' }}>
-                      <span>Sub: {fmt(tot.kcal, 0)} kcal</span>
-                      <span>P:{fmt(tot.prot_g)}g</span>
-                      <span>C:{fmt(tot.cho_g)}g</span>
-                      <span>G:{fmt(tot.lip_g)}g</span>
+            {/* ─── Painel: Plano Base ─── */}
+            {painelDir === 'plano' && (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '11px 16px', borderBottom: '1px solid var(--border)' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--dark)' }}>Plano em montagem</div>
+                    <div style={{ fontSize: 11, color: 'var(--text3)' }}>
+                      {totalAlimentos === 0 ? 'Nenhum alimento ainda' : `${totalAlimentos} alimento${totalAlimentos !== 1 ? 's' : ''}`}
                     </div>
                   </div>
-                );
-              })}
-
-              {totalAlimentos === 0 && (
-                <div style={{ padding: '24px 14px', textAlign: 'center', color: 'var(--text3)', fontSize: 12 }}>
-                  Busque e adicione alimentos →
+                  {totalAlimentos > 0 && (
+                    <button onClick={limparPlano} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: 'var(--red)', padding: '2px 4px', display: 'flex', alignItems: 'center', gap: 3 }}>
+                      <i className="ti ti-trash" style={{ fontSize: 12 }} aria-hidden="true"></i> limpar
+                    </button>
+                  )}
                 </div>
-              )}
-            </div>
 
-            {/* Total do dia */}
-            {totalAlimentos > 0 && (
-              <div style={{ padding: '10px 14px', borderTop: '1px solid var(--border)', background: '#f5f1eb' }}>
-                <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
-                  Total do dia
-                </div>
-                <div style={{ display: 'flex' }}>
-                  {[
-                    { label: 'kcal', v: fmt(totDia.kcal, 0), unit: '',  cor: 'var(--dark)' },
-                    { label: 'prot', v: fmt(totDia.prot_g), unit: 'g', cor: '#185fa5' },
-                    { label: 'carb', v: fmt(totDia.cho_g),  unit: 'g', cor: '#b97d00' },
-                    { label: 'gord', v: fmt(totDia.lip_g),  unit: 'g', cor: '#3b6d11' },
-                  ].map((m, i) => (
-                    <div key={m.label} style={{ flex: 1, textAlign: 'center', borderLeft: i > 0 ? '1px solid var(--border)' : 'none', padding: '0 4px' }}>
-                      <div style={{ fontSize: 18, fontWeight: 700, color: m.cor, lineHeight: 1 }}>
-                        {m.v}<span style={{ fontSize: 10, fontWeight: 400 }}>{m.unit}</span>
+                <div style={{ maxHeight: 400, overflowY: 'auto' }}>
+                  {REFEICOES.map(r => {
+                    const ref = plano[r.nome];
+                    if (!ref.alimentos.length) return null;
+                    const tot = somaRef(ref);
+                    return (
+                      <div key={r.nome} style={{ borderBottom: '1px solid var(--border)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', padding: '7px 14px', background: '#faf7f2' }}>
+                          <span style={{ flex: 1, fontSize: 11, fontWeight: 700, color: 'var(--dark)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            {r.nome}
+                          </span>
+                          <span style={{ fontSize: 10, color: '#c9a96e', fontWeight: 600 }}>{fmt(tot.kcal, 0)} kcal</span>
+                        </div>
+                        {ref.alimentos.map((al, idx) => (
+                          <div key={idx} style={{ display: 'flex', alignItems: 'center', padding: '5px 14px', gap: 6, borderTop: '0.5px solid #f0ebe3' }}>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 12, color: 'var(--dark)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{al.nome}</div>
+                              <div style={{ fontSize: 10, color: 'var(--text3)' }}>
+                                {al.qty} · {al.kcal}kcal · P:{al.prot_g}g C:{al.cho_g}g G:{al.lip_g}g
+                              </div>
+                            </div>
+                            <button onClick={() => removerAlimento(r.nome, idx)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', padding: '2px', flexShrink: 0 }}>
+                              <i className="ti ti-x" style={{ fontSize: 12 }} aria-hidden="true"></i>
+                            </button>
+                          </div>
+                        ))}
+                        <div style={{ display: 'flex', gap: 8, padding: '5px 14px 8px', fontSize: 10, color: 'var(--text3)' }}>
+                          <span>Sub: {fmt(tot.kcal, 0)} kcal</span>
+                          <span>P:{fmt(tot.prot_g)}g</span>
+                          <span>C:{fmt(tot.cho_g)}g</span>
+                          <span>G:{fmt(tot.lip_g)}g</span>
+                        </div>
                       </div>
-                      <div style={{ fontSize: 9, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 3 }}>{m.label}</div>
+                    );
+                  })}
+
+                  {totalAlimentos === 0 && (
+                    <div style={{ padding: '24px 14px', textAlign: 'center', color: 'var(--text3)', fontSize: 12 }}>
+                      Busque e adicione alimentos →
                     </div>
-                  ))}
+                  )}
                 </div>
+
+                {totalAlimentos > 0 && (
+                  <div style={{ padding: '10px 14px', borderTop: '1px solid var(--border)', background: '#f5f1eb' }}>
+                    <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
+                      Total do dia
+                    </div>
+                    <div style={{ display: 'flex' }}>
+                      {[
+                        { label: 'kcal', v: fmt(totDia.kcal, 0), cor: 'var(--dark)' },
+                        { label: 'prot', v: fmt(totDia.prot_g) + 'g', cor: '#185fa5' },
+                        { label: 'carb', v: fmt(totDia.cho_g)  + 'g', cor: '#b97d00' },
+                        { label: 'gord', v: fmt(totDia.lip_g)  + 'g', cor: '#3b6d11' },
+                      ].map((m, i) => (
+                        <div key={m.label} style={{ flex: 1, textAlign: 'center', borderLeft: i > 0 ? '1px solid var(--border)' : 'none', padding: '0 4px' }}>
+                          <div style={{ fontSize: 18, fontWeight: 700, color: m.cor, lineHeight: 1 }}>{m.v}</div>
+                          <div style={{ fontSize: 9, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 3 }}>{m.label}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* ─── Painel: Substituições ─── */}
+            {painelDir === 'subs' && (
+              <div style={{ maxHeight: 520, overflowY: 'auto' }}>
+                {refsComAlimentos.length === 0 ? (
+                  <div style={{ padding: '24px 14px', textAlign: 'center', color: 'var(--text3)', fontSize: 12 }}>
+                    Monte o plano base primeiro →
+                  </div>
+                ) : (
+                  refsComAlimentos.map(r => {
+                    const ref = plano[r.nome];
+                    const mealKey = normMealKey(r.nome);
+                    return (
+                      <div key={r.nome} style={{ borderBottom: '1px solid var(--border)' }}>
+                        {/* Header da refeição */}
+                        <div style={{ padding: '8px 14px', background: '#faf7f2' }}>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--dark)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
+                            {r.nome}
+                          </div>
+                          {/* Alimentos com tag de categoria */}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            {ref.alimentos.map((al, idx) => {
+                              const alKey = `${r.nome}__${idx}`;
+                              const catSel = alimCat[alKey];
+                              const aberto = subsAberta === alKey;
+                              return (
+                                <div key={idx}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                                    <span style={{ fontSize: 11, color: 'var(--dark)', flex: '1 1 100px', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                      {al.nome}
+                                    </span>
+                                    <select
+                                      value={catSel ?? ''}
+                                      onChange={e => {
+                                        const v = e.target.value;
+                                        setAlimCat(prev => ({ ...prev, [alKey]: v }));
+                                      }}
+                                      style={{ fontSize: 10, padding: '2px 4px', flex: '0 0 auto' }}
+                                    >
+                                      <option value="">categoria…</option>
+                                      {CATEGORIAS.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
+                                    </select>
+                                    {catSel && (
+                                      <button
+                                        onClick={() => setSubsAberta(aberto ? null : alKey)}
+                                        style={{ fontSize: 10, background: aberto ? '#e6f0d4' : '#f5f1eb', border: '1px solid var(--border)', borderRadius: 4, padding: '2px 8px', cursor: 'pointer', color: 'var(--dark)', whiteSpace: 'nowrap' }}
+                                      >
+                                        {aberto ? 'Fechar' : '+ Subs'}
+                                      </button>
+                                    )}
+                                  </div>
+
+                                  {/* Painel de substituições para esse alimento */}
+                                  {aberto && catSel && (
+                                    <div style={{ marginTop: 6, padding: '8px 10px', background: '#fffbf5', border: '1px solid var(--border)', borderRadius: 6 }}>
+                                      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--terra)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>
+                                        {CATEGORIAS.find(c => c.key === catSel)?.label} — substituições para {al.nome}
+                                      </div>
+                                      <textarea
+                                        value={subs[r.nome]?.[catSel] ?? ''}
+                                        onChange={e => setSubsTexto(r.nome, catSel, e.target.value)}
+                                        placeholder={`Ex: ${al.nome} ${al.qty} · Opção 2 · Opção 3…`}
+                                        rows={2}
+                                        style={{ width: '100%', fontSize: 11, resize: 'vertical', marginBottom: 4 }}
+                                      />
+                                      <div style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 4 }}>
+                                        Ou busque no FatSecret para adicionar automaticamente:
+                                      </div>
+                                      <BuscaSubsInline
+                                        onSelecionar={food => adicionarSubFatSecret(r.nome, catSel, food)}
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Resumo das subs já definidas para essa refeição */}
+                        {Object.entries(subs[r.nome] ?? {}).some(([, v]) => v?.trim()) && (
+                          <div style={{ padding: '6px 14px 10px' }}>
+                            {Object.entries(subs[r.nome]).map(([catKey, texto]) => {
+                              if (!texto?.trim()) return null;
+                              const catLabel = CATEGORIAS.find(c => c.key === catKey)?.label ?? catKey;
+                              return (
+                                <div key={catKey} style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2 }}>
+                                  <span style={{ fontWeight: 700, color: 'var(--terra)' }}>{catLabel}:</span>{' '}
+                                  {texto.length > 60 ? texto.slice(0, 60) + '…' : texto}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
               </div>
             )}
 
-            {/* Botão salvar */}
-            <div style={{ padding: '12px 14px', borderTop: '1px solid var(--border)' }}>
+            {/* Botões salvar + PDF */}
+            <div style={{ padding: '12px 14px', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 8 }}>
               <button
                 className="btn"
                 style={{ width: '100%', justifyContent: 'center', fontSize: 13 }}
@@ -523,17 +811,25 @@ export default function BuscarAlimentos() {
                 disabled={salvando || totalAlimentos === 0 || !pacienteId}
               >
                 <i className="ti ti-send" aria-hidden="true"></i>
-                {salvando ? 'Salvando…' : 'Salvar como plano da paciente'}
+                {salvando ? 'Salvando…' : 'Salvar plano + substituições'}
+              </button>
+              <button
+                className="btn-outline"
+                style={{ width: '100%', justifyContent: 'center', fontSize: 13 }}
+                onClick={baixarPdfRascunho}
+                disabled={totalAlimentos === 0}
+              >
+                <i className="ti ti-printer" aria-hidden="true"></i>
+                Baixar PDF do plano
               </button>
               {!pacienteId && totalAlimentos > 0 && (
-                <div style={{ fontSize: 11, color: 'var(--text3)', textAlign: 'center', marginTop: 5 }}>
-                  Selecione uma paciente acima primeiro
+                <div style={{ fontSize: 11, color: 'var(--text3)', textAlign: 'center' }}>
+                  Selecione uma paciente para salvar
                 </div>
               )}
             </div>
           </div>
 
-          {/* Feedback do salvar */}
           {feedbackSalvar && (
             <div style={{
               padding: '10px 14px', borderRadius: 8, fontSize: 13,

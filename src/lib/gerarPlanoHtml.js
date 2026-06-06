@@ -73,9 +73,26 @@ function foodTable(alimentos) {
     return `<tr><td>${esc(a.nome)}</td><td>${esc(a.qty ?? a.quantidade ?? '—')}</td>${tdExtra}</tr>`;
   }).join('');
 
+  // subtotal row
+  const totKcal  = alimentos.reduce((s, a) => s + (a.kcal   ?? 0), 0);
+  const totProt  = alimentos.reduce((s, a) => s + (a.prot_g ?? 0), 0);
+  const totCho   = alimentos.reduce((s, a) => s + (a.cho_g  ?? 0), 0);
+  const totLip   = alimentos.reduce((s, a) => s + (a.lip_g  ?? 0), 0);
+  const totGramas = alimentos.reduce((s, a) => {
+    const g = a.gramas ?? (a.qty ? parseFloat(a.qty) : null);
+    return s + (g ?? 0);
+  }, 0);
+
+  const tdSubExtra = (hasGramas ? `<td>${totGramas ? Math.round(totGramas) + 'g' : '—'}</td>` : '') +
+    `<td>${Math.round(totKcal)} kcal</td><td>${totProt.toFixed(1)}g</td>` +
+    (hasCho ? `<td>${totCho.toFixed(1)}g</td>` : '') +
+    (hasLip ? `<td>${totLip.toFixed(1)}g</td>` : '');
+
+  const subtotalRow = `<tr class="subtotal"><td colspan="2">Subtotal</td>${tdSubExtra}</tr>`;
+
   return `<table class="alimento-tabela">
     <thead><tr><th>Alimento</th><th>Medida Caseira</th>${thExtra}</tr></thead>
-    <tbody>${rows}</tbody>
+    <tbody>${rows}${subtotalRow}</tbody>
   </table>`;
 }
 
@@ -159,7 +176,14 @@ function pagRef(ref, idx, e, subsTexto) {
   const nota = e.notas?.[idx] ?? '';
   const mealKey = normMealKey(ref.nome ?? '');
   const subs = subsHtml(mealKey, subsTexto);
-  const horarioLinha = [ref.horario, ref.kcal ? ref.kcal + ' kcal' : null].filter(Boolean).join(' · ');
+
+  const macrosParts = [
+    ref.kcal   ? `${ref.kcal} kcal`         : null,
+    ref.prot_g ? `${ref.prot_g}g prot`      : null,
+    ref.cho_g  ? `${ref.cho_g}g cho`        : null,
+    ref.lip_g  ? `${ref.lip_g}g lip`        : null,
+  ].filter(Boolean);
+  const horarioLinha = [ref.horario, ...macrosParts].filter(Boolean).join(' · ');
 
   return pagina(`
   <div class="refeicao">
@@ -272,6 +296,7 @@ h1,h2,h3{page-break-after:avoid}
 .alimento-tabela th{font-family:'Lato',sans-serif;font-size:7px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txtL);padding:4px 6px;text-align:left;border-bottom:1px solid var(--begeR)}
 .alimento-tabela td{padding:5px 6px;border-bottom:1px solid var(--bege);color:var(--txt)}
 .alimento-tabela tr:last-child td{border-bottom:none}
+.alimento-tabela .subtotal td{font-weight:600;color:var(--verde);background:var(--bege);font-size:9px}
 .grupo-label{font-family:'Lato',sans-serif;font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--terra);font-weight:700;text-align:center;margin-bottom:4px}
 .grupo-caixa{background:var(--bege);border-radius:6px;padding:10px 16px;text-align:center;font-size:10px;color:var(--txt);line-height:1.9}
 .ref-nota{font-size:9px;font-style:italic;color:var(--terra);margin-top:6px;padding:6px 10px;background:#fdf3ee;border-radius:4px;border-left:3px solid var(--terra)}
@@ -300,11 +325,14 @@ export function gerarPlanoHtml({ pacienteNome, plano, extras, subsTexto, nutriNo
   const macros = plano?.macros ?? {};
   const refeicoes = plano?.refeicoes ?? [];
 
+  // usa subsTexto externo (planos_visuais) ou o embutido no plano (BuscarAlimentos)
+  const subsEfetivo = subsTexto ?? plano?.subs_texto ?? null;
+
   const paginas = [
     pag1(pacienteNome, macros, e),
     pag2(e),
-    ...refeicoes.map((ref, i) => pagRef(ref, i, e, subsTexto)),
-    pagCustomMeals(subsTexto),
+    ...refeicoes.map((ref, i) => pagRef(ref, i, e, subsEfetivo)),
+    pagCustomMeals(subsEfetivo),
     pagTotais(e),
     pagOrientacoes(e),
     pagEncerramento(pacienteNome, e, nutriNome, nutriCrn, nutriEmail),

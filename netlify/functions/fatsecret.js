@@ -144,7 +144,7 @@ exports.handler = async (event) => {
 
     /* ── DETALHE ── */
     if (food_id) {
-      const data = await fsCall(token, { method: 'food.get.v2', food_id });
+      const data = await fsCall(token, { method: 'food.get.v2', food_id, language: 'pt', region: 'BR' });
       const food = data?.food;
       if (!food) throw new Error('Campo "food" ausente na resposta');
 
@@ -166,6 +166,8 @@ exports.handler = async (event) => {
       search_expression: q,
       max_results:       20,
       page_number:       0,
+      language:          'pt',
+      region:            'BR',
     });
 
     console.log(`[fatsecret] foods keys: ${Object.keys(data?.foods ?? {}).join(', ')}`);

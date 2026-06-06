@@ -14,6 +14,7 @@ import Suplementacao from './_Suplementacao.jsx';
 import Habitos from './_Habitos.jsx';
 import Anamnese from './_Anamnese.jsx';
 import MapaGeral from './_MapaGeral.jsx';
+import Bioimpedancia from './_Bioimpedancia.jsx';
 import DicaJSON from '../../components/DicaJSON.jsx';
 import { gerarPlanoHtml } from '../../lib/gerarPlanoHtml.js';
 
@@ -216,6 +217,7 @@ export default function PacientePerfil() {
           { id: 'evolucao',    label: 'Evolução',     icon: 'chart-line' },
           { id: 'mapa-geral',  label: 'Mapa Geral',   icon: 'map-2' },
           { id: 'anamnese',    label: 'Anamnese',     icon: 'clipboard-text' },
+          { id: 'bioimpedancia', label: 'Bioimpedância', icon: 'activity' },
           { id: 'calculo',     label: 'Cálculo',      icon: 'calculator' },
           { id: 'followup',    label: 'Follow-up',    icon: 'notebook' },
           { id: 'plano',          label: 'Plano',          icon: 'salad' },
@@ -252,6 +254,7 @@ export default function PacientePerfil() {
       {tab === 'evolucao'   && <Evolucao pacienteId={paciente.id} paciente={paciente} nutriId={user.id} />}
       {tab === 'mapa-geral' && <MapaGeral pacienteId={paciente.id} nutriId={user.id} />}
       {tab === 'anamnese'   && <Anamnese pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
+      {tab === 'bioimpedancia' && <Bioimpedancia pacienteId={paciente.id} nutriId={user.id} />}
       {tab === 'calculo'  && <CalculoEnergetico paciente={paciente} />}
       {tab === 'followup' && <FollowUp pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'suplementacao' && <Suplementacao pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
@@ -1154,7 +1157,8 @@ function PdfFinal({ pacienteId, nutriId, pacienteNome }) {
         setIdRascunho(draftRes.data.id);
         setPublicado(draftRes.data.publicado ?? false);
         setDados({ ..._DADOS_PDF_DEFAULT, ...draftRes.data.dados });
-        setSubsTexto(draftRes.data.subs_texto ?? null);
+        // usa subs da aba Substituições; fallback para subs embutidas no plano (BuscarAlimentos)
+        setSubsTexto(draftRes.data.subs_texto ?? planDados?.subs_texto ?? null);
       } else if (planDados) {
         const refsLen = planDados.refeicoes?.length ?? 0;
         setDados(prev => ({
@@ -1164,6 +1168,8 @@ function PdfFinal({ pacienteId, nutriId, pacienteNome }) {
           sugestoes: Array(refsLen).fill(''),
           notas: Array(refsLen).fill(''),
         }));
+        // usa subs embutidas no plano quando não há rascunho visual
+        setSubsTexto(planDados.subs_texto ?? null);
       }
 
       if (nutriRes.data) setNutriInfo(nutriRes.data);
@@ -1708,19 +1714,23 @@ function CalculoEnergetico({ paciente }) {
   const [peso, setPeso]         = useState('');
   const [altura, setAltura]     = useState('');
   const [idade, setIdade]       = useState('');
+  const [pgcBio, setPgcBio]     = useState(null);
+  const [mmBio, setMmBio]       = useState(null);
   const [carregou, setCarregou] = useState(false);
 
   useEffect(() => {
     async function carregar() {
       const { data } = await supabase
         .from('peso_registros')
-        .select('kg, altura_cm')
+        .select('kg, altura_cm, pgc, mm_kg')
         .eq('paciente_id', paciente.id)
         .order('data', { ascending: false })
         .limit(1)
         .maybeSingle();
       if (data?.kg)        setPeso(String(data.kg));
       if (data?.altura_cm) setAltura(String(data.altura_cm));
+      if (data?.pgc)       setPgcBio(data.pgc);
+      if (data?.mm_kg)     setMmBio(data.mm_kg);
       setCarregou(!!(data?.kg));
     }
     if (paciente.nascimento) {
@@ -1761,7 +1771,7 @@ function CalculoEnergetico({ paciente }) {
             </div>
           )}
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 10 }}>
           <div>
             <label className="field-label">Peso (kg)</label>
             <input inputMode="decimal" value={peso}
@@ -1777,6 +1787,24 @@ function CalculoEnergetico({ paciente }) {
             <input inputMode="numeric" value={idade}
               onChange={e => setIdade(e.target.value)} placeholder="ex: 32" />
           </div>
+          {pgcBio != null && (
+            <div>
+              <label className="field-label" style={{ color: 'var(--green)' }}>
+                <i className="ti ti-activity" style={{ fontSize: 11, marginRight: 3 }} />
+                % Gordura (bio)
+              </label>
+              <input value={`${pgcBio}%`} readOnly style={{ background: '#f0f7e8', color: 'var(--green)', fontWeight: 600 }} />
+            </div>
+          )}
+          {mmBio != null && (
+            <div>
+              <label className="field-label" style={{ color: 'var(--green)' }}>
+                <i className="ti ti-activity" style={{ fontSize: 11, marginRight: 3 }} />
+                Massa Magra (bio)
+              </label>
+              <input value={`${mmBio} kg`} readOnly style={{ background: '#f0f7e8', color: 'var(--green)', fontWeight: 600 }} />
+            </div>
+          )}
         </div>
       </div>
 
