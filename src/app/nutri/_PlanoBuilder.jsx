@@ -668,8 +668,56 @@ const TH = ({ children }) => (
   </th>
 );
 
+/* ── Geração automática de lista de compras ─────────────────── */
+const _LC_CATS = [
+  { id: 'hortifruti', label: 'Hortifruti', emoji: '🥦',
+    kw: ['banana','maca','laranja','abacaxi','morango','uva','melao','manga','mamao','melancia','kiwi','pera','abacate','cenoura','brocolis','abobrinha','espinafre','alface','tomate','beterraba','pepino','chuchu','couve','pimentao','berinjela','batata','inhame','mandioca','aipim','milho','abobora','mandioquinha','tangerina','caqui','pessego','acerola','jabuticaba','goiaba','pitaya','coco','figo','caja','mangaba','jambo','fruta'] },
+  { id: 'proteinas', label: 'Proteínas', emoji: '🥩',
+    kw: ['frango','carne','peixe','atum','sardinha','salmao','tilapia','ovo','whey','lombo','picanha','patinho','alcatra','musculo','figado','moela','camarao','merluza','sobrecoxa','peito'] },
+  { id: 'graos', label: 'Grãos e Cereais', emoji: '🌾',
+    kw: ['arroz','aveia','macarrao','quinoa','cuscuz','tapioca','farinha','farelo','pao','torrada','rap10','bisnaga','hamburguer','pipoca','granola','chia','linhaca','feijao','lentilha','grao','ervilha','soja'] },
+  { id: 'laticinios', label: 'Laticínios', emoji: '🥛',
+    kw: ['leite','iogurte','queijo','ricota','requeijao','manteiga','mucarela','mussarela','bufala','coalho','cottage','minas'] },
+  { id: 'mercearia', label: 'Mercearia e Temperos', emoji: '🧄', kw: [] },
+  { id: 'outros',    label: 'Outros',                emoji: '📦', kw: [] },
+];
+const _TEMPEROS = ['Sal','Azeite de oliva','Alho','Cebola','Limão','Salsinha','Cebolinha','Pimenta-do-reino','Açafrão/Cúrcuma','Orégano','Vinagre'];
+
+function _lcNorm(s) {
+  return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/g,' ').trim();
+}
+function _lcCat(nome) {
+  const n = _lcNorm(nome);
+  for (const c of _LC_CATS.slice(0, 4)) {
+    if (c.kw.some(kw => n.includes(kw))) return c.id;
+  }
+  return 'outros';
+}
+function _lcLimpar(nome) {
+  return nome.replace(/\s+\d+(?:[.,]\d+)?\s*(?:g|ml|kg|l|mg)\s*$/i,'').trim();
+}
+
+function gerarListaCompras(refeicoes) {
+  const porCat = Object.fromEntries(_LC_CATS.map(c => [c.id, new Set()]));
+  for (const t of _TEMPEROS) porCat.mercearia.add(t);
+  for (const ref of refeicoes) {
+    for (const al of ref.alimentos ?? []) {
+      const nomes = [al.nome, ...(al.subs ?? []).map(s => s.nome)].filter(Boolean);
+      for (const nome of nomes) {
+        const limpo = _lcLimpar(nome);
+        if (limpo) porCat[_lcCat(limpo)].add(limpo);
+      }
+    }
+  }
+  return {
+    lista: _LC_CATS
+      .map(c => ({ categoria: c.label, emoji: c.emoji, itens: [...porCat[c.id]] }))
+      .filter(c => c.itens.length > 0),
+  };
+}
+
 /* ── Componente principal ───────────────────────────────────── */
-export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome }) {
+export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, onLiberar }) {
   const DRAFT_KEY = `plano_rascunho_${pacienteId}`;
 
   const [refeicoes, setRefeicoes] = useState(() => {
@@ -840,7 +888,10 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome }) {
     setPublicando(false);
 
     if (error) return setFeedback({ tipo: 'erro', msg: error.message });
-    setFeedback({ tipo: 'ok', msg: 'Plano liberado! A paciente já pode visualizar e baixar.' });
+    setFeedback({ tipo: 'ok', msg: 'Plano liberado! Abrindo lista de compras…' });
+
+    const lista = gerarListaCompras(refeicoes);
+    onLiberar?.(lista);
   }
 
   /* ── JSX ─────────────────────────────────────────────────── */

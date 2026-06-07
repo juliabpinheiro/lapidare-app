@@ -28,6 +28,7 @@ export default function PacientePerfil() {
   const [editandoNasc, setEditandoNasc] = useState(false);
   const [novoNasc, setNovoNasc] = useState('');
   const [salvandoNasc, setSalvandoNasc] = useState(false);
+  const [listaDraft, setListaDraft] = useState(null);
 
   async function carregar() {
     const { data } = await supabase
@@ -258,8 +259,8 @@ export default function PacientePerfil() {
       {tab === 'followup' && <FollowUp pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'suplementacao' && <Suplementacao pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'habitos' && <Habitos pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
-      {tab === 'plano' && <PlanoBuilder pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
-      {tab === 'compras' && <PublicarLista pacienteId={paciente.id} nutriId={user.id} />}
+      {tab === 'plano' && <PlanoBuilder pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} onLiberar={(lista) => { setListaDraft(lista); setTab('compras'); }} />}
+      {tab === 'compras' && <PublicarLista pacienteId={paciente.id} nutriId={user.id} listaDraft={listaDraft} onDraftClear={() => setListaDraft(null)} />}
       {tab === 'prescricoes' && <EnviarPrescricao pacienteId={paciente.id} nutriId={user.id} />}
       {tab === 'ebooks' && <EbooksDaPaciente pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'avaliacao' && <RegistrarAvaliacao pacienteId={paciente.id} nutriId={user.id} />}
@@ -759,12 +760,20 @@ function PublicarPlano({ pacienteId, nutriId }) {
 /* ============================================================
    PUBLICAR LISTA DE COMPRAS
    ============================================================ */
-function PublicarLista({ pacienteId, nutriId }) {
+function PublicarLista({ pacienteId, nutriId, listaDraft, onDraftClear }) {
+  const [lista, setLista]         = useState(null);
+  const [editando, setEditando]   = useState(false);
+  const [novoItemCat, setNovoItemCat]   = useState(null);
+  const [novoItemTexto, setNovoItemTexto] = useState('');
   const [historico, setHistorico] = useState([]);
-  const [json, setJson] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [feedback, setFeedback] = useState(null);
-  const [verJson, setVerJson] = useState(null);
+  const [busy, setBusy]           = useState(false);
+  const [feedback, setFeedback]   = useState(null);
+
+  useEffect(() => { carregar(); }, [pacienteId]);
+
+  useEffect(() => {
+    if (listaDraft) { setLista(listaDraft); setEditando(false); setFeedback(null); }
+  }, [listaDraft]);
 
   async function carregar() {
     const { data } = await supabase
@@ -775,68 +784,158 @@ function PublicarLista({ pacienteId, nutriId }) {
       .limit(5);
     setHistorico(data ?? []);
   }
-  useEffect(() => { carregar(); }, [pacienteId]);
 
   async function publicar() {
+    if (!lista) return;
     setFeedback(null);
-    let dados;
-    try { dados = JSON.parse(json); }
-    catch (e) { return setFeedback({ tipo: 'erro', msg: 'JSON inválido: ' + e.message }); }
-
-    const v = validarLista(dados);
-    if (!v.ok) return setFeedback({ tipo: 'erro', msg: v.erro });
-
     setBusy(true);
-    const { error } = await supabase.from('listas_compras').insert({
-      paciente_id: pacienteId,
-      nutri_id: nutriId,
-      dados,
-    });
+    const { error } = await supabase.from('listas_compras').insert({ paciente_id: pacienteId, nutri_id: nutriId, dados: lista });
     setBusy(false);
     if (error) return setFeedback({ tipo: 'erro', msg: error.message });
     setFeedback({ tipo: 'ok', msg: 'Lista publicada! A paciente verá agora.' });
-    setJson('');
+    setLista(null);
+    setEditando(false);
+    onDraftClear?.();
     carregar();
   }
 
   async function excluirLista(l) {
-    const data = dataBR(l.publicado_em);
-    if (!window.confirm(`Excluir lista de compras publicada em ${data}?\n\nA paciente não verá mais esta lista.`)) return;
+    if (!window.confirm(`Excluir lista publicada em ${dataBR(l.publicado_em)}?\n\nA paciente não verá mais esta lista.`)) return;
     const { error } = await supabase.from('listas_compras').delete().eq('id', l.id);
     if (error) return setFeedback({ tipo: 'erro', msg: error.message });
     setFeedback({ tipo: 'ok', msg: 'Lista excluída.' });
     carregar();
   }
 
+  function removerItem(catLabel, idx) {
+    setLista(prev => ({
+      ...prev,
+      lista: prev.lista
+        .map(c => c.categoria === catLabel ? { ...c, itens: c.itens.filter((_, i) => i !== idx) } : c)
+        .filter(c => c.itens.length > 0),
+    }));
+  }
+
+  function adicionarItem(catLabel) {
+    const texto = novoItemTexto.trim();
+    if (!texto) return;
+    setLista(prev => ({
+      ...prev,
+      lista: prev.lista.map(c =>
+        c.categoria === catLabel ? { ...c, itens: [...c.itens, texto] } : c
+      ),
+    }));
+    setNovoItemTexto('');
+    setNovoItemCat(null);
+  }
+
+  const totalItens = lista?.lista?.reduce((a, c) => a + c.itens.length, 0) ?? 0;
+
   return (
     <>
       <div className="card">
         <div className="card-header">
           <div>
-            <div className="card-title">Publicar nova lista de compras</div>
-            <div className="card-sub">Cole o JSON gerado pela sua Skill 7 (categorias + itens)</div>
+            <div className="card-title">Lista de compras</div>
+            <div className="card-sub">
+              {lista ? `${totalItens} itens em ${lista.lista.length} categorias — revise e publique` : 'Gerada automaticamente ao liberar o plano'}
+            </div>
           </div>
+          {lista && (
+            <div style={{ display: 'flex', gap: 8 }}>
+              {!editando
+                ? <button className="btn-outline" style={{ fontSize: 13 }} onClick={() => setEditando(true)}>
+                    <i className="ti ti-pencil" aria-hidden="true" /> Editar lista
+                  </button>
+                : <button className="btn-outline" style={{ fontSize: 13 }} onClick={() => { setEditando(false); setNovoItemCat(null); }}>
+                    Concluir edição
+                  </button>
+              }
+              <button className="btn" style={{ fontSize: 13 }} onClick={publicar} disabled={busy}>
+                <i className="ti ti-send" aria-hidden="true" /> {busy ? 'Publicando…' : 'Publicar lista'}
+              </button>
+            </div>
+          )}
         </div>
+
         <div className="card-body">
-          <label className="field-label">JSON da lista</label>
-          <textarea
-            value={json}
-            onChange={e => setJson(e.target.value)}
-            rows={10}
-            placeholder='{"lista": [{"categoria": "Hortifruti", "itens": ["banana", "maçã"]}]}'
-            style={{ width: '100%', fontFamily: 'monospace', fontSize: 13, resize: 'vertical' }}
-          />
+          {!lista ? (
+            <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text3)' }}>
+              <i className="ti ti-shopping-cart" style={{ fontSize: 36, display: 'block', marginBottom: 12 }} aria-hidden="true" />
+              <div style={{ fontSize: 14 }}>
+                A lista será gerada automaticamente ao clicar em<br />
+                <strong>"Liberar para paciente"</strong> na aba Plano.
+              </div>
+            </div>
+          ) : (
+            <>
+              {lista.lista.map(cat => (
+                <div key={cat.categoria} style={{ marginBottom: 18 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.07em', color: 'var(--terra)' }}>
+                    {cat.emoji && <span>{cat.emoji}</span>}
+                    <span>{cat.categoria}</span>
+                    <span style={{ fontWeight: 400, color: 'var(--text3)', marginLeft: 4 }}>{cat.itens.length}</span>
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {cat.itens.map((item, i) => (
+                      <span key={i} style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 4,
+                        background: 'var(--bege)', borderRadius: 20, padding: '4px 12px',
+                        fontSize: 12.5, color: 'var(--dark)',
+                      }}>
+                        {item}
+                        {editando && (
+                          <button
+                            onClick={() => removerItem(cat.categoria, i)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 15, lineHeight: 1, color: 'var(--text3)', padding: '0 0 0 2px' }}
+                            title="Remover"
+                          >×</button>
+                        )}
+                      </span>
+                    ))}
+                    {editando && (
+                      novoItemCat === cat.categoria
+                        ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                            <input
+                              value={novoItemTexto}
+                              onChange={e => setNovoItemTexto(e.target.value)}
+                              onKeyDown={e => {
+                                if (e.key === 'Enter') adicionarItem(cat.categoria);
+                                if (e.key === 'Escape') { setNovoItemCat(null); setNovoItemTexto(''); }
+                              }}
+                              placeholder="novo item…"
+                              autoFocus
+                              style={{ fontSize: 12, padding: '4px 10px', borderRadius: 20, width: 140 }}
+                            />
+                            <button className="btn" style={{ fontSize: 12, padding: '4px 10px' }} onClick={() => adicionarItem(cat.categoria)}>+</button>
+                          </span>
+                        : <button
+                            onClick={() => { setNovoItemCat(cat.categoria); setNovoItemTexto(''); }}
+                            style={{ background: 'none', border: '1.5px dashed var(--border)', borderRadius: 20, padding: '4px 12px', fontSize: 12, cursor: 'pointer', color: 'var(--text3)' }}
+                          >+ adicionar</button>
+                    )}
+                  </div>
+                </div>
+              ))}
 
-          <DicaJSON
-            exemploPrompt='gera um JSON de lista de compras pra paciente, agrupando os itens por categoria (Hortifruti, Proteínas, Grãos e cereais, Laticínios, Mercearia, Outros). Inclui só os nomes dos itens (sem quantidade). Estrutura: { "lista": [{ "categoria": "Hortifruti", "emoji": "🥦", "itens": ["banana", "maçã", "alface", "tomate"] }, ...] }' />
+              {feedback && <FeedbackInline f={feedback} />}
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
-            <button className="btn" onClick={publicar} disabled={busy || !json.trim()}>
-              <i className="ti ti-send" aria-hidden="true"></i> {busy ? 'Publicando...' : 'Publicar lista'}
-            </button>
-          </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+                <button
+                  className="btn-outline"
+                  style={{ fontSize: 12, color: 'var(--text3)' }}
+                  onClick={() => { setLista(null); setEditando(false); onDraftClear?.(); }}
+                >
+                  Descartar
+                </button>
+                <button className="btn" onClick={publicar} disabled={busy}>
+                  <i className="ti ti-send" aria-hidden="true" /> {busy ? 'Publicando…' : 'Publicar lista'}
+                </button>
+              </div>
+            </>
+          )}
 
-          {feedback && <FeedbackInline f={feedback} />}
+          {!lista && feedback && <FeedbackInline f={feedback} />}
         </div>
       </div>
 
@@ -845,26 +944,16 @@ function PublicarLista({ pacienteId, nutriId }) {
         items={historico}
         onDelete={excluirLista}
         renderItem={(l) => (
-          <>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 14, fontWeight: 500 }}>
-                {contarItensLista(l.dados)} itens em {l.dados?.lista?.length ?? 0} categorias
-              </div>
-              <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 2 }}>
-                Publicada em {dataBR(l.publicado_em)}
-              </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 14, fontWeight: 500 }}>
+              {contarItensLista(l.dados)} itens em {l.dados?.lista?.length ?? 0} categorias
             </div>
-            <button className="btn-outline" style={{ fontSize: 12, padding: '4px 10px' }}
-              onClick={() => setVerJson(l)}>
-              <i className="ti ti-code" aria-hidden="true"></i> JSON
-            </button>
-          </>
+            <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 2 }}>
+              Publicada em {dataBR(l.publicado_em)}
+            </div>
+          </div>
         )}
       />
-
-      {verJson && (
-        <VerJsonModal item={verJson} dados={verJson.dados} onClose={() => setVerJson(null)} />
-      )}
     </>
   );
 }
