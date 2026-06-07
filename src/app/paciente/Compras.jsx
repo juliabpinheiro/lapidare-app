@@ -106,7 +106,6 @@ export default function Compras() {
             color: 'var(--gold-deep)', fontWeight: 500, marginBottom: 8,
             display: 'flex', alignItems: 'center', gap: 6
           }}>
-            {cat.emoji && <span>{cat.emoji}</span>}
             <span>{cat.categoria}</span>
             <span style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--muted)' }}>{cat.itens?.length ?? 0} itens</span>
           </div>

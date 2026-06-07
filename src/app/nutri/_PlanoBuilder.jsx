@@ -670,16 +670,16 @@ const TH = ({ children }) => (
 
 /* ── Geração automática de lista de compras ─────────────────── */
 const _LC_CATS = [
-  { id: 'hortifruti', label: 'Hortifruti', emoji: '🥦',
+  { id: 'hortifruti', label: 'Hortifruti',
     kw: ['banana','maca','laranja','abacaxi','morango','uva','melao','manga','mamao','melancia','kiwi','pera','abacate','cenoura','brocolis','abobrinha','espinafre','alface','tomate','beterraba','pepino','chuchu','couve','pimentao','berinjela','batata','inhame','mandioca','aipim','milho','abobora','mandioquinha','tangerina','caqui','pessego','acerola','jabuticaba','goiaba','pitaya','coco','figo','caja','mangaba','jambo','fruta'] },
-  { id: 'proteinas', label: 'Proteínas', emoji: '🥩',
+  { id: 'proteinas', label: 'Proteínas',
     kw: ['frango','carne','peixe','atum','sardinha','salmao','tilapia','ovo','whey','lombo','picanha','patinho','alcatra','musculo','figado','moela','camarao','merluza','sobrecoxa','peito'] },
-  { id: 'graos', label: 'Grãos e Cereais', emoji: '🌾',
+  { id: 'graos', label: 'Grãos e Cereais',
     kw: ['arroz','aveia','macarrao','quinoa','cuscuz','tapioca','farinha','farelo','pao','torrada','rap10','bisnaga','hamburguer','pipoca','granola','chia','linhaca','feijao','lentilha','grao','ervilha','soja'] },
-  { id: 'laticinios', label: 'Laticínios', emoji: '🥛',
+  { id: 'laticinios', label: 'Laticínios',
     kw: ['leite','iogurte','queijo','ricota','requeijao','manteiga','mucarela','mussarela','bufala','coalho','cottage','minas'] },
-  { id: 'mercearia', label: 'Mercearia e Temperos', emoji: '🧄', kw: [] },
-  { id: 'outros',    label: 'Outros',                emoji: '📦', kw: [] },
+  { id: 'mercearia', label: 'Mercearia e Temperos', kw: [] },
+  { id: 'outros',    label: 'Outros',               kw: [] },
 ];
 const _TEMPEROS = ['Sal','Azeite de oliva','Alho','Cebola','Limão','Salsinha','Cebolinha','Pimenta-do-reino','Açafrão/Cúrcuma','Orégano','Vinagre'];
 
@@ -711,7 +711,7 @@ function gerarListaCompras(refeicoes) {
   }
   return {
     lista: _LC_CATS
-      .map(c => ({ categoria: c.label, emoji: c.emoji, itens: [...porCat[c.id]] }))
+      .map(c => ({ categoria: c.label, itens: [...porCat[c.id]] }))
       .filter(c => c.itens.length > 0),
   };
 }

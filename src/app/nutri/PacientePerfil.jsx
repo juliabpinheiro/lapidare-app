@@ -872,7 +872,6 @@ function PublicarLista({ pacienteId, nutriId, listaDraft, onDraftClear }) {
               {lista.lista.map(cat => (
                 <div key={cat.categoria} style={{ marginBottom: 18 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.07em', color: 'var(--terra)' }}>
-                    {cat.emoji && <span>{cat.emoji}</span>}
                     <span>{cat.categoria}</span>
                     <span style={{ fontWeight: 400, color: 'var(--text3)', marginLeft: 4 }}>{cat.itens.length}</span>
                   </div>
