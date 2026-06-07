@@ -182,9 +182,113 @@ const TACO_DATA = [
   { nome: 'Chia',                       cat: 'carbo', kcal: 490, prot_g: 16.5, cho_g: 42.1, lip_g: 30.7 },
 ];
 
+/* ── Lista pronta de substituições ──────────────────────────── */
+const LISTA_PRONTA_DATA = [
+  { cat: 'carbo', label: 'Carboidrato', itens: [
+    'Pão de forma tradicional ou integral sem grãos – 2 fatias',
+    'Pão francês sem miolo – 1 unidade',
+    'Torrada integral – 4 unidades',
+    'Rap10 – 1 unidade',
+    'Goma de tapioca 45g',
+    'Pão sírio 50g',
+    'Cuscuz já pronto 100g',
+    'Pão bisnaguinha 3 unidades',
+    'Torrada lev magic toast 7 unidades',
+    'Arroz branco ou integral 100g',
+    'Batata inglesa 120g',
+    'Aipim/mandioca 100g',
+    'Batata doce 105g',
+    'Inhame 100g',
+    'Batata baroa/mandioquinha 150g',
+    'Milho para pipoca 30g',
+    'Farelo de aveia 30g',
+    'Quinoa já cozida 80g',
+    'Macarrão tradicional ou integral 100g',
+    'Abóbora 170g',
+    'Milho 120g',
+    'Farofa 25g',
+    'Pão de hambúrguer 50g',
+  ]},
+  { cat: 'prot', label: 'Proteína', itens: [
+    'Ovo – 1 unidade',
+    'Queijo Minas Frescal 30g',
+    'Queijo minas padrão 20g',
+    'Queijo meia cura 20g',
+    'Queijo curado 20g',
+    'Muçarela 20g',
+    'Ricota 40g',
+    'Muçarela de búfala 20g',
+    'Queijo coalho 15g',
+    'Peito de frango 100g',
+    'Sobrecoxa sem pele 90g',
+    'Fígado 100g',
+    'Moela 100g',
+    'Picanha sem gordura 80g',
+    'Músculo 120g',
+    'Patinho moído 100g',
+    'Bife de alcatra 100g',
+    'Whey protein 30g',
+    'Lombo suíno 100g',
+    'Picanha suína 90g',
+    'Tilápia 150g',
+    'Salmão 100g',
+    'Filé de merluza 110g',
+    'Camarão 120g',
+    'Sardinha enlatada em água 105g',
+    'Atum enlatado em água 100g',
+    'Ovo de galinha 2 unidades',
+    'Iogurte natural desnatado 160g',
+    'Iogurte grego zero 1 unidade',
+    'Leite desnatado 150ml',
+  ]},
+  { cat: 'fruta', label: 'Fruta', itens: [
+    'Banana prata – 1 unidade',
+    'Uva 15 unidades',
+    'Morango 15 unidades',
+    'Melão 300g',
+    'Mamão 150g',
+    'Melancia 350g',
+    'Manga 200g',
+    'Maçã 1 unidade',
+    'Tangerina 1 unidade',
+    'Laranja 1 unidade',
+    'Kiwi 2 unidades',
+    'Abacate 50g',
+    'Abacaxi 150g',
+    'Pera 1 unidade',
+    'Coco seco 15g',
+    'Caqui 1 unidade',
+    'Pêssego 2 unidades',
+    'Acerola 200g',
+    'Jabuticaba 200g',
+    'Cajá 200g',
+    'Figo 150g',
+    'Goiaba 200g',
+    'Jambo 300g',
+    'Mangaba 180g',
+    'Pitaya 200g',
+  ]},
+  { cat: 'leg', label: 'Leguminosa', itens: [
+    'Feijão 150g',
+    'Lentilha 150g',
+    'Soja 75g',
+    'Grão de bico 75g',
+  ]},
+  { cat: 'bebida', label: 'Bebida', itens: [
+    'Café puro',
+    'Café com adoçante',
+    'Suco de limão com adoçante',
+    'Suco de morango com adoçante',
+    'Suco de melancia com adoçante',
+    'Suco de acerola com adoçante',
+    'Suco de maracujá com adoçante',
+  ]},
+];
+
 /* ── Modal: adicionar alimento ou substituto ────────────────── */
-function ModalAlimento({ isSub, onConfirm, onFechar }) {
-  const [tab, setTab]             = useState('fatsecret');
+function ModalAlimento({ isSub, onConfirm, onConfirmMulti, onFechar }) {
+  const [tab, setTab]             = useState(isSub ? 'lista' : 'fatsecret');
+  const [listaSel, setListaSel]   = useState(new Set());
   const [busca, setBusca]         = useState('');
   const [resultados, setRes]      = useState([]);
   const [loading, setLoading]     = useState(false);
@@ -224,6 +328,27 @@ function ModalAlimento({ isSub, onConfirm, onFechar }) {
     const g = parseFloat(qtd);
     if (!g || !sel) return;
     onConfirm({ id: uid(), ...calcMacros(detalhe ?? sel, g), subs: [], catKey: '' });
+  }
+
+  function toggleLista(key) {
+    setListaSel(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  }
+
+  function confirmarLista() {
+    const selecionados = [];
+    for (const cat of LISTA_PRONTA_DATA) {
+      for (const item of cat.itens) {
+        if (listaSel.has(`${cat.cat}::${item}`)) {
+          selecionados.push({ id: uid(), nome: item, qty: '', kcal: null, prot_g: null, cho_g: null, lip_g: null, subs: [], catKey: cat.cat });
+        }
+      }
+    }
+    if (selecionados.length === 0) return;
+    onConfirmMulti(selecionados);
   }
 
   function confirmarManual() {
@@ -279,7 +404,10 @@ function ModalAlimento({ isSub, onConfirm, onFechar }) {
 
         {/* Tabs */}
         <div style={{ display: 'flex', padding: '10px 20px 0', borderBottom: '1px solid var(--border)', marginTop: 6 }}>
-          {[['fatsecret', 'Buscar no FatSecret'], ['taco', 'Tabela TACO'], ['manual', 'Digitar manualmente']].map(([id, lbl]) => (
+          {(isSub
+            ? [['lista', 'Lista pronta'], ['fatsecret', 'Buscar no FatSecret'], ['manual', 'Digitar manualmente']]
+            : [['fatsecret', 'Buscar no FatSecret'], ['taco', 'Tabela TACO'], ['manual', 'Digitar manualmente']]
+          ).map(([id, lbl]) => (
             <button key={id} onClick={() => setTab(id)} style={{
               padding: '7px 14px', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600,
               background: 'none', color: tab === id ? 'var(--dark)' : 'var(--text3)',
@@ -291,6 +419,51 @@ function ModalAlimento({ isSub, onConfirm, onFechar }) {
 
         {/* Corpo */}
         <div style={{ flex: 1, overflowY: 'auto', padding: 20 }}>
+
+          {/* ── Lista pronta ── */}
+          {tab === 'lista' && (
+            <>
+              <div style={{ fontSize: 12, color: 'var(--text3)', marginBottom: 12 }}>
+                Selecione os substitutos e clique em "Adicionar selecionados".
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {LISTA_PRONTA_DATA.map(cat => (
+                  <div key={cat.cat}>
+                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.07em', color: 'var(--terra)', marginBottom: 6 }}>
+                      {cat.label}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      {cat.itens.map(item => {
+                        const key = `${cat.cat}::${item}`;
+                        const checked = listaSel.has(key);
+                        return (
+                          <label key={key} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, cursor: 'pointer', padding: '4px 6px', borderRadius: 6, background: checked ? '#fffbf5' : 'transparent' }}>
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() => toggleLista(key)}
+                              style={{ marginTop: 2, accentColor: 'var(--verde)', flexShrink: 0 }}
+                            />
+                            <span style={{ fontSize: 13, color: 'var(--dark)', lineHeight: 1.4 }}>{item}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ position: 'sticky', bottom: 0, background: 'var(--white)', paddingTop: 14, marginTop: 14, borderTop: '1px solid var(--border)' }}>
+                <button
+                  className="btn"
+                  style={{ width: '100%', fontSize: 14 }}
+                  onClick={confirmarLista}
+                  disabled={listaSel.size === 0}
+                >
+                  Adicionar selecionados {listaSel.size > 0 ? `(${listaSel.size})` : ''}
+                </button>
+              </div>
+            </>
+          )}
 
           {/* ── FatSecret ── */}
           {tab === 'fatsecret' && (
@@ -592,6 +765,20 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome }) {
     setModal(null);
   }
 
+  function handleConfirmMulti(alimentos) {
+    if (!modal?.alimentoId) return;
+    setRefeicoes(prev => prev.map(r =>
+      r.id === modal.refId
+        ? { ...r, alimentos: r.alimentos.map(a =>
+            a.id === modal.alimentoId
+              ? { ...a, subs: [...(a.subs ?? []), ...alimentos.map(al => ({ ...al, id: uid() }))] }
+              : a
+          )}
+        : r
+    ));
+    setModal(null);
+  }
+
   /* ── Totais ──────────────────────────────────────────────── */
   const totDia = refeicoes.reduce((acc, ref) => {
     const t = somaAlimentos(ref.alimentos);
@@ -851,6 +1038,7 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome }) {
         <ModalAlimento
           isSub={!!modal.alimentoId}
           onConfirm={handleConfirm}
+          onConfirmMulti={handleConfirmMulti}
           onFechar={() => setModal(null)}
         />
       )}
