@@ -83,6 +83,105 @@ function buildSubsTexto(refeicoes) {
   return Object.keys(result).length ? result : null;
 }
 
+/* ── Tabela TACO (por 100g) ─────────────────────────────────── */
+const TACO_DATA = [
+  // Cereais e derivados
+  { nome: 'Arroz branco cozido',        cat: 'carbo', kcal: 128, prot_g: 2.5,  cho_g: 28.1, lip_g: 0.2 },
+  { nome: 'Arroz integral cozido',      cat: 'carbo', kcal: 124, prot_g: 2.6,  cho_g: 25.8, lip_g: 1.0 },
+  { nome: 'Macarrão cozido',            cat: 'carbo', kcal: 157, prot_g: 4.9,  cho_g: 31.4, lip_g: 0.9 },
+  { nome: 'Pão francês',               cat: 'carbo', kcal: 300, prot_g: 8.0,  cho_g: 58.6, lip_g: 3.1 },
+  { nome: 'Pão de forma integral',      cat: 'carbo', kcal: 253, prot_g: 8.2,  cho_g: 47.1, lip_g: 3.4 },
+  { nome: 'Aveia em flocos',            cat: 'carbo', kcal: 394, prot_g: 13.9, cho_g: 66.6, lip_g: 8.5 },
+  { nome: 'Batata inglesa cozida',      cat: 'carbo', kcal: 52,  prot_g: 1.7,  cho_g: 11.4, lip_g: 0.1 },
+  { nome: 'Batata-doce cozida',         cat: 'carbo', kcal: 77,  prot_g: 0.6,  cho_g: 18.4, lip_g: 0.1 },
+  { nome: 'Inhame cozido',              cat: 'carbo', kcal: 78,  prot_g: 1.7,  cho_g: 18.5, lip_g: 0.2 },
+  { nome: 'Mandioca cozida',            cat: 'carbo', kcal: 125, prot_g: 0.6,  cho_g: 30.1, lip_g: 0.3 },
+  { nome: 'Farinha de mandioca',        cat: 'carbo', kcal: 361, prot_g: 1.6,  cho_g: 87.0, lip_g: 0.3 },
+  { nome: 'Tapioca',                    cat: 'carbo', kcal: 360, prot_g: 0.3,  cho_g: 88.7, lip_g: 0.0 },
+  { nome: 'Milho cozido',               cat: 'carbo', kcal: 77,  prot_g: 2.9,  cho_g: 14.7, lip_g: 1.0 },
+  { nome: 'Cuscuz de milho cozido',     cat: 'carbo', kcal: 112, prot_g: 2.0,  cho_g: 23.8, lip_g: 0.8 },
+  { nome: 'Biscoito de arroz',          cat: 'carbo', kcal: 387, prot_g: 7.7,  cho_g: 81.1, lip_g: 4.1 },
+  // Leguminosas
+  { nome: 'Feijão carioca cozido',      cat: 'leg',   kcal: 76,  prot_g: 4.8,  cho_g: 13.6, lip_g: 0.5 },
+  { nome: 'Feijão preto cozido',        cat: 'leg',   kcal: 77,  prot_g: 4.5,  cho_g: 14.0, lip_g: 0.5 },
+  { nome: 'Lentilha cozida',            cat: 'leg',   kcal: 93,  prot_g: 6.3,  cho_g: 16.3, lip_g: 0.5 },
+  { nome: 'Grão-de-bico cozido',        cat: 'leg',   kcal: 164, prot_g: 8.9,  cho_g: 27.4, lip_g: 2.6 },
+  { nome: 'Ervilha cozida',             cat: 'leg',   kcal: 67,  prot_g: 4.7,  cho_g: 11.2, lip_g: 0.4 },
+  { nome: 'Soja cozida',                cat: 'leg',   kcal: 141, prot_g: 12.4, cho_g: 11.5, lip_g: 6.0 },
+  // Proteínas animais
+  { nome: 'Frango peito grelhado',      cat: 'prot',  kcal: 159, prot_g: 32.0, cho_g: 0.0,  lip_g: 3.2 },
+  { nome: 'Frango coxa grelhada',       cat: 'prot',  kcal: 180, prot_g: 23.0, cho_g: 0.0,  lip_g: 9.5 },
+  { nome: 'Carne bovina patinho cozida',cat: 'prot',  kcal: 219, prot_g: 32.0, cho_g: 0.0,  lip_g: 9.5 },
+  { nome: 'Carne bovina acém cozida',   cat: 'prot',  kcal: 245, prot_g: 29.0, cho_g: 0.0,  lip_g: 14.0 },
+  { nome: 'Carne moída refogada',       cat: 'prot',  kcal: 208, prot_g: 26.0, cho_g: 0.0,  lip_g: 11.2 },
+  { nome: 'Ovos inteiros cozidos',      cat: 'prot',  kcal: 146, prot_g: 13.3, cho_g: 0.6,  lip_g: 9.5 },
+  { nome: 'Ovo mexido',                 cat: 'prot',  kcal: 181, prot_g: 12.9, cho_g: 1.7,  lip_g: 13.7 },
+  { nome: 'Atum em conserva',           cat: 'prot',  kcal: 109, prot_g: 25.3, cho_g: 0.0,  lip_g: 0.8 },
+  { nome: 'Sardinha assada',            cat: 'prot',  kcal: 181, prot_g: 27.0, cho_g: 0.0,  lip_g: 7.8 },
+  { nome: 'Tilápia grelhada',           cat: 'prot',  kcal: 96,  prot_g: 20.1, cho_g: 0.0,  lip_g: 1.7 },
+  { nome: 'Camarão cozido',             cat: 'prot',  kcal: 77,  prot_g: 16.9, cho_g: 0.0,  lip_g: 1.0 },
+  { nome: 'Lombo suíno assado',         cat: 'prot',  kcal: 197, prot_g: 27.5, cho_g: 0.0,  lip_g: 9.5 },
+  // Laticínios
+  { nome: 'Leite integral',             cat: 'prot',  kcal: 61,  prot_g: 3.2,  cho_g: 4.7,  lip_g: 3.3 },
+  { nome: 'Leite desnatado',            cat: 'prot',  kcal: 35,  prot_g: 3.4,  cho_g: 5.0,  lip_g: 0.2 },
+  { nome: 'Iogurte natural integral',   cat: 'prot',  kcal: 61,  prot_g: 3.5,  cho_g: 4.9,  lip_g: 3.0 },
+  { nome: 'Iogurte grego',              cat: 'prot',  kcal: 97,  prot_g: 9.0,  cho_g: 3.6,  lip_g: 5.0 },
+  { nome: 'Queijo minas frescal',       cat: 'prot',  kcal: 264, prot_g: 17.4, cho_g: 3.0,  lip_g: 20.2 },
+  { nome: 'Queijo cottage',             cat: 'prot',  kcal: 97,  prot_g: 11.1, cho_g: 3.4,  lip_g: 4.3 },
+  { nome: 'Queijo muçarela',            cat: 'prot',  kcal: 314, prot_g: 21.6, cho_g: 2.6,  lip_g: 24.0 },
+  { nome: 'Requeijão cremoso',          cat: 'prot',  kcal: 235, prot_g: 7.8,  cho_g: 4.5,  lip_g: 21.0 },
+  { nome: 'Whey protein (pó)',          cat: 'prot',  kcal: 400, prot_g: 80.0, cho_g: 8.0,  lip_g: 5.0 },
+  // Frutas
+  { nome: 'Banana prata',               cat: 'fruta', kcal: 98,  prot_g: 1.3,  cho_g: 26.0, lip_g: 0.1 },
+  { nome: 'Banana maçã',                cat: 'fruta', kcal: 87,  prot_g: 1.1,  cho_g: 22.8, lip_g: 0.1 },
+  { nome: 'Maçã',                       cat: 'fruta', kcal: 56,  prot_g: 0.3,  cho_g: 15.2, lip_g: 0.2 },
+  { nome: 'Laranja',                    cat: 'fruta', kcal: 37,  prot_g: 1.0,  cho_g: 8.9,  lip_g: 0.1 },
+  { nome: 'Mamão papaia',               cat: 'fruta', kcal: 45,  prot_g: 0.5,  cho_g: 11.8, lip_g: 0.1 },
+  { nome: 'Melão',                      cat: 'fruta', kcal: 29,  prot_g: 0.9,  cho_g: 6.6,  lip_g: 0.2 },
+  { nome: 'Morango',                    cat: 'fruta', kcal: 30,  prot_g: 0.8,  cho_g: 6.8,  lip_g: 0.3 },
+  { nome: 'Uva niágara',                cat: 'fruta', kcal: 69,  prot_g: 1.0,  cho_g: 17.4, lip_g: 0.1 },
+  { nome: 'Manga tommy',                cat: 'fruta', kcal: 64,  prot_g: 0.4,  cho_g: 17.0, lip_g: 0.3 },
+  { nome: 'Abacaxi',                    cat: 'fruta', kcal: 48,  prot_g: 0.9,  cho_g: 12.3, lip_g: 0.1 },
+  { nome: 'Melancia',                   cat: 'fruta', kcal: 33,  prot_g: 0.9,  cho_g: 7.7,  lip_g: 0.4 },
+  { nome: 'Pêra',                       cat: 'fruta', kcal: 55,  prot_g: 0.5,  cho_g: 14.9, lip_g: 0.1 },
+  { nome: 'Kiwi',                       cat: 'fruta', kcal: 61,  prot_g: 1.0,  cho_g: 14.9, lip_g: 0.6 },
+  { nome: 'Abacate',                    cat: 'fruta', kcal: 96,  prot_g: 1.2,  cho_g: 6.0,  lip_g: 8.4 },
+  // Legumes e verduras
+  { nome: 'Brócolis cozido',            cat: 'carbo', kcal: 25,  prot_g: 2.9,  cho_g: 3.6,  lip_g: 0.4 },
+  { nome: 'Cenoura crua',               cat: 'carbo', kcal: 34,  prot_g: 1.3,  cho_g: 7.7,  lip_g: 0.2 },
+  { nome: 'Abobrinha cozida',           cat: 'carbo', kcal: 19,  prot_g: 1.2,  cho_g: 3.6,  lip_g: 0.2 },
+  { nome: 'Tomate cru',                 cat: 'carbo', kcal: 15,  prot_g: 1.1,  cho_g: 2.9,  lip_g: 0.2 },
+  { nome: 'Alface crespa crua',         cat: 'carbo', kcal: 11,  prot_g: 1.3,  cho_g: 1.7,  lip_g: 0.2 },
+  { nome: 'Espinafre cozido',           cat: 'carbo', kcal: 24,  prot_g: 2.1,  cho_g: 3.7,  lip_g: 0.5 },
+  { nome: 'Beterraba cozida',           cat: 'carbo', kcal: 39,  prot_g: 1.5,  cho_g: 8.5,  lip_g: 0.1 },
+  { nome: 'Pepino cru',                 cat: 'carbo', kcal: 10,  prot_g: 0.7,  cho_g: 1.9,  lip_g: 0.1 },
+  { nome: 'Chuchu cozido',              cat: 'carbo', kcal: 21,  prot_g: 0.9,  cho_g: 4.5,  lip_g: 0.2 },
+  { nome: 'Berinjela cozida',           cat: 'carbo', kcal: 24,  prot_g: 0.6,  cho_g: 5.7,  lip_g: 0.2 },
+  { nome: 'Pimentão verde cru',         cat: 'carbo', kcal: 23,  prot_g: 0.9,  cho_g: 5.0,  lip_g: 0.2 },
+  { nome: 'Couve manteiga crua',        cat: 'carbo', kcal: 25,  prot_g: 2.1,  cho_g: 4.6,  lip_g: 0.4 },
+  // Gorduras e oleaginosas
+  { nome: 'Azeite de oliva',            cat: 'carbo', kcal: 884, prot_g: 0.0,  cho_g: 0.0,  lip_g: 100.0 },
+  { nome: 'Óleo de coco',               cat: 'carbo', kcal: 892, prot_g: 0.0,  cho_g: 0.0,  lip_g: 99.1 },
+  { nome: 'Manteiga',                   cat: 'carbo', kcal: 726, prot_g: 0.7,  cho_g: 0.1,  lip_g: 81.0 },
+  { nome: 'Amendoim torrado',           cat: 'prot',  kcal: 581, prot_g: 24.4, cho_g: 21.4, lip_g: 44.7 },
+  { nome: 'Pasta de amendoim',          cat: 'prot',  kcal: 598, prot_g: 25.0, cho_g: 20.0, lip_g: 50.0 },
+  { nome: 'Castanha-do-pará',           cat: 'carbo', kcal: 643, prot_g: 14.3, cho_g: 12.3, lip_g: 63.5 },
+  { nome: 'Castanha de caju torrada',   cat: 'carbo', kcal: 570, prot_g: 14.0, cho_g: 29.0, lip_g: 46.0 },
+  { nome: 'Amêndoas',                   cat: 'carbo', kcal: 597, prot_g: 18.7, cho_g: 19.5, lip_g: 52.5 },
+  { nome: 'Nozes',                      cat: 'carbo', kcal: 650, prot_g: 14.3, cho_g: 14.0, lip_g: 62.5 },
+  // Outros
+  { nome: 'Mel',                        cat: 'carbo', kcal: 309, prot_g: 0.3,  cho_g: 82.4, lip_g: 0.0 },
+  { nome: 'Açúcar refinado',            cat: 'carbo', kcal: 387, prot_g: 0.0,  cho_g: 99.9, lip_g: 0.0 },
+  { nome: 'Chocolate meio amargo 70%',  cat: 'carbo', kcal: 566, prot_g: 8.0,  cho_g: 46.0, lip_g: 40.0 },
+  { nome: 'Café preto sem açúcar',      cat: 'carbo', kcal: 2,   prot_g: 0.1,  cho_g: 0.0,  lip_g: 0.0 },
+  { nome: 'Suco de laranja natural',    cat: 'carbo', kcal: 40,  prot_g: 0.7,  cho_g: 9.8,  lip_g: 0.1 },
+  { nome: 'Leite de coco',              cat: 'carbo', kcal: 197, prot_g: 2.0,  cho_g: 3.3,  lip_g: 21.3 },
+  { nome: 'Aipim frito',                cat: 'carbo', kcal: 209, prot_g: 0.9,  cho_g: 34.5, lip_g: 7.7 },
+  { nome: 'Granola',                    cat: 'carbo', kcal: 394, prot_g: 7.6,  cho_g: 64.9, lip_g: 13.7 },
+  { nome: 'Linhaça',                    cat: 'carbo', kcal: 495, prot_g: 18.3, cho_g: 28.9, lip_g: 34.4 },
+  { nome: 'Chia',                       cat: 'carbo', kcal: 490, prot_g: 16.5, cho_g: 42.1, lip_g: 30.7 },
+];
+
 /* ── Modal: adicionar alimento ou substituto ────────────────── */
 function ModalAlimento({ isSub, onConfirm, onFechar }) {
   const [tab, setTab]             = useState('fatsecret');
@@ -95,6 +194,9 @@ function ModalAlimento({ isSub, onConfirm, onFechar }) {
   const [loadDet, setLoadDet]     = useState(false);
   const [qtd, setQtd]             = useState('100');
   const [manual, setManual]       = useState({ nome: '', qty: '', kcal: '', prot_g: '', cho_g: '', lip_g: '' });
+  const [tacoBusca, setTacoBusca] = useState('');
+  const [tacoSel, setTacoSel]     = useState(null);
+  const [tacoQtd, setTacoQtd]     = useState('100');
 
   useEffect(() => {
     if (!sel) { setDetalhe(null); return; }
@@ -130,6 +232,32 @@ function ModalAlimento({ isSub, onConfirm, onFechar }) {
     onConfirm({ id: uid(), nome: manual.nome.trim(), qty: manual.qty || '—', kcal: n(manual.kcal), prot_g: n(manual.prot_g), cho_g: n(manual.cho_g), lip_g: n(manual.lip_g), subs: [], catKey: '' });
   }
 
+  function confirmarTaco() {
+    const g = parseFloat(tacoQtd);
+    if (!g || !tacoSel) return;
+    const f = g / 100;
+    onConfirm({
+      id: uid(), nome: tacoSel.nome, qty: `${g}g`,
+      kcal:   rd(tacoSel.kcal   * f, 0),
+      prot_g: rd(tacoSel.prot_g * f, 1),
+      cho_g:  rd(tacoSel.cho_g  * f, 1),
+      lip_g:  rd(tacoSel.lip_g  * f, 1),
+      subs: [], catKey: tacoSel.cat || '',
+    });
+  }
+
+  const tacoFiltrado = tacoBusca.trim().length < 2
+    ? TACO_DATA
+    : TACO_DATA.filter(a => a.nome.toLowerCase().includes(tacoBusca.toLowerCase()));
+
+  const tacoG = parseFloat(tacoQtd);
+  const tacoPreview = tacoSel && tacoG > 0 ? {
+    kcal:   rd(tacoSel.kcal   * tacoG / 100, 0),
+    prot_g: rd(tacoSel.prot_g * tacoG / 100, 1),
+    cho_g:  rd(tacoSel.cho_g  * tacoG / 100, 1),
+    lip_g:  rd(tacoSel.lip_g  * tacoG / 100, 1),
+  } : null;
+
   const src     = detalhe ?? sel;
   const g       = parseFloat(qtd);
   const preview = src && g > 0 ? calcMacros(src, g) : null;
@@ -151,7 +279,7 @@ function ModalAlimento({ isSub, onConfirm, onFechar }) {
 
         {/* Tabs */}
         <div style={{ display: 'flex', padding: '10px 20px 0', borderBottom: '1px solid var(--border)', marginTop: 6 }}>
-          {[['fatsecret', 'Buscar no FatSecret'], ['manual', 'Digitar manualmente']].map(([id, lbl]) => (
+          {[['fatsecret', 'Buscar no FatSecret'], ['taco', 'Tabela TACO'], ['manual', 'Digitar manualmente']].map(([id, lbl]) => (
             <button key={id} onClick={() => setTab(id)} style={{
               padding: '7px 14px', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600,
               background: 'none', color: tab === id ? 'var(--dark)' : 'var(--text3)',
@@ -250,6 +378,81 @@ function ModalAlimento({ isSub, onConfirm, onFechar }) {
                   Sem resultados. Tente em inglês ou use "Digitar manualmente".
                 </div>
               )}
+            </>
+          )}
+
+          {/* ── TACO ── */}
+          {tab === 'taco' && (
+            <>
+              <input
+                value={tacoBusca}
+                onChange={e => { setTacoBusca(e.target.value); setTacoSel(null); }}
+                placeholder="Buscar alimento (ex: frango, banana, arroz…)"
+                style={{ width: '100%', fontSize: 14, marginBottom: 10 }}
+                autoFocus
+              />
+              <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 8 }}>
+                {tacoFiltrado.length} alimentos · valores por 100g (TACO)
+              </div>
+              <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', maxHeight: 340, overflowY: 'auto', marginBottom: 12 }}>
+                {tacoFiltrado.length === 0 && (
+                  <div style={{ padding: 16, fontSize: 13, color: 'var(--text3)', textAlign: 'center' }}>
+                    Nenhum alimento encontrado.
+                  </div>
+                )}
+                {tacoFiltrado.map((al, i) => {
+                  const ativo = tacoSel?.nome === al.nome;
+                  return (
+                    <div key={al.nome}>
+                      <button
+                        onClick={() => { setTacoSel(ativo ? null : al); setTacoQtd('100'); }}
+                        style={{
+                          width: '100%', textAlign: 'left', border: 'none', cursor: 'pointer',
+                          borderTop: i > 0 ? '0.5px solid var(--border)' : 'none',
+                          padding: '8px 12px', background: ativo ? '#fffbf5' : 'transparent',
+                        }}
+                      >
+                        <div style={{ fontSize: 13, fontWeight: ativo ? 600 : 400, color: 'var(--dark)' }}>{al.nome}</div>
+                        <div style={{ fontSize: 11, color: 'var(--text3)' }}>
+                          {al.kcal} kcal · {al.prot_g}g prot · {al.cho_g}g carb · {al.lip_g}g gord
+                        </div>
+                      </button>
+                      {ativo && (
+                        <div style={{ padding: '10px 12px 14px', background: '#fffbf5', borderTop: '1px solid var(--border)' }}>
+                          {tacoPreview && (
+                            <div style={{ display: 'flex', gap: 14, marginBottom: 10 }}>
+                              {[
+                                { l: 'kcal', v: tacoPreview.kcal },
+                                { l: 'prot', v: `${tacoPreview.prot_g}g` },
+                                { l: 'carb', v: `${tacoPreview.cho_g}g` },
+                                { l: 'gord', v: `${tacoPreview.lip_g}g` },
+                              ].map(m => (
+                                <div key={m.l} style={{ textAlign: 'center', minWidth: 44 }}>
+                                  <div style={{ fontSize: 16, fontWeight: 700, lineHeight: 1, color: 'var(--dark)' }}>{m.v}</div>
+                                  <div style={{ fontSize: 9, color: 'var(--text3)', textTransform: 'uppercase', marginTop: 2 }}>{m.l}</div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                            <input
+                              type="number" min="1" max="5000" value={tacoQtd}
+                              onChange={e => setTacoQtd(e.target.value)}
+                              onKeyDown={e => e.key === 'Enter' && confirmarTaco()}
+                              style={{ width: 80, fontSize: 14, textAlign: 'center' }}
+                              autoFocus
+                            />
+                            <span style={{ fontSize: 13, color: 'var(--text3)' }}>g</span>
+                            <button className="btn" style={{ fontSize: 13 }} onClick={confirmarTaco} disabled={!tacoQtd || parseFloat(tacoQtd) <= 0}>
+                              Confirmar
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </>
           )}
 
