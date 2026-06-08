@@ -717,7 +717,16 @@ function gerarListaCompras(refeicoes) {
 }
 
 /* ── Componente principal ───────────────────────────────────── */
-export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, onLiberar }) {
+function _calcIdade(nascimento) {
+  if (!nascimento) return null;
+  const n = new Date(nascimento + 'T12:00:00');
+  const h = new Date();
+  let a = h.getFullYear() - n.getFullYear();
+  if (h.getMonth() < n.getMonth() || (h.getMonth() === n.getMonth() && h.getDate() < n.getDate())) a--;
+  return a;
+}
+
+export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, paciente, onLiberar }) {
   const DRAFT_KEY = `plano_rascunho_${pacienteId}`;
 
   const [refeicoes, setRefeicoes] = useState(() => {
@@ -728,6 +737,7 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, onLibe
   const [publicando, setPublicando] = useState(false);
   const [feedback, setFeedback]   = useState(null);
   const [nutriInfo, setNutriInfo] = useState({ nome: '', crn: '', email: '' });
+  const [pesoInfo, setPesoInfo]   = useState({ kg: null, altura_cm: null });
   const [draft, setDraft]         = useState('salvo'); // 'salvo' | 'salvando'
   const draftTimer                = useRef(null);
 
@@ -736,6 +746,15 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, onLibe
     supabase.from('nutris').select('nome, crn, email').eq('id', nutriId).maybeSingle()
       .then(({ data }) => { if (data) setNutriInfo(data); });
   }, [nutriId]);
+
+  /* Carrega peso e altura mais recentes para o PDF */
+  useEffect(() => {
+    supabase.from('peso_registros').select('kg, altura_cm')
+      .eq('paciente_id', pacienteId)
+      .order('data', { ascending: false })
+      .limit(1).maybeSingle()
+      .then(({ data }) => { if (data) setPesoInfo({ kg: data.kg, altura_cm: data.altura_cm }); });
+  }, [pacienteId]);
 
   /* Auto-save rascunho (debounce 2s) */
   useEffect(() => {
@@ -860,10 +879,19 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, onLibe
   /* ── Gerar PDF ───────────────────────────────────────────── */
   function gerarPdf() {
     if (!temAlimentos) return;
+    const idade = _calcIdade(paciente?.nascimento);
+    const linhas = [
+      paciente?.nome                   && `Nome: ${paciente.nome}`,
+      idade != null                    && `Idade: ${idade} anos`,
+      pesoInfo.kg != null              && `Peso atual: ${pesoInfo.kg} kg`,
+      pesoInfo.altura_cm != null       && `Altura: ${pesoInfo.altura_cm} cm`,
+      paciente?.objetivo               && `Objetivo: ${paciente.objetivo}`,
+    ].filter(Boolean);
+
     const html = gerarPlanoHtml({
       pacienteNome,
       plano:      buildPlano(),
-      extras:     {},
+      extras:     { dados_paciente: linhas.join('\n') },
       subsTexto:  buildSubsTexto(refeicoes),
       nutriNome:  nutriInfo.nome,
       nutriCrn:   nutriInfo.crn,

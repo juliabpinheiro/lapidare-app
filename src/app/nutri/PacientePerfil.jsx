@@ -259,7 +259,7 @@ export default function PacientePerfil() {
       {tab === 'followup' && <FollowUp pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'suplementacao' && <Suplementacao pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'habitos' && <Habitos pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
-      {tab === 'plano' && <PlanoBuilder pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} onLiberar={(lista) => { setListaDraft(lista); setTab('compras'); }} />}
+      {tab === 'plano' && <PlanoBuilder pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} paciente={paciente} onLiberar={(lista) => { setListaDraft(lista); setTab('compras'); }} />}
       {tab === 'compras' && <PublicarLista pacienteId={paciente.id} nutriId={user.id} listaDraft={listaDraft} onDraftClear={() => setListaDraft(null)} />}
       {tab === 'prescricoes' && <EnviarPrescricao pacienteId={paciente.id} nutriId={user.id} />}
       {tab === 'ebooks' && <EbooksDaPaciente pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
