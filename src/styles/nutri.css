@@ -208,7 +208,7 @@
 
 /* ── CARDS ── */
 .nutri-panel .card {
-  background: var(--white);
+  background: var(--nutri-card, var(--white));
   border: 0.5px solid var(--border);
   border-radius: var(--r);
   overflow: hidden;
@@ -230,7 +230,7 @@
 }
 .nutri-panel .stat,
 .nutri-panel .stat-card {
-  background: var(--white);
+  background: var(--nutri-card, var(--white));
   border: 0.5px solid var(--border);
   border-radius: var(--r);
   padding: 14px 16px;

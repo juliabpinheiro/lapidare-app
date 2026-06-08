@@ -1346,6 +1346,13 @@ create policy logos_storage_delete on storage.objects for delete using (
 
 -- DROP antes do CREATE pra permitir mudar o retorno (Postgres bloqueia
 -- create-or-replace quando o return type muda)
+-- Novas colunas de personalização (idempotentes)
+alter table public.nutris
+  add column if not exists cor_sidebar      text,
+  add column if not exists cor_fundo_nutri  text,
+  add column if not exists cor_abas         text,
+  add column if not exists cor_card_nutri   text;
+
 drop function if exists public.buscar_personalizacao_nutri(uuid);
 
 create or replace function public.buscar_personalizacao_nutri(p_nutri_id uuid)
@@ -1353,7 +1360,8 @@ returns table(
   marca_nome text, marca_subtitulo text, logo_url text,
   cor_primaria text, cor_secundaria text, cor_texto text, tipografia text,
   mensagem_login text, mensagem_termo text, cor_texto_sidebar text,
-  nutri_nome text, nutri_foto_url text
+  nutri_nome text, nutri_foto_url text,
+  cor_sidebar text, cor_fundo_nutri text, cor_abas text, cor_card_nutri text
 )
 language sql security definer set search_path = public
 as $$
@@ -1366,7 +1374,8 @@ as $$
     coalesce(tipografia,     'classica'),
     mensagem_login, mensagem_termo, cor_texto_sidebar,
     coalesce(nome, 'Sua nutri') as nutri_nome,
-    foto_url as nutri_foto_url
+    foto_url as nutri_foto_url,
+    cor_sidebar, cor_fundo_nutri, cor_abas, cor_card_nutri
   from public.nutris where id = p_nutri_id limit 1;
 $$;
 grant execute on function public.buscar_personalizacao_nutri(uuid) to anon, authenticated;
@@ -1382,7 +1391,8 @@ create or replace function public.buscar_marca_principal()
 returns table(
   marca_nome text, marca_subtitulo text, logo_url text,
   cor_primaria text, cor_secundaria text, cor_texto text, tipografia text,
-  mensagem_login text, cor_texto_sidebar text
+  mensagem_login text, cor_texto_sidebar text,
+  cor_sidebar text, cor_fundo_nutri text, cor_abas text, cor_card_nutri text
 )
 language sql security definer set search_path = public
 as $$
@@ -1393,7 +1403,8 @@ as $$
     coalesce(cor_secundaria, '#c9a96e'),
     coalesce(cor_texto,      '#000000'),
     coalesce(tipografia,     'classica'),
-    mensagem_login, cor_texto_sidebar
+    mensagem_login, cor_texto_sidebar,
+    cor_sidebar, cor_fundo_nutri, cor_abas, cor_card_nutri
   from public.nutris
   order by created_at asc
   limit 1;
@@ -1764,6 +1775,56 @@ drop policy if exists planos_arquivos_delete on storage.objects;
 create policy planos_arquivos_delete on storage.objects
   for delete using (
     bucket_id = 'planos-arquivos' and auth.uid() is not null
+  );
+
+
+-- =============================================================
+-- 16. EXAMES DA PACIENTE
+-- =============================================================
+
+create table if not exists public.exames_paciente (
+  id           uuid primary key default gen_random_uuid(),
+  paciente_id  uuid not null references public.pacientes(id) on delete cascade,
+  nutri_id     uuid not null references public.nutris(id) on delete cascade,
+  data         date not null default current_date,
+  nome         text not null,
+  texto        text,
+  arquivo_url  text,
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now()
+);
+
+create index if not exists exames_paciente_idx
+  on public.exames_paciente(paciente_id, data desc, created_at desc);
+
+alter table public.exames_paciente enable row level security;
+
+drop policy if exists exames_paciente_nutri on public.exames_paciente;
+create policy exames_paciente_nutri on public.exames_paciente
+  for all using (nutri_id = auth.uid()) with check (nutri_id = auth.uid());
+
+grant select, insert, update, delete on public.exames_paciente
+  to anon, authenticated, service_role;
+
+-- Bucket para arquivos de exames
+insert into storage.buckets (id, name, public)
+values ('exames', 'exames', true)
+on conflict (id) do update set public = true;
+
+drop policy if exists exames_storage_select on storage.objects;
+create policy exames_storage_select on storage.objects
+  for select using (bucket_id = 'exames');
+
+drop policy if exists exames_storage_insert on storage.objects;
+create policy exames_storage_insert on storage.objects
+  for insert with check (
+    bucket_id = 'exames' and auth.uid() is not null
+  );
+
+drop policy if exists exames_storage_delete on storage.objects;
+create policy exames_storage_delete on storage.objects
+  for delete using (
+    bucket_id = 'exames' and auth.uid() is not null
   );
 
 

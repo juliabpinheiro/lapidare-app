@@ -181,6 +181,42 @@ export default function Plano() {
         </div>
       ))}
 
+      {/* Orientações */}
+      {(() => {
+        const o = plano.orientacoes;
+        if (!o) return null;
+        const blocos = [
+          { key: 'prioridades',   label: 'prioridades',   val: o.prioridades,   bg: '#eef4e6' },
+          { key: 'metas',         label: 'metas',         val: o.metas,         bg: '#f5f0e8' },
+          { key: 'suplementacao', label: 'suplementação', val: o.suplementacao, bg: '#e8eff5' },
+        ].filter(b => b.val?.trim());
+        if (!blocos.length) return null;
+        return (
+          <div className="card" style={{ padding: '16px 20px' }}>
+            <div style={{ fontSize: 10, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 600, marginBottom: 14 }}>
+              Orientações
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {blocos.map(b => (
+                <div key={b.key} style={{ background: b.bg, borderRadius: 10, padding: '14px 16px' }}>
+                  <div style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', fontSize: 18, color: 'var(--green)', marginBottom: 10, lineHeight: 1 }}>
+                    {b.label}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                    {b.val.split('\n').filter(l => l.trim()).map((linha, i) => (
+                      <div key={i} style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.5, display: 'flex', gap: 7 }}>
+                        <span style={{ color: 'var(--gold-deep)', flexShrink: 0, fontWeight: 600 }}>—</span>
+                        <span>{linha.trim().replace(/^[-—]\s*/, '')}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
       {validade && (
         <div style={{ padding: '8px 16px', fontSize: 10, color: 'var(--muted)', textAlign: 'center' }}>
           Válido até {dataBR(validade)}

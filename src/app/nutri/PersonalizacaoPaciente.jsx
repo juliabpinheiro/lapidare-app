@@ -37,10 +37,22 @@ export default function PersonalizacaoPaciente() {
   async function salvar() {
     setBusy(true);
     setFeedback(null);
-    const { error } = await supabase.from('configuracoes').upsert(
-      { nutri_id: user.id, tema, updated_at: new Date().toISOString() },
-      { onConflict: 'nutri_id' }
-    );
+    const agora = new Date().toISOString();
+
+    const { data: existente, error: selErr } = await supabase
+      .from('configuracoes').select('id').eq('nutri_id', user.id).maybeSingle();
+    if (selErr && selErr.code !== 'PGRST116') {
+      setBusy(false);
+      return setFeedback({ tipo: 'erro', msg: selErr.message });
+    }
+
+    const { error } = existente
+      ? await supabase.from('configuracoes')
+          .update({ tema, updated_at: agora })
+          .eq('nutri_id', user.id)
+      : await supabase.from('configuracoes')
+          .insert({ nutri_id: user.id, tema, updated_at: agora });
+
     setBusy(false);
     if (error) {
       if (error.code === '42P01') {

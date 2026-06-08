@@ -15,6 +15,7 @@ import Habitos from './_Habitos.jsx';
 import Anamnese from './_Anamnese.jsx';
 import MapaGeral from './_MapaGeral.jsx';
 import Bioimpedancia from './_Bioimpedancia.jsx';
+import Exames from './_Exames.jsx';
 import PlanoBuilder from './_PlanoBuilder.jsx';
 import DicaJSON from '../../components/DicaJSON.jsx';
 import { gerarPlanoHtml } from '../../lib/gerarPlanoHtml.js';
@@ -29,6 +30,7 @@ export default function PacientePerfil() {
   const [novoNasc, setNovoNasc] = useState('');
   const [salvandoNasc, setSalvandoNasc] = useState(false);
   const [listaDraft, setListaDraft] = useState(null);
+  const [ultimaAnamnese, setUltimaAnamnese] = useState(undefined); // undefined=carregando, null=sem anamnese
 
   async function carregar() {
     const { data } = await supabase
@@ -45,6 +47,19 @@ export default function PacientePerfil() {
       setPaciente(data);
     }
     load();
+    return () => { active = false; };
+  }, [id]);
+
+  useEffect(() => {
+    let active = true;
+    supabase.from('anamneses').select('updated_at')
+      .eq('paciente_id', id)
+      .order('updated_at', { ascending: false })
+      .limit(1).maybeSingle()
+      .then(({ data }) => {
+        if (!active) return;
+        setUltimaAnamnese(data?.updated_at ?? null);
+      });
     return () => { active = false; };
   }, [id]);
 
@@ -209,6 +224,31 @@ export default function PacientePerfil() {
         </div>
       </div>
 
+      {/* Banner de próxima consulta */}
+      {ultimaAnamnese && (() => {
+        const proxima = new Date(ultimaAnamnese);
+        proxima.setDate(proxima.getDate() + 30);
+        const dias = Math.round((proxima.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+        const atrasada = dias < 0;
+        const cor = atrasada ? '#b91c1c' : dias < 7 ? '#b91c1c' : dias <= 14 ? '#92400e' : '#166534';
+        const bg  = atrasada ? '#fee2e2'  : dias < 7 ? '#fee2e2'  : dias <= 14 ? '#fef3c7'  : '#dcfce7';
+        const txt = atrasada
+          ? 'Consulta atrasada'
+          : `Próxima consulta em ${dias} dia${dias === 1 ? '' : 's'}`;
+        return (
+          <div style={{
+            background: bg, borderRadius: 8, padding: '8px 14px',
+            display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4,
+          }}>
+            <i className="ti ti-calendar-event" style={{ fontSize: 15, color: cor, flexShrink: 0 }} aria-hidden="true" />
+            <span style={{ fontSize: 13, fontWeight: 600, color: cor }}>{txt}</span>
+            <span style={{ fontSize: 12, color: cor, opacity: .75, marginLeft: 'auto' }}>
+              Retorno: {proxima.toLocaleDateString('pt-BR')}
+            </span>
+          </div>
+        );
+      })()}
+
       {/* Tabs */}
       <div style={{
         display: 'flex', gap: 2, background: 'var(--bg2)',
@@ -221,7 +261,6 @@ export default function PacientePerfil() {
           { id: 'anamnese',    label: 'Anamnese',     icon: 'clipboard-text' },
           { id: 'bioimpedancia', label: 'Bioimpedância', icon: 'activity' },
           { id: 'calculo',     label: 'Cálculo',      icon: 'calculator' },
-          { id: 'followup',    label: 'Follow-up',    icon: 'notebook' },
           { id: 'plano',          label: 'Plano',          icon: 'salad' },
           { id: 'compras',       label: 'Compras',        icon: 'shopping-cart' },
           { id: 'suplementacao', label: 'Suplementação', icon: 'pill' },
@@ -230,6 +269,8 @@ export default function PacientePerfil() {
           { id: 'ebooks',      label: 'E-books',      icon: 'book-2' },
           { id: 'avaliacao',   label: 'Avaliação',    icon: 'ruler-measure' },
           { id: 'checkin',     label: 'Check-in',     icon: 'clipboard-check' },
+          { id: 'exames',      label: 'Exames',       icon: 'test-pipe' },
+          { id: 'followup',    label: 'Follow-up',    icon: 'notebook' },
         ].map(t => (
           <button
             key={t.id}
@@ -256,6 +297,7 @@ export default function PacientePerfil() {
       {tab === 'anamnese'   && <Anamnese pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'bioimpedancia' && <Bioimpedancia pacienteId={paciente.id} nutriId={user.id} />}
       {tab === 'calculo'  && <CalculoEnergetico paciente={paciente} />}
+      {tab === 'exames'   && <Exames   pacienteId={paciente.id} nutriId={user.id} />}
       {tab === 'followup' && <FollowUp pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'suplementacao' && <Suplementacao pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'habitos' && <Habitos pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}

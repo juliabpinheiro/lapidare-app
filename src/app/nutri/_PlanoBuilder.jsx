@@ -945,11 +945,29 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
     setPublicando(true);
     setFeedback(null);
     const { error } = await supabase.from('planos').insert({ paciente_id: pacienteId, nutri_id: nutriId, dados });
+
+    if (error) {
+      setPublicando(false);
+      return setFeedback({ tipo: 'erro', msg: error.message });
+    }
+
+    // Salva extras visuais para o PDF da paciente (prioridades, metas, suplementos, subs)
+    const visualDados = {
+      prioridades: orientacoes.prioridades,
+      metas: orientacoes.metas,
+      suplementos: orientacoes.suplementacao,
+      ...(subsTexto ? { subs_texto: subsTexto } : {}),
+    };
+    await supabase.from('planos_visuais').insert({
+      paciente_id: pacienteId,
+      nutri_id: nutriId,
+      dados: visualDados,
+      publicado: true,
+      publicado_em: new Date().toISOString(),
+    });
+
     setPublicando(false);
-
-    if (error) return setFeedback({ tipo: 'erro', msg: error.message });
     setFeedback({ tipo: 'ok', msg: 'Plano liberado! Abrindo lista de compras…' });
-
     const lista = gerarListaCompras(refeicoes);
     onLiberar?.(lista);
   }
