@@ -18,7 +18,8 @@ function normMealKey(nomeMeal) {
 
 function bullets(text) {
   if (!text) return '';
-  return (text + '').split('\n').filter(l => l.trim()).map(l => `<li>${esc(l.trim())}</li>`).join('');
+  return (text + '').split('\n').filter(l => l.trim())
+    .map(l => `<li>${esc(l.trim().replace(/^[-—]\s*/, ''))}</li>`).join('');
 }
 
 function subsHtml(mealKey, subsTexto) {
@@ -73,7 +74,6 @@ function foodTable(alimentos) {
     return `<tr><td>${esc(a.nome)}</td><td>${esc(a.qty ?? a.quantidade ?? '—')}</td>${tdExtra}</tr>`;
   }).join('');
 
-  // subtotal row
   const totKcal  = alimentos.reduce((s, a) => s + (a.kcal   ?? 0), 0);
   const totProt  = alimentos.reduce((s, a) => s + (a.prot_g ?? 0), 0);
   const totCho   = alimentos.reduce((s, a) => s + (a.cho_g  ?? 0), 0);
@@ -100,54 +100,125 @@ function pagina(conteudo) {
   return `<div class="pagina">${conteudo}</div>`;
 }
 
-function pag1(pacienteNome, macros, e) {
-  const cho = fmtNum(macros?.cho_g);
-  const prot = fmtNum(macros?.prot_g);
-  const lip = fmtNum(macros?.lip_g);
-  const kcal = fmtNum(macros?.kcal);
+/* ── Helpers de dados clínicos ──────────────────────────────── */
+function _hoje() {
+  const d = new Date();
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+}
+function _validoAte() {
+  const d = new Date();
+  d.setDate(d.getDate() + 30);
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+}
+function _calcImc(kg, alt_cm) {
+  if (!kg || !alt_cm) return null;
+  return Math.round((kg / ((alt_cm / 100) ** 2)) * 10) / 10;
+}
+function _classImc(imc) {
+  if (imc == null) return '';
+  if (imc < 18.5) return 'Abaixo do peso';
+  if (imc < 25)   return 'Peso normal';
+  if (imc < 30)   return 'Sobrepeso';
+  return 'Obesidade';
+}
+function _calcRcq(cintura, quadril) {
+  if (!cintura || !quadril) return null;
+  return Math.round((cintura / quadril) * 100) / 100;
+}
+function _classRcq(rcq) {
+  if (rcq == null) return '';
+  if (rcq < 0.80) return 'Baixo risco';
+  if (rcq < 0.85) return 'Risco moderado';
+  return 'Alto risco';
+}
+
+/* ── Página 1: Capa ─────────────────────────────────────────── */
+function pag1(pacienteNome, macros, e, pacienteDados) {
+  const pd = pacienteDados ?? {};
+  const imc = _calcImc(pd.peso_kg, pd.altura_cm);
+  const rcq = _calcRcq(pd.cintura_cm, pd.quadril_cm);
+  const kcalTotal = macros?.kcal ?? 0;
+
+  const cho  = macros?.cho_g  ?? null;
+  const prot = macros?.prot_g ?? null;
+  const lip  = macros?.lip_g  ?? null;
+  const choP  = (cho  != null && kcalTotal > 0) ? Math.round(cho  * 4 / kcalTotal * 100) : null;
+  const protP = (prot != null && kcalTotal > 0) ? Math.round(prot * 4 / kcalTotal * 100) : null;
+  const lipP  = (lip  != null && kcalTotal > 0) ? Math.round(lip  * 9 / kcalTotal * 100) : null;
+
   const fibras = macros?.fibras_g ? `${macros.fibras_g}g` : '—';
-  const agua = macros?.agua_l ? `${macros.agua_l}L` : '—';
-  const dadosPac = (e.dados_paciente ?? '').split('\n').filter(l => l.trim())
-    .map(l => esc(l)).join('<br>') || '—';
+  const agua   = macros?.agua_l   ? `${macros.agua_l}L`   : '—';
+
+  const bioPartes = [
+    pd.idade     != null ? `${pd.idade} anos`    : null,
+    pd.peso_kg   != null ? `${pd.peso_kg} kg`    : null,
+    pd.altura_cm != null ? `${pd.altura_cm} cm`  : null,
+    imc          != null ? `IMC ${imc}`           : null,
+  ].filter(Boolean);
+
+  function dadoRow(label, val, extra) {
+    if (val == null || val === '') return '';
+    return `<div class="dado-row">
+      <span class="dado-label">${label}</span>
+      <span class="dado-val">${esc(String(val))}${extra ? `<span class="dado-extra"> — ${esc(extra)}</span>` : ''}</span>
+    </div>`;
+  }
+
+  const alertaCintura = (pd.cintura_cm != null && pd.cintura_cm > 80)
+    ? `<div class="alerta-cintura">Acima de 80 cm — risco aumentado</div>`
+    : '';
+
+  const consultaN = e?.consulta_n ?? '—';
 
   return pagina(`
-  <div style="text-align:center;padding:24px 0 20px 0;border-bottom:1px solid var(--begeR);margin-bottom:24px">
-    <div style="font-family:'Lato',sans-serif;font-size:9px;font-weight:500;letter-spacing:4px;text-transform:uppercase;color:var(--terra);margin-bottom:20px">
-      Método Pinheiro · Nutrição Feminina Estratégica
-    </div>
-    <div style="font-family:'Playfair Display',serif;font-style:italic;font-size:24px;font-weight:400;color:var(--txtL);line-height:1;margin-bottom:2px">plano</div>
-    <div style="font-family:'Playfair Display',serif;font-size:58px;font-weight:700;color:var(--verde);line-height:1;margin-bottom:18px;letter-spacing:-1px">Alimentar</div>
-    <div style="font-family:'Lato',sans-serif;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--txt);margin-bottom:6px">${esc(pacienteNome?.toUpperCase())}</div>
-    <div style="font-size:10px;color:var(--txtL);line-height:1.9">
-      ${esc(e.capa_info ?? '')}<br>
-      Objetivo: ${esc(e.capa_objetivo ?? '')}
-    </div>
-    <div style="font-family:'Lato',sans-serif;font-size:9px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:var(--txtL);margin-top:12px">
-      ${esc(e.consulta_info ?? '')}
-    </div>
+  <div class="capa-topo">
+    <div class="capa-metodo">MÉTODO PINHEIRO · NUTRIÇÃO FEMININA ESTRATÉGICA</div>
+    <div class="capa-plano-it">plano</div>
+    <div class="capa-plano-bold">Alimentar</div>
+    <div class="capa-nome">${esc((pacienteNome ?? '').toUpperCase())}</div>
+    ${bioPartes.length ? `<div class="capa-bio">${bioPartes.map(esc).join(' · ')}</div>` : ''}
+    ${pd.objetivo ? `<div class="capa-objetivo">Objetivo: ${esc(pd.objetivo)}</div>` : ''}
+    <div class="capa-sep"></div>
+    <div class="capa-consulta">CONSULTA Nº ${esc(String(consultaN))} · ${_hoje()} · NUTRICIONISTA JÚLIA PINHEIRO | CRN 20100737</div>
   </div>
   <div class="dados-macros">
     <div>
       <div class="secao-titulo">Dados da Paciente</div>
-      <div class="dados-paciente">${dadosPac}</div>
+      <div class="dados-rows">
+        ${dadoRow('Peso', pd.peso_kg != null ? `${pd.peso_kg} kg` : null)}
+        ${dadoRow('Altura', pd.altura_cm != null ? `${pd.altura_cm} cm` : null)}
+        ${dadoRow('IMC', imc != null ? imc : null, imc != null ? _classImc(imc) : null)}
+        ${dadoRow('% Gordura corporal', pd.pgc != null ? `${pd.pgc}%` : null)}
+        ${pd.cintura_cm != null ? dadoRow('Circ. abdominal', `${pd.cintura_cm} cm`) + alertaCintura : ''}
+        ${dadoRow('Quadril', pd.quadril_cm != null ? `${pd.quadril_cm} cm` : null)}
+        ${dadoRow('RCQ', rcq != null ? rcq : null, rcq != null ? _classRcq(rcq) : null)}
+        ${dadoRow('Retorno', '30 dias')}
+        ${dadoRow('Válido até', _validoAte())}
+      </div>
     </div>
     <div>
       <div class="macros-titulo">Macronutrientes do Plano</div>
       <div class="macros-grid">
         <div class="macro-box">
           <div class="macro-nome">carboidratos</div>
-          <div class="macro-val">${cho}<span class="macro-unit">g</span></div>
+          <div class="macro-val">${cho != null ? cho : '—'}<span class="macro-unit">g</span></div>
+          ${choP != null ? `<div class="macro-pct">${choP}%</div>` : ''}
+          <div class="macro-cat">Energia</div>
         </div>
         <div class="macro-box">
           <div class="macro-nome">proteínas</div>
-          <div class="macro-val">${prot}<span class="macro-unit">g</span></div>
+          <div class="macro-val">${prot != null ? prot : '—'}<span class="macro-unit">g</span></div>
+          ${protP != null ? `<div class="macro-pct">${protP}%</div>` : ''}
+          <div class="macro-cat">Construção muscular</div>
         </div>
         <div class="macro-box">
           <div class="macro-nome">gorduras</div>
-          <div class="macro-val">${lip}<span class="macro-unit">g</span></div>
+          <div class="macro-val">${lip != null ? lip : '—'}<span class="macro-unit">g</span></div>
+          ${lipP != null ? `<div class="macro-pct">${lipP}%</div>` : ''}
+          <div class="macro-cat">Saúde hormonal</div>
         </div>
       </div>
-      <div class="calorias-total"><strong>${kcal} kcal</strong> · total diário</div>
+      <div class="calorias-total"><strong>${kcalTotal ? Math.round(kcalTotal) : '—'} kcal</strong> · total diário</div>
       <div class="circunf-grid" style="margin-top:10px">
         <div class="circunf-box"><div class="circunf-nome">fibras</div><div class="circunf-val">${fibras}</div></div>
         <div class="circunf-box"><div class="circunf-nome">água/dia</div><div class="circunf-val">${agua}</div></div>
@@ -246,7 +317,9 @@ function pagEncerramento(pacienteNome, e, nutriNome, nutriCrn, nutriEmail) {
 const CSS = `
 .btn-container{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:10px;z-index:999}
 .btn-pdf{background:#95380A;color:#FFF;border:none;border-radius:6px;padding:12px 24px;font-family:'Lato',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;text-transform:uppercase}
+.btn-word{background:#1a1a1a;color:#FFF;border:none;border-radius:6px;padding:12px 24px;font-family:'Lato',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;text-transform:uppercase}
 .btn-pdf:hover{background:#7a2d08}
+.btn-word:hover{background:#333}
 @media print{
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
   html,body{width:210mm;background:white!important;margin:0;padding:0}
@@ -268,21 +341,40 @@ body{font-family:'Poppins',sans-serif;font-weight:300;background:#E9E5DD;color:v
 .liberados-caixa{page-break-inside:avoid}
 h1,h2,h3{page-break-after:avoid}
 .secao-titulo{font-family:'Lato',sans-serif;font-size:7.5px;letter-spacing:3px;text-transform:uppercase;color:var(--verde);margin-bottom:12px;font-weight:700}
+/* ── Capa ── */
+.capa-topo{text-align:center;padding:24px 0 16px 0;border-bottom:1px solid var(--begeR);margin-bottom:24px}
+.capa-metodo{font-family:'Lato',sans-serif;font-size:9px;font-weight:500;letter-spacing:4px;text-transform:uppercase;color:var(--terra);margin-bottom:20px}
+.capa-plano-it{font-family:'Playfair Display',serif;font-style:italic;font-size:24px;font-weight:400;color:var(--txtL);line-height:1;margin-bottom:2px}
+.capa-plano-bold{font-family:'Playfair Display',serif;font-size:58px;font-weight:700;color:var(--verde);line-height:1;margin-bottom:18px;letter-spacing:-1px}
+.capa-nome{font-family:'Lato',sans-serif;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--txt);margin-bottom:8px;font-weight:500}
+.capa-bio{font-size:10px;color:var(--txtL);margin-bottom:6px;letter-spacing:.5px}
+.capa-objetivo{font-size:10px;color:var(--txtL);margin-bottom:16px}
+.capa-sep{border-top:1px solid var(--begeR);margin:0 40px 10px}
+.capa-consulta{font-family:'Lato',sans-serif;font-size:8px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:var(--txtL)}
+/* ── Dados + Macros ── */
 .dados-macros{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:16px}
-.dados-paciente{font-size:10px;color:var(--txtL);line-height:2}
-.dados-paciente strong{color:var(--txt);font-weight:500}
+.dados-rows{}
+.dado-row{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--bege)}
+.dado-label{font-family:'Lato',sans-serif;font-size:7.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txtL);font-weight:500}
+.dado-val{font-size:11px;color:var(--txt);font-weight:500;text-align:right}
+.dado-extra{font-size:9px;color:var(--terra);font-weight:400}
+.alerta-cintura{font-size:8px;color:var(--err);padding:2px 0 4px 0;letter-spacing:.3px;text-align:right}
+/* ── Macros ── */
 .macros-titulo{font-family:'Playfair Display',serif;font-size:18px;color:var(--verde);margin-bottom:12px}
 .macros-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
 .macro-box{background:var(--bege);border-radius:6px;padding:10px 6px;text-align:center}
 .macro-nome{font-family:'Playfair Display',serif;font-style:italic;font-size:10px;color:var(--txtL);margin-bottom:4px}
 .macro-val{font-family:'Playfair Display',serif;font-size:20px;color:var(--verde);font-weight:700;line-height:1}
 .macro-unit{font-size:8px;color:var(--terra)}
+.macro-pct{font-size:9px;color:var(--terra);font-weight:600;margin-top:2px}
+.macro-cat{font-size:7px;color:var(--txtL);margin-top:2px;letter-spacing:.3px}
 .calorias-total{text-align:center;font-size:10px;color:var(--txtL);margin-top:6px}
 .calorias-total strong{color:var(--verde);font-size:13px}
 .circunf-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
 .circunf-box{background:var(--bege);border-radius:6px;padding:8px;text-align:center}
 .circunf-nome{font-family:'Playfair Display',serif;font-style:italic;font-size:9px;color:var(--txtL)}
 .circunf-val{font-size:14px;font-weight:600;color:var(--verde)}
+/* ── Demais ── */
 .pms-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .pms-box{background:var(--bege);border-radius:6px;padding:14px;margin-bottom:0}
 .pms-titulo{font-family:'Playfair Display',serif;font-style:italic;font-size:20px;color:var(--verde);margin-bottom:10px;line-height:1}
@@ -320,16 +412,15 @@ h1,h2,h3{page-break-after:avoid}
 .enc-validade{font-size:9px;color:var(--txtL);margin-top:14px;text-align:center}
 `;
 
-export function gerarPlanoHtml({ pacienteNome, plano, extras, subsTexto, nutriNome, nutriCrn, nutriEmail }) {
+export function gerarPlanoHtml({ pacienteNome, plano, extras, subsTexto, nutriNome, nutriCrn, nutriEmail, pacienteDados }) {
   const e = extras ?? {};
   const macros = plano?.macros ?? {};
   const refeicoes = plano?.refeicoes ?? [];
 
-  // usa subsTexto externo (planos_visuais) ou o embutido no plano (BuscarAlimentos)
   const subsEfetivo = subsTexto ?? plano?.subs_texto ?? null;
 
   const paginas = [
-    pag1(pacienteNome, macros, e),
+    pag1(pacienteNome, macros, e, pacienteDados),
     pag2(e),
     ...refeicoes.map((ref, i) => pagRef(ref, i, e, subsEfetivo)),
     pagCustomMeals(subsEfetivo),
@@ -348,11 +439,31 @@ export function gerarPlanoHtml({ pacienteNome, plano, extras, subsTexto, nutriNo
 </head>
 <body>
 <div class="btn-container">
-  <button class="btn-pdf" onclick="window.print()">⬇ Baixar PDF</button>
+  <button class="btn-word" onclick="baixarWord()">&#8659; Baixar Word</button>
+  <button class="btn-pdf" onclick="window.print()">&#8659; Baixar PDF</button>
 </div>
 <div id="plano-content">
 ${paginas.join('\n')}
 </div>
+<script>
+function baixarWord() {
+  var nome = document.title.replace(/[<>:"/\\|?*]/g, '').trim();
+  var estilos = Array.from(document.styleSheets).map(function(s) {
+    try { return Array.from(s.cssRules).map(function(r){return r.cssText}).join('\\n'); } catch(e){return '';}
+  }).join('\\n');
+  var conteudo = document.getElementById('plano-content').innerHTML;
+  var html = '<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><style>' + estilos + '</style></head><body>' + conteudo + '</body></html>';
+  var blob = new Blob(['\\uFEFF', html], { type: 'application/msword' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = nome + '.doc';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+</script>
 </body>
 </html>`;
 }

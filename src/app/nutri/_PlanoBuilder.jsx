@@ -727,17 +727,24 @@ function _calcIdade(nascimento) {
 }
 
 export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, paciente, onLiberar }) {
-  const DRAFT_KEY = `plano_rascunho_${pacienteId}`;
+  const DRAFT_KEY  = `plano_rascunho_${pacienteId}`;
+  const ORIENT_KEY = `plano_orientacoes_${pacienteId}`;
 
   const [refeicoes, setRefeicoes] = useState(() => {
     try { const s = localStorage.getItem(DRAFT_KEY); return s ? JSON.parse(s) : []; }
     catch { return []; }
   });
+  const [orientacoes, setOrientacoes] = useState(() => {
+    try {
+      const s = localStorage.getItem(`plano_orientacoes_${pacienteId}`);
+      return s ? JSON.parse(s) : { prioridades: '', metas: '', suplementacao: '' };
+    } catch { return { prioridades: '', metas: '', suplementacao: '' }; }
+  });
   const [modal, setModal]         = useState(null); // { refId, alimentoId: string|null }
   const [publicando, setPublicando] = useState(false);
   const [feedback, setFeedback]   = useState(null);
   const [nutriInfo, setNutriInfo] = useState({ nome: '', crn: '', email: '' });
-  const [pesoInfo, setPesoInfo]   = useState({ kg: null, altura_cm: null });
+  const [pesoInfo, setPesoInfo]   = useState({ kg: null, altura_cm: null, pgc: null, cintura_cm: null, quadril_cm: null });
   const [draft, setDraft]         = useState('salvo'); // 'salvo' | 'salvando'
   const draftTimer                = useRef(null);
 
@@ -749,12 +756,30 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
 
   /* Carrega peso e altura mais recentes para o PDF */
   useEffect(() => {
-    supabase.from('peso_registros').select('kg, altura_cm')
+    supabase.from('peso_registros').select('kg, altura_cm, pgc, cintura_cm, quadril_cm')
       .eq('paciente_id', pacienteId)
       .order('data', { ascending: false })
       .limit(1).maybeSingle()
-      .then(({ data }) => { if (data) setPesoInfo({ kg: data.kg, altura_cm: data.altura_cm }); });
+      .then(({ data }) => { if (data) setPesoInfo({ kg: data.kg, altura_cm: data.altura_cm, pgc: data.pgc, cintura_cm: data.cintura_cm, quadril_cm: data.quadril_cm }); });
   }, [pacienteId]);
+
+  /* Auto-save orientações no localStorage */
+  useEffect(() => {
+    try { localStorage.setItem(ORIENT_KEY, JSON.stringify(orientacoes)); } catch {}
+  }, [orientacoes, ORIENT_KEY]);
+
+  /* Carrega orientações do último plano publicado se o localStorage estiver vazio */
+  useEffect(() => {
+    if (Object.values(orientacoes).some(v => v)) return;
+    supabase.from('planos').select('dados')
+      .eq('paciente_id', pacienteId)
+      .order('created_at', { ascending: false })
+      .limit(1).maybeSingle()
+      .then(({ data }) => {
+        const o = data?.dados?.orientacoes;
+        if (o?.prioridades || o?.metas || o?.suplementacao) setOrientacoes(o);
+      });
+  }, [pacienteId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* Auto-save rascunho (debounce 2s) */
   useEffect(() => {
@@ -873,29 +898,36 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
     return {
       macros: { kcal: rd(totDia.kcal, 0), prot_g: rd(totDia.prot_g, 1), cho_g: rd(totDia.cho_g, 1), lip_g: rd(totDia.lip_g, 1) },
       refeicoes: refs,
+      orientacoes,
     };
   }
 
   /* ── Gerar PDF ───────────────────────────────────────────── */
   function gerarPdf() {
     if (!temAlimentos) return;
-    const idade = _calcIdade(paciente?.nascimento);
-    const linhas = [
-      paciente?.nome                   && `Nome: ${paciente.nome}`,
-      idade != null                    && `Idade: ${idade} anos`,
-      pesoInfo.kg != null              && `Peso atual: ${pesoInfo.kg} kg`,
-      pesoInfo.altura_cm != null       && `Altura: ${pesoInfo.altura_cm} cm`,
-      paciente?.objetivo               && `Objetivo: ${paciente.objetivo}`,
-    ].filter(Boolean);
-
+    const pacienteDados = {
+      nome:       paciente?.nome,
+      idade:      _calcIdade(paciente?.nascimento),
+      peso_kg:    pesoInfo.kg,
+      altura_cm:  pesoInfo.altura_cm,
+      pgc:        pesoInfo.pgc,
+      cintura_cm: pesoInfo.cintura_cm,
+      quadril_cm: pesoInfo.quadril_cm,
+      objetivo:   paciente?.objetivo,
+    };
     const html = gerarPlanoHtml({
       pacienteNome,
-      plano:      buildPlano(),
-      extras:     { dados_paciente: linhas.join('\n') },
-      subsTexto:  buildSubsTexto(refeicoes),
-      nutriNome:  nutriInfo.nome,
-      nutriCrn:   nutriInfo.crn,
-      nutriEmail: nutriInfo.email,
+      plano:         buildPlano(),
+      extras:        {
+        prioridades: orientacoes.prioridades,
+        metas:       orientacoes.metas,
+        suplementos: orientacoes.suplementacao,
+      },
+      subsTexto:     buildSubsTexto(refeicoes),
+      nutriNome:     nutriInfo.nome,
+      nutriCrn:      nutriInfo.crn,
+      nutriEmail:    nutriInfo.email,
+      pacienteDados,
     });
     const win = window.open('', '_blank');
     if (!win) { alert('Permita pop-ups para abrir o PDF.'); return; }
@@ -1111,6 +1143,45 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
           </div>
         </div>
       )}
+
+      {/* ── Orientações do Plano ── */}
+      <div className="card" style={{ padding: 20 }}>
+        <div className="section-title" style={{ marginBottom: 16 }}>Orientações do Plano</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
+          {[
+            { key: 'prioridades',   label: 'prioridades',  ph: 'Ex:\n— Fracionar refeições\n— Reduzir ultraprocessados' },
+            { key: 'metas',         label: 'metas',        ph: 'Ex:\n— Perder 2 kg em 30 dias\n— Beber 2L de água por dia' },
+            { key: 'suplementacao', label: 'suplemento',   ph: 'Ex:\n— Whey 30g após treino\n— Magnésio 200mg à noite' },
+          ].map(({ key, label, ph }) => (
+            <div key={key}>
+              <div style={{
+                fontFamily: "'Playfair Display', Georgia, serif",
+                fontStyle: 'italic',
+                fontSize: 17,
+                color: 'var(--verde)',
+                marginBottom: 8,
+                lineHeight: 1,
+              }}>
+                {label}
+              </div>
+              <textarea
+                value={orientacoes[key]}
+                onChange={ev => setOrientacoes(prev => ({ ...prev, [key]: ev.target.value }))}
+                placeholder={ph}
+                rows={9}
+                style={{
+                  width: '100%',
+                  resize: 'vertical',
+                  fontSize: 12,
+                  lineHeight: 1.65,
+                  fontFamily: 'var(--font-sans)',
+                  padding: '8px 10px',
+                }}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* ── Modal ── */}
       {modal && (
