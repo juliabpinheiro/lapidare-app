@@ -1348,10 +1348,15 @@ create policy logos_storage_delete on storage.objects for delete using (
 -- create-or-replace quando o return type muda)
 -- Novas colunas de personalização (idempotentes)
 alter table public.nutris
-  add column if not exists cor_sidebar      text,
-  add column if not exists cor_fundo_nutri  text,
-  add column if not exists cor_abas         text,
-  add column if not exists cor_card_nutri   text;
+  add column if not exists cor_sidebar       text,
+  add column if not exists cor_fundo_nutri   text,
+  add column if not exists cor_abas          text,
+  add column if not exists cor_card_nutri    text,
+  add column if not exists cor_nav_item      text,
+  add column if not exists cor_nav_grupo     text,
+  add column if not exists cor_sidebar_nome  text,
+  add column if not exists cor_topbar        text,
+  add column if not exists cor_topbar_texto  text;
 
 drop function if exists public.buscar_personalizacao_nutri(uuid);
 
@@ -1361,7 +1366,9 @@ returns table(
   cor_primaria text, cor_secundaria text, cor_texto text, tipografia text,
   mensagem_login text, mensagem_termo text, cor_texto_sidebar text,
   nutri_nome text, nutri_foto_url text,
-  cor_sidebar text, cor_fundo_nutri text, cor_abas text, cor_card_nutri text
+  cor_sidebar text, cor_fundo_nutri text, cor_abas text, cor_card_nutri text,
+  cor_nav_item text, cor_nav_grupo text, cor_sidebar_nome text,
+  cor_topbar text, cor_topbar_texto text
 )
 language sql security definer set search_path = public
 as $$
@@ -1375,7 +1382,9 @@ as $$
     mensagem_login, mensagem_termo, cor_texto_sidebar,
     coalesce(nome, 'Sua nutri') as nutri_nome,
     foto_url as nutri_foto_url,
-    cor_sidebar, cor_fundo_nutri, cor_abas, cor_card_nutri
+    cor_sidebar, cor_fundo_nutri, cor_abas, cor_card_nutri,
+    cor_nav_item, cor_nav_grupo, cor_sidebar_nome,
+    cor_topbar, cor_topbar_texto
   from public.nutris where id = p_nutri_id limit 1;
 $$;
 grant execute on function public.buscar_personalizacao_nutri(uuid) to anon, authenticated;
@@ -1392,7 +1401,9 @@ returns table(
   marca_nome text, marca_subtitulo text, logo_url text,
   cor_primaria text, cor_secundaria text, cor_texto text, tipografia text,
   mensagem_login text, cor_texto_sidebar text,
-  cor_sidebar text, cor_fundo_nutri text, cor_abas text, cor_card_nutri text
+  cor_sidebar text, cor_fundo_nutri text, cor_abas text, cor_card_nutri text,
+  cor_nav_item text, cor_nav_grupo text, cor_sidebar_nome text,
+  cor_topbar text, cor_topbar_texto text
 )
 language sql security definer set search_path = public
 as $$
@@ -1404,7 +1415,9 @@ as $$
     coalesce(cor_texto,      '#000000'),
     coalesce(tipografia,     'classica'),
     mensagem_login, cor_texto_sidebar,
-    cor_sidebar, cor_fundo_nutri, cor_abas, cor_card_nutri
+    cor_sidebar, cor_fundo_nutri, cor_abas, cor_card_nutri,
+    cor_nav_item, cor_nav_grupo, cor_sidebar_nome,
+    cor_topbar, cor_topbar_texto
   from public.nutris
   order by created_at asc
   limit 1;

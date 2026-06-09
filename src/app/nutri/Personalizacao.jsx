@@ -11,14 +11,20 @@ const TIPOGRAFIAS = [
 ];
 
 const NUTRI_DEFAULTS = {
-  cor_fundo_nutri:  '',         // vazio = automático
+  cor_fundo_nutri:  '',
   cor_sidebar:      '#a08456',
-  cor_texto_sidebar:'',         // vazio = automático
-  cor_card_nutri:   '',         // vazio = branco padrão
+  cor_texto_sidebar:'',
+  cor_card_nutri:   '',
   cor_primaria:     '#a08456',
   cor_abas:         '#a08456',
   cor_texto:        '#000000',
   cor_secundaria:   '#c9a96e',
+  // granular sidebar / topbar
+  cor_nav_item:     '',
+  cor_nav_grupo:    '',
+  cor_sidebar_nome: '',
+  cor_topbar:       '',
+  cor_topbar_texto: '',
 };
 
 const PAC_DEFAULTS = {
@@ -139,6 +145,11 @@ export default function Personalizacao() {
       cor_abas:          profile.cor_abas          ?? profile.cor_primaria ?? NUTRI_DEFAULTS.cor_abas,
       cor_texto:         profile.cor_texto         ?? '#000000',
       cor_secundaria:    profile.cor_secundaria    ?? NUTRI_DEFAULTS.cor_secundaria,
+      cor_nav_item:      profile.cor_nav_item      ?? '',
+      cor_nav_grupo:     profile.cor_nav_grupo     ?? '',
+      cor_sidebar_nome:  profile.cor_sidebar_nome  ?? '',
+      cor_topbar:        profile.cor_topbar        ?? '',
+      cor_topbar_texto:  profile.cor_topbar_texto  ?? '',
     }));
   }, [profile]);
 
@@ -174,8 +185,18 @@ export default function Personalizacao() {
     if (form.cor_texto_sidebar) r.style.setProperty('--dark-text', form.cor_texto_sidebar);
     if (form.cor_card_nutri) r.style.setProperty('--nutri-card', form.cor_card_nutri);
     else r.style.removeProperty('--nutri-card');
+    if (form.cor_nav_item) r.style.setProperty('--nav-item-text', form.cor_nav_item);
+    else r.style.removeProperty('--nav-item-text');
+    if (form.cor_nav_grupo) r.style.setProperty('--nav-grupo-text', form.cor_nav_grupo);
+    else r.style.removeProperty('--nav-grupo-text');
+    if (form.cor_sidebar_nome) r.style.setProperty('--sidebar-nome-text', form.cor_sidebar_nome);
+    else r.style.removeProperty('--sidebar-nome-text');
+    if (form.cor_topbar) r.style.setProperty('--topbar-bg', form.cor_topbar);
+    else r.style.removeProperty('--topbar-bg');
+    if (form.cor_topbar_texto) r.style.setProperty('--topbar-text', form.cor_topbar_texto);
+    else r.style.removeProperty('--topbar-text');
     r.dataset.tipografia = form.tipografia;
-  }, [profile, form.cor_sidebar, form.cor_primaria, form.cor_secundaria, form.cor_fundo_nutri, form.cor_card_nutri, form.cor_texto, form.cor_texto_sidebar, form.cor_abas, form.tipografia]);
+  }, [profile, form.cor_sidebar, form.cor_primaria, form.cor_secundaria, form.cor_fundo_nutri, form.cor_card_nutri, form.cor_texto, form.cor_texto_sidebar, form.cor_abas, form.tipografia, form.cor_nav_item, form.cor_nav_grupo, form.cor_sidebar_nome, form.cor_topbar, form.cor_topbar_texto]);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -199,9 +220,14 @@ export default function Personalizacao() {
       cor_sidebar:       form.cor_sidebar || null,
       cor_fundo_nutri:   form.cor_fundo_nutri || null,
       cor_abas:          form.cor_abas || null,
-      cor_card_nutri:    form.cor_card_nutri || null,
-      cor_texto:         form.cor_texto || '#000000',
+      cor_card_nutri:    form.cor_card_nutri    || null,
+      cor_texto:         form.cor_texto         || '#000000',
       cor_texto_sidebar: form.cor_texto_sidebar?.trim() || null,
+      cor_nav_item:      form.cor_nav_item      || null,
+      cor_nav_grupo:     form.cor_nav_grupo     || null,
+      cor_sidebar_nome:  form.cor_sidebar_nome  || null,
+      cor_topbar:        form.cor_topbar        || null,
+      cor_topbar_texto:  form.cor_topbar_texto  || null,
     }).eq('id', user.id);
 
     if (errNutri) { setBusy(false); return setErro('Erro: ' + errNutri.message); }
@@ -383,15 +409,38 @@ export default function Personalizacao() {
               ))}
             </div>
 
-            {/* Linhas de cor */}
+            {/* Linhas de cor — geral */}
             {[
               { key: 'cor_fundo_nutri',   label: 'Fundo do app',          hint: 'Cor de fundo das telas e páginas internas',                  defaultVal: '', allowEmpty: true },
               { key: 'cor_sidebar',       label: 'Sidebar',               hint: 'Cor de fundo do menu lateral',                              defaultVal: NUTRI_DEFAULTS.cor_sidebar },
-              { key: 'cor_texto_sidebar', label: 'Texto da sidebar',      hint: 'Itens "Pacientes", "Agenda"… — vazio = automático por contraste', defaultVal: '', allowEmpty: true },
               { key: 'cor_card_nutri',    label: 'Cards e painéis',       hint: 'Cor de fundo dos cartões e seções internas',                 defaultVal: '', allowEmpty: true },
               { key: 'cor_primaria',      label: 'Botões principais',     hint: 'Cor dos botões de ação e elementos de destaque',             defaultVal: NUTRI_DEFAULTS.cor_primaria },
               { key: 'cor_abas',          label: 'Abas ativas',           hint: 'Indicador da aba selecionada — vazio = usa cor dos botões',  defaultVal: NUTRI_DEFAULTS.cor_abas },
               { key: 'cor_texto',         label: 'Letras',                hint: 'Cor do texto principal em títulos, labels e parágrafos',     defaultVal: NUTRI_DEFAULTS.cor_texto },
+            ].map(campo => (
+              <ColorRow key={campo.key} {...campo} value={form[campo.key]} onChange={v => set(campo.key, v)} />
+            ))}
+
+            {/* Mini-separador */}
+            <div style={{ fontSize: 10, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: 1, fontWeight: 600, padding: '14px 0 4px', borderTop: '0.5px solid var(--border)', marginTop: 6 }}>
+              Sidebar — detalhes (vazio = automático)
+            </div>
+            {[
+              { key: 'cor_texto_sidebar', label: 'Texto da sidebar (geral)',   hint: 'Base para todos os textos da sidebar — sobrescreve os individuais abaixo', defaultVal: '', allowEmpty: true },
+              { key: 'cor_nav_item',      label: 'Itens do menu',              hint: '"Visão geral", "Pacientes", "Agenda"… (estado inativo)',                  defaultVal: '', allowEmpty: true },
+              { key: 'cor_nav_grupo',     label: 'Categorias do menu',         hint: '"ATENDIMENTO", "GESTÃO DO CONSULTÓRIO", "SESSÃO"',                        defaultVal: '', allowEmpty: true },
+              { key: 'cor_sidebar_nome',  label: 'Nome da nutricionista',      hint: 'Texto com seu nome no rodapé da sidebar',                                 defaultVal: '', allowEmpty: true },
+            ].map(campo => (
+              <ColorRow key={campo.key} {...campo} value={form[campo.key]} onChange={v => set(campo.key, v)} />
+            ))}
+
+            {/* Mini-separador topbar */}
+            <div style={{ fontSize: 10, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: 1, fontWeight: 600, padding: '14px 0 4px', borderTop: '0.5px solid var(--border)', marginTop: 6 }}>
+              Barra superior (topbar) — vazio = usa cor da sidebar
+            </div>
+            {[
+              { key: 'cor_topbar',        label: 'Fundo da barra superior',    hint: 'Cor de fundo da barra com o nome da página e mês',  defaultVal: '', allowEmpty: true },
+              { key: 'cor_topbar_texto',  label: 'Texto da barra superior',    hint: 'Seção, nome da página ("Pacientes"), data e mês',    defaultVal: '', allowEmpty: true },
             ].map(campo => (
               <ColorRow key={campo.key} {...campo} value={form[campo.key]} onChange={v => set(campo.key, v)} />
             ))}
@@ -448,40 +497,52 @@ export default function Personalizacao() {
             {/* Preview nutri */}
             <div>
               <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>Painel da nutricionista</div>
-              <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid var(--border)', display: 'flex', boxShadow: '0 2px 12px rgba(0,0,0,.08)' }}>
-                {/* Mini sidebar */}
-                <div style={{ width: 76, background: form.cor_sidebar || form.cor_primaria, padding: '10px 8px', flexShrink: 0 }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 6, background: 'rgba(255,255,255,.15)', marginBottom: 10 }} />
-                  {['Visão geral', 'Pacientes', 'Planos', 'Agenda'].map((item, i) => (
-                    <div key={item} style={{
-                      fontSize: 9, padding: '5px 6px', borderRadius: 4, marginBottom: 3,
-                      background: i === 0 ? 'rgba(0,0,0,.18)' : 'transparent',
-                      color: form.cor_texto_sidebar || (luminanciaSimples(form.cor_sidebar || form.cor_primaria) > 0.45 ? '#1a1612' : '#faf8f5'),
-                      fontWeight: i === 0 ? 600 : 400,
-                    }}>{item}</div>
-                  ))}
+              <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', boxShadow: '0 2px 12px rgba(0,0,0,.08)' }}>
+                {/* Mini topbar */}
+                <div style={{ height: 26, background: form.cor_topbar || form.cor_sidebar || form.cor_primaria, display: 'flex', alignItems: 'center', padding: '0 8px', gap: 5, flexShrink: 0 }}>
+                  <span style={{ fontSize: 7, letterSpacing: 1, textTransform: 'uppercase', color: form.cor_topbar_texto || (luminanciaSimples(form.cor_topbar || form.cor_sidebar || form.cor_primaria) > 0.45 ? '#1a1612' : '#faf8f5'), opacity: .7 }}>Pacientes</span>
+                  <span style={{ fontSize: 8, color: form.cor_topbar_texto || (luminanciaSimples(form.cor_topbar || form.cor_sidebar || form.cor_primaria) > 0.45 ? '#1a1612' : '#faf8f5'), fontWeight: 600 }}>· Ana Silva</span>
+                  <span style={{ marginLeft: 'auto', fontSize: 7, color: form.cor_topbar_texto || (luminanciaSimples(form.cor_topbar || form.cor_sidebar || form.cor_primaria) > 0.45 ? '#1a1612' : '#faf8f5'), opacity: .65 }}>Jun 2026</span>
                 </div>
-                {/* Área principal */}
-                <div style={{ flex: 1, background: form.cor_fundo_nutri || '#f5f1eb', padding: 10 }}>
-                  <div style={{ background: form.cor_card_nutri || '#fff', borderRadius: 6, padding: '8px 10px', marginBottom: 8, boxShadow: '0 1px 3px rgba(0,0,0,.06)', border: '0.5px solid rgba(0,0,0,.06)' }}>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: form.cor_texto || '#000', marginBottom: 4 }}>Ana Silva</div>
-                    <div style={{ fontSize: 9, color: '#888' }}>Última consulta: 15/05</div>
-                  </div>
-                  {/* Tabs preview */}
-                  <div style={{ display: 'flex', gap: 2, background: 'rgba(0,0,0,.06)', borderRadius: 6, padding: 2, marginBottom: 8 }}>
-                    {['Plano', 'Evolução', 'Exames'].map((tab, i) => (
-                      <div key={tab} style={{
-                        flex: 1, fontSize: 8, textAlign: 'center', padding: '4px 2px', borderRadius: 4, fontWeight: i === 0 ? 600 : 400,
-                        background: i === 0 ? (form.cor_card_nutri || '#fff') : 'transparent',
-                        color: i === 0 ? (form.cor_abas || form.cor_primaria) : '#aaa',
-                      }}>{tab}</div>
+                {/* Corpo: sidebar + main */}
+                <div style={{ display: 'flex' }}>
+                  {/* Mini sidebar */}
+                  <div style={{ width: 76, background: form.cor_sidebar || form.cor_primaria, padding: '8px 6px', flexShrink: 0 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: 5, background: 'rgba(255,255,255,.15)', marginBottom: 8 }} />
+                    <div style={{ fontSize: 7, color: form.cor_nav_grupo || form.cor_texto_sidebar || (luminanciaSimples(form.cor_sidebar || form.cor_primaria) > 0.45 ? '#1a1612' : '#faf8f5'), opacity: .55, textTransform: 'uppercase', letterSpacing: 1, padding: '3px 4px', fontWeight: 600, marginBottom: 2 }}>Atendimento</div>
+                    {['Visão geral', 'Pacientes', 'Agenda'].map((item, i) => (
+                      <div key={item} style={{
+                        fontSize: 8, padding: '4px 5px', borderRadius: 3, marginBottom: 2,
+                        background: i === 0 ? 'rgba(0,0,0,.18)' : 'transparent',
+                        color: form.cor_nav_item || form.cor_texto_sidebar || (luminanciaSimples(form.cor_sidebar || form.cor_primaria) > 0.45 ? '#1a1612' : '#faf8f5'),
+                        fontWeight: i === 0 ? 600 : 400,
+                      }}>{item}</div>
                     ))}
+                    <div style={{ marginTop: 8, paddingTop: 6, borderTop: '0.5px solid rgba(255,255,255,.12)' }}>
+                      <div style={{ fontSize: 7, color: form.cor_nav_grupo || form.cor_texto_sidebar || (luminanciaSimples(form.cor_sidebar || form.cor_primaria) > 0.45 ? '#1a1612' : '#faf8f5'), opacity: .55, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 3 }}>Sessão</div>
+                      <div style={{ fontSize: 8, color: form.cor_sidebar_nome || form.cor_texto_sidebar || (luminanciaSimples(form.cor_sidebar || form.cor_primaria) > 0.45 ? '#1a1612' : '#faf8f5') }}>Nutri Júlia</div>
+                    </div>
                   </div>
-                  {/* Botão */}
-                  <button style={{
-                    background: form.cor_primaria, color: '#fff',
-                    border: 'none', borderRadius: 5, padding: '5px 10px', fontSize: 9, width: '100%', cursor: 'default',
-                  }}>Liberar para paciente</button>
+                  {/* Área principal */}
+                  <div style={{ flex: 1, background: form.cor_fundo_nutri || '#f5f1eb', padding: 8 }}>
+                    <div style={{ background: form.cor_card_nutri || '#fff', borderRadius: 5, padding: '6px 8px', marginBottom: 6, boxShadow: '0 1px 3px rgba(0,0,0,.06)', border: '0.5px solid rgba(0,0,0,.06)' }}>
+                      <div style={{ fontSize: 10, fontWeight: 600, color: form.cor_texto || '#000', marginBottom: 3 }}>Ana Silva</div>
+                      <div style={{ fontSize: 8, color: '#888' }}>Última consulta: 15/05</div>
+                    </div>
+                    <div style={{ display: 'flex', gap: 2, background: 'rgba(0,0,0,.06)', borderRadius: 5, padding: 2, marginBottom: 6 }}>
+                      {['Plano', 'Evolução', 'Exames'].map((tab, i) => (
+                        <div key={tab} style={{
+                          flex: 1, fontSize: 7, textAlign: 'center', padding: '3px 2px', borderRadius: 3,
+                          background: i === 0 ? (form.cor_card_nutri || '#fff') : 'transparent',
+                          color: i === 0 ? (form.cor_abas || form.cor_primaria) : '#aaa',
+                          fontWeight: i === 0 ? 600 : 400,
+                        }}>{tab}</div>
+                      ))}
+                    </div>
+                    <button style={{ background: form.cor_primaria, color: '#fff', border: 'none', borderRadius: 4, padding: '4px 8px', fontSize: 8, width: '100%', cursor: 'default' }}>
+                      Liberar para paciente
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

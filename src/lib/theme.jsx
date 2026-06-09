@@ -29,6 +29,11 @@ const DEFAULT_TEMA = {
   mensagem_login: null,
   mensagem_termo: null,
   cor_texto_sidebar: null,  // null = auto-calcula por luminância
+  cor_nav_item: null,       // null = --dark-muted derivado
+  cor_nav_grupo: null,      // null = --dark-label derivado
+  cor_sidebar_nome: null,   // null = --dark-text derivado
+  cor_topbar: null,         // null = usa --dark (mesma cor da sidebar)
+  cor_topbar_texto: null,   // null = --dark-text derivado
   nutri_nome: 'Sua nutri',
   nutri_foto_url: null,
 };
@@ -55,14 +60,19 @@ export function ThemeProvider({ children }) {
           cor_sidebar:       profile.cor_sidebar     ?? null,
           cor_fundo_nutri:   profile.cor_fundo_nutri ?? null,
           cor_abas:          profile.cor_abas        ?? null,
-          cor_card_nutri:    profile.cor_card_nutri  ?? null,
-          cor_texto:         profile.cor_texto       ?? '#000000',
-          tipografia:        profile.tipografia      ?? 'classica',
-          mensagem_login:    profile.mensagem_login  ?? null,
-          mensagem_termo:    profile.mensagem_termo  ?? null,
+          cor_card_nutri:    profile.cor_card_nutri   ?? null,
+          cor_texto:         profile.cor_texto        ?? '#000000',
+          tipografia:        profile.tipografia       ?? 'classica',
+          mensagem_login:    profile.mensagem_login   ?? null,
+          mensagem_termo:    profile.mensagem_termo   ?? null,
           cor_texto_sidebar: profile.cor_texto_sidebar ?? null,
-          nutri_nome:        profile.nome            ?? 'Sua nutri',
-          nutri_foto_url:    profile.foto_url        ?? null,
+          cor_nav_item:      profile.cor_nav_item     ?? null,
+          cor_nav_grupo:     profile.cor_nav_grupo    ?? null,
+          cor_sidebar_nome:  profile.cor_sidebar_nome ?? null,
+          cor_topbar:        profile.cor_topbar       ?? null,
+          cor_topbar_texto:  profile.cor_topbar_texto ?? null,
+          nutri_nome:        profile.nome             ?? 'Sua nutri',
+          nutri_foto_url:    profile.foto_url         ?? null,
         });
         return;
       }
@@ -169,6 +179,23 @@ export function ThemeProvider({ children }) {
       r.style.removeProperty('--nutri-card');
     }
 
+    // ─── Sidebar: itens de nav e categorias ───
+    if (tema.cor_nav_item) r.style.setProperty('--nav-item-text', tema.cor_nav_item);
+    else r.style.removeProperty('--nav-item-text');
+
+    if (tema.cor_nav_grupo) r.style.setProperty('--nav-grupo-text', tema.cor_nav_grupo);
+    else r.style.removeProperty('--nav-grupo-text');
+
+    if (tema.cor_sidebar_nome) r.style.setProperty('--sidebar-nome-text', tema.cor_sidebar_nome);
+    else r.style.removeProperty('--sidebar-nome-text');
+
+    // ─── Topbar ───
+    if (tema.cor_topbar) r.style.setProperty('--topbar-bg', tema.cor_topbar);
+    else r.style.removeProperty('--topbar-bg');
+
+    if (tema.cor_topbar_texto) r.style.setProperty('--topbar-text', tema.cor_topbar_texto);
+    else r.style.removeProperty('--topbar-text');
+
     // ─── Cores exclusivas do app da paciente ───
     // Aplicadas por cima das cores de marca; só presentes quando role=paciente.
     const pc = tema.pacConfig;
@@ -194,7 +221,7 @@ export function ThemeProvider({ children }) {
         r.style.setProperty('--ink-soft', mistura(pc.pac_text, '#ffffff', 0.25));
       }
     }
-  }, [tema.cor_primaria, tema.cor_secundaria, tema.cor_sidebar, tema.cor_fundo_nutri, tema.cor_abas, tema.cor_card_nutri, tema.cor_texto, tema.tipografia, tema.cor_texto_sidebar, tema.pacConfig]);
+  }, [tema.cor_primaria, tema.cor_secundaria, tema.cor_sidebar, tema.cor_fundo_nutri, tema.cor_abas, tema.cor_card_nutri, tema.cor_texto, tema.tipografia, tema.cor_texto_sidebar, tema.cor_nav_item, tema.cor_nav_grupo, tema.cor_sidebar_nome, tema.cor_topbar, tema.cor_topbar_texto, tema.pacConfig]);
 
   return (
     <ThemeContext.Provider value={tema}>
