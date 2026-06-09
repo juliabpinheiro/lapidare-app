@@ -1426,6 +1426,30 @@ grant execute on function public.buscar_marca_principal() to anon, authenticated
 
 
 -- =============================================================
+-- Tabela: agenda_nutri (calendário livre da nutri)
+-- =============================================================
+create table if not exists public.agenda_nutri (
+  id         uuid primary key default gen_random_uuid(),
+  nutri_id   uuid not null references auth.users(id) on delete cascade,
+  data       date not null,
+  horario    time,
+  titulo     text not null,
+  cor        text not null default '#1a5a8c',
+  created_at timestamptz default now()
+);
+
+alter table public.agenda_nutri enable row level security;
+
+drop policy if exists agenda_nutri_nutri on public.agenda_nutri;
+create policy agenda_nutri_nutri on public.agenda_nutri
+  using  (nutri_id = auth.uid())
+  with check (nutri_id = auth.uid());
+
+create index if not exists agenda_nutri_nutri_data_idx
+  on public.agenda_nutri (nutri_id, data);
+
+
+-- =============================================================
 -- 11.Y Cadastro direto de paciente (sem convite / sem senha imediata)
 -- =============================================================
 -- A nutri preenche todos os dados e salva. A conta é criada na hora.

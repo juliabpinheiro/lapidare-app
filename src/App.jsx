@@ -16,6 +16,7 @@ import Visao from './app/nutri/Visao.jsx';
 import Pacientes from './app/nutri/Pacientes.jsx';
 import PacientePerfil from './app/nutri/PacientePerfil.jsx';
 import Agenda from './app/nutri/Agenda.jsx';
+import Calendario from './app/nutri/Calendario.jsx';
 import ChatNutri from './app/nutri/Chat.jsx';
 import FeedNutri from './app/nutri/Feed.jsx';
 import PrescricoesNutri from './app/nutri/Prescricoes.jsx';
@@ -62,6 +63,7 @@ export default function App() {
             <Route path="/nutri/pacientes" element={<Pacientes />} />
             <Route path="/nutri/pacientes/:id" element={<PacientePerfil />} />
             <Route path="/nutri/agenda" element={<Agenda />} />
+            <Route path="/nutri/calendario" element={<Calendario />} />
             <Route path="/nutri/chat" element={<ChatNutri />} />
             <Route path="/nutri/feed" element={<FeedNutri />} />
             <Route path="/nutri/prescricoes" element={<PrescricoesNutri />} />
