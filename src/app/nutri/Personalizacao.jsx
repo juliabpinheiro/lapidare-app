@@ -105,7 +105,7 @@ function ColorRow({ label, hint, value, onChange, defaultVal, allowEmpty }) {
 
 /* ── Componente principal ────────────────────────────────────── */
 export default function Personalizacao() {
-  const { user, profile } = useSession();
+  const { user, profile, refreshProfile } = useSession();
   const [form, setForm] = useState({
     // Marca
     marca_nome: 'Lapidare',
@@ -242,6 +242,7 @@ export default function Personalizacao() {
 
     setBusy(false);
     if (errPac && errPac.code !== '42P01') return setErro('Erro nas cores da paciente: ' + errPac.message);
+    await refreshProfile();
     setFeedback(true);
   }
 
@@ -594,7 +595,7 @@ export default function Personalizacao() {
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 17, fontWeight: 700, color: '#5a4500', marginBottom: 4 }}>✅ Personalização salva!</div>
             <div style={{ fontSize: 14, color: '#5a4500', lineHeight: 1.5 }}>
-              <strong>Aperte F5 (ou Cmd+R no Mac)</strong> agora pra ver tudo aplicado. As pacientes verão ao recarregar o app delas.
+              Cores aplicadas agora. As pacientes verão ao recarregar o app delas.
             </div>
           </div>
           <button onClick={() => window.location.reload()}
