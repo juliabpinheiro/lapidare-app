@@ -103,7 +103,7 @@
 }
 .nutri-panel .nav-item:hover { background: var(--dark-shade); color: var(--nav-item-text, var(--sidebar-text)); opacity: 1; }
 .nutri-panel .nav-item.active {
-  background: var(--dark-shade); color: var(--nav-item-text, var(--sidebar-text));
+  background: var(--nav-active-bg, var(--dark-shade)); color: var(--nav-item-text, var(--sidebar-text));
   opacity: 1; border-left-color: var(--amber);
 }
 .nutri-panel .nav-icon {
@@ -117,11 +117,11 @@
   margin-left: auto;
 }
 .nutri-panel .sidebar.collapsed .nav-badge { display: none; }
-.nutri-panel .nav-divider { height: 0.5px; background: var(--dark-shade); margin: 8px 0; }
+.nutri-panel .nav-divider { height: 0.5px; background: var(--nav-divider-color, var(--dark-shade)); margin: 8px 0; }
 
 .nutri-panel .sidebar-footer {
   padding: 16px 20px;
-  border-top: 0.5px solid var(--dark-shade);
+  border-top: 0.5px solid var(--nav-divider-color, var(--dark-shade));
   flex-shrink: 0;
 }
 .nutri-panel .sidebar-footer-label {

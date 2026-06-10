@@ -23,6 +23,8 @@ const NUTRI_DEFAULTS = {
   cor_nav_item:     '',
   cor_nav_grupo:    '',
   cor_sidebar_nome: '',
+  cor_nav_divider:  '',
+  cor_nav_active:   '',
   cor_topbar:       '',
   cor_topbar_texto: '',
   // abas e botões
@@ -152,6 +154,8 @@ export default function Personalizacao() {
       cor_nav_item:      profile.cor_nav_item      ?? '',
       cor_nav_grupo:     profile.cor_nav_grupo     ?? '',
       cor_sidebar_nome:  profile.cor_sidebar_nome  ?? '',
+      cor_nav_divider:   profile.cor_nav_divider   ?? '',
+      cor_nav_active:    profile.cor_nav_active    ?? '',
       cor_topbar:        profile.cor_topbar        ?? '',
       cor_topbar_texto:  profile.cor_topbar_texto  ?? '',
       cor_aba:           profile.cor_aba           ?? '',
@@ -204,6 +208,10 @@ export default function Personalizacao() {
     else r.style.removeProperty('--nav-grupo-text');
     if (form.cor_sidebar_nome) r.style.setProperty('--sidebar-nome-text', form.cor_sidebar_nome);
     else r.style.removeProperty('--sidebar-nome-text');
+    if (form.cor_nav_divider) r.style.setProperty('--nav-divider-color', form.cor_nav_divider);
+    else r.style.removeProperty('--nav-divider-color');
+    if (form.cor_nav_active) r.style.setProperty('--nav-active-bg', form.cor_nav_active);
+    else r.style.removeProperty('--nav-active-bg');
     if (form.cor_topbar) r.style.setProperty('--topbar-bg', form.cor_topbar);
     else r.style.removeProperty('--topbar-bg');
     if (form.cor_topbar_texto) r.style.setProperty('--topbar-text', form.cor_topbar_texto);
@@ -229,7 +237,7 @@ export default function Personalizacao() {
     if (form.cor_btn_txt) r.style.setProperty('--btn-sec-txt', form.cor_btn_txt);
     else r.style.removeProperty('--btn-sec-txt');
     r.dataset.tipografia = form.tipografia;
-  }, [profile, form.cor_sidebar, form.cor_primaria, form.cor_secundaria, form.cor_fundo_nutri, form.cor_card_nutri, form.cor_texto, form.cor_texto_sidebar, form.cor_abas, form.tipografia, form.cor_nav_item, form.cor_nav_grupo, form.cor_sidebar_nome, form.cor_topbar, form.cor_topbar_texto, form.cor_aba, form.cor_btn_sec, form.cor_btn_txt]);
+  }, [profile, form.cor_sidebar, form.cor_primaria, form.cor_secundaria, form.cor_fundo_nutri, form.cor_card_nutri, form.cor_texto, form.cor_texto_sidebar, form.cor_abas, form.tipografia, form.cor_nav_item, form.cor_nav_grupo, form.cor_sidebar_nome, form.cor_nav_divider, form.cor_nav_active, form.cor_topbar, form.cor_topbar_texto, form.cor_aba, form.cor_btn_sec, form.cor_btn_txt]);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -259,6 +267,8 @@ export default function Personalizacao() {
       cor_nav_item:      form.cor_nav_item      || null,
       cor_nav_grupo:     form.cor_nav_grupo     || null,
       cor_sidebar_nome:  form.cor_sidebar_nome  || null,
+      cor_nav_divider:   form.cor_nav_divider   || null,
+      cor_nav_active:    form.cor_nav_active    || null,
       cor_topbar:        form.cor_topbar        || null,
       cor_topbar_texto:  form.cor_topbar_texto  || null,
       cor_aba:           form.cor_aba           || null,
@@ -476,9 +486,11 @@ export default function Personalizacao() {
               Sidebar — detalhes (vazio = automático)
             </div>
             {[
-              { key: 'cor_nav_item',      label: 'Itens do menu',              hint: '"Visão geral", "Pacientes", "Agenda"… (estado inativo)',   defaultVal: '', allowEmpty: true },
-              { key: 'cor_nav_grupo',     label: 'Categorias do menu',         hint: '"ATENDIMENTO", "GESTÃO DO CONSULTÓRIO", "SESSÃO"',         defaultVal: '', allowEmpty: true },
-              { key: 'cor_sidebar_nome',  label: 'Nome da nutricionista',      hint: 'Texto com seu nome no rodapé da sidebar',                  defaultVal: '', allowEmpty: true },
+              { key: 'cor_nav_item',      label: 'Itens do menu',              hint: '"Visão geral", "Pacientes", "Agenda"… (estado inativo)',         defaultVal: '', allowEmpty: true },
+              { key: 'cor_nav_grupo',     label: 'Categorias do menu',         hint: '"ATENDIMENTO", "GESTÃO DO CONSULTÓRIO", "SESSÃO"',               defaultVal: '', allowEmpty: true },
+              { key: 'cor_sidebar_nome',  label: 'Nome da nutricionista',      hint: 'Texto com seu nome no rodapé da sidebar',                        defaultVal: '', allowEmpty: true },
+              { key: 'cor_nav_divider',   label: 'Divisórias do menu',         hint: 'Cor das linhas que separam as seções do menu lateral',           defaultVal: '', allowEmpty: true },
+              { key: 'cor_nav_active',    label: 'Item ativo do menu',         hint: 'Cor de fundo do item selecionado no menu lateral',               defaultVal: '', allowEmpty: true },
             ].map(campo => (
               <ColorRow key={campo.key} {...campo} value={form[campo.key]} onChange={v => set(campo.key, v)} />
             ))}
