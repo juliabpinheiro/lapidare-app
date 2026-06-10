@@ -34,6 +34,9 @@ const DEFAULT_TEMA = {
   cor_sidebar_nome: null,   // null = --dark-text derivado
   cor_topbar: null,         // null = usa --dark (mesma cor da sidebar)
   cor_topbar_texto: null,   // null = --dark-text derivado
+  cor_aba: null,            // null = usa --bg2 derivado
+  cor_btn_sec: null,        // null = transparent
+  cor_btn_txt: null,        // null = --dark
   nutri_nome: 'Sua nutri',
   nutri_foto_url: null,
 };
@@ -71,6 +74,9 @@ export function ThemeProvider({ children }) {
           cor_sidebar_nome:  profile.cor_sidebar_nome ?? null,
           cor_topbar:        profile.cor_topbar       ?? null,
           cor_topbar_texto:  profile.cor_topbar_texto ?? null,
+          cor_aba:           profile.cor_aba          ?? null,
+          cor_btn_sec:       profile.cor_btn_sec      ?? null,
+          cor_btn_txt:       profile.cor_btn_txt      ?? null,
           nutri_nome:        profile.nome             ?? 'Sua nutri',
           nutri_foto_url:    profile.foto_url         ?? null,
         });
@@ -189,12 +195,42 @@ export function ThemeProvider({ children }) {
     if (tema.cor_sidebar_nome) r.style.setProperty('--sidebar-nome-text', tema.cor_sidebar_nome);
     else r.style.removeProperty('--sidebar-nome-text');
 
+    // ─── Fundo sólido do painel da nutri (nunca gradiente) ───
+    if (tema.cor_fundo_nutri) {
+      r.style.setProperty('--fundo-nutri', tema.cor_fundo_nutri);
+    } else {
+      r.style.setProperty('--fundo-nutri', mistura(primaria, '#faf7f2', 0.95));
+    }
+
     // ─── Topbar ───
     if (tema.cor_topbar) r.style.setProperty('--topbar-bg', tema.cor_topbar);
     else r.style.removeProperty('--topbar-bg');
 
     if (tema.cor_topbar_texto) r.style.setProperty('--topbar-text', tema.cor_topbar_texto);
     else r.style.removeProperty('--topbar-text');
+
+    // ─── Abas (tab bar) ───
+    if (tema.cor_aba) {
+      r.style.setProperty('--tab-bg', tema.cor_aba);
+      r.style.setProperty('--tab-txt', luminancia(tema.cor_aba) > 0.45 ? '#3a3028' : '#faf8f5');
+    } else {
+      r.style.removeProperty('--tab-bg');
+      r.style.removeProperty('--tab-txt');
+    }
+    if (tema.cor_abas) {
+      r.style.setProperty('--tab-ativa-bg', tema.cor_abas);
+      r.style.setProperty('--tab-ativa-txt', luminancia(tema.cor_abas) > 0.45 ? '#1a1612' : '#ffffff');
+    } else {
+      r.style.removeProperty('--tab-ativa-bg');
+      r.style.removeProperty('--tab-ativa-txt');
+    }
+
+    // ─── Botões secundários (btn-outline) ───
+    if (tema.cor_btn_sec) r.style.setProperty('--btn-sec-bg', tema.cor_btn_sec);
+    else r.style.removeProperty('--btn-sec-bg');
+
+    if (tema.cor_btn_txt) r.style.setProperty('--btn-sec-txt', tema.cor_btn_txt);
+    else r.style.removeProperty('--btn-sec-txt');
 
     // ─── Cores exclusivas do app da paciente ───
     // Aplicadas por cima das cores de marca; só presentes quando role=paciente.
@@ -221,7 +257,7 @@ export function ThemeProvider({ children }) {
         r.style.setProperty('--ink-soft', mistura(pc.pac_text, '#ffffff', 0.25));
       }
     }
-  }, [tema.cor_primaria, tema.cor_secundaria, tema.cor_sidebar, tema.cor_fundo_nutri, tema.cor_abas, tema.cor_card_nutri, tema.cor_texto, tema.tipografia, tema.cor_texto_sidebar, tema.cor_nav_item, tema.cor_nav_grupo, tema.cor_sidebar_nome, tema.cor_topbar, tema.cor_topbar_texto, tema.pacConfig]);
+  }, [tema.cor_primaria, tema.cor_secundaria, tema.cor_sidebar, tema.cor_fundo_nutri, tema.cor_abas, tema.cor_card_nutri, tema.cor_texto, tema.tipografia, tema.cor_texto_sidebar, tema.cor_nav_item, tema.cor_nav_grupo, tema.cor_sidebar_nome, tema.cor_topbar, tema.cor_topbar_texto, tema.cor_aba, tema.cor_btn_sec, tema.cor_btn_txt, tema.pacConfig]);
 
   return (
     <ThemeContext.Provider value={tema}>

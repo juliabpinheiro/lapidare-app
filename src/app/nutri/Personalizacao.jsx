@@ -25,6 +25,10 @@ const NUTRI_DEFAULTS = {
   cor_sidebar_nome: '',
   cor_topbar:       '',
   cor_topbar_texto: '',
+  // abas e botões
+  cor_aba:          '',
+  cor_btn_sec:      '',
+  cor_btn_txt:      '',
 };
 
 const PAC_DEFAULTS = {
@@ -150,6 +154,9 @@ export default function Personalizacao() {
       cor_sidebar_nome:  profile.cor_sidebar_nome  ?? '',
       cor_topbar:        profile.cor_topbar        ?? '',
       cor_topbar_texto:  profile.cor_topbar_texto  ?? '',
+      cor_aba:           profile.cor_aba           ?? '',
+      cor_btn_sec:       profile.cor_btn_sec       ?? '',
+      cor_btn_txt:       profile.cor_btn_txt       ?? '',
     }));
   }, [profile]);
 
@@ -180,8 +187,8 @@ export default function Personalizacao() {
     r.style.setProperty('--amber',     form.cor_secundaria);
     r.style.setProperty('--gold',      form.cor_secundaria);
     r.style.setProperty('--ink',       form.cor_texto || '#000000');
-    r.style.setProperty('--aba-cor',   form.cor_abas || form.cor_primaria);
-    if (form.cor_fundo_nutri) r.style.setProperty('--bg', form.cor_fundo_nutri);
+    // fundo nutri — sempre sólido (sem gradiente)
+    r.style.setProperty('--fundo-nutri', form.cor_fundo_nutri || '#faf8f5');
     if (form.cor_texto_sidebar) r.style.setProperty('--dark-text', form.cor_texto_sidebar);
     if (form.cor_card_nutri) r.style.setProperty('--nutri-card', form.cor_card_nutri);
     else r.style.removeProperty('--nutri-card');
@@ -195,8 +202,28 @@ export default function Personalizacao() {
     else r.style.removeProperty('--topbar-bg');
     if (form.cor_topbar_texto) r.style.setProperty('--topbar-text', form.cor_topbar_texto);
     else r.style.removeProperty('--topbar-text');
+    // abas
+    if (form.cor_aba) {
+      r.style.setProperty('--tab-bg', form.cor_aba);
+      r.style.setProperty('--tab-txt', luminanciaSimples(form.cor_aba) > 0.45 ? '#3a3028' : '#faf8f5');
+    } else {
+      r.style.removeProperty('--tab-bg');
+      r.style.removeProperty('--tab-txt');
+    }
+    if (form.cor_abas) {
+      r.style.setProperty('--tab-ativa-bg', form.cor_abas);
+      r.style.setProperty('--tab-ativa-txt', luminanciaSimples(form.cor_abas) > 0.45 ? '#1a1612' : '#ffffff');
+    } else {
+      r.style.removeProperty('--tab-ativa-bg');
+      r.style.removeProperty('--tab-ativa-txt');
+    }
+    // botões secundários
+    if (form.cor_btn_sec) r.style.setProperty('--btn-sec-bg', form.cor_btn_sec);
+    else r.style.removeProperty('--btn-sec-bg');
+    if (form.cor_btn_txt) r.style.setProperty('--btn-sec-txt', form.cor_btn_txt);
+    else r.style.removeProperty('--btn-sec-txt');
     r.dataset.tipografia = form.tipografia;
-  }, [profile, form.cor_sidebar, form.cor_primaria, form.cor_secundaria, form.cor_fundo_nutri, form.cor_card_nutri, form.cor_texto, form.cor_texto_sidebar, form.cor_abas, form.tipografia, form.cor_nav_item, form.cor_nav_grupo, form.cor_sidebar_nome, form.cor_topbar, form.cor_topbar_texto]);
+  }, [profile, form.cor_sidebar, form.cor_primaria, form.cor_secundaria, form.cor_fundo_nutri, form.cor_card_nutri, form.cor_texto, form.cor_texto_sidebar, form.cor_abas, form.tipografia, form.cor_nav_item, form.cor_nav_grupo, form.cor_sidebar_nome, form.cor_topbar, form.cor_topbar_texto, form.cor_aba, form.cor_btn_sec, form.cor_btn_txt]);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -228,6 +255,9 @@ export default function Personalizacao() {
       cor_sidebar_nome:  form.cor_sidebar_nome  || null,
       cor_topbar:        form.cor_topbar        || null,
       cor_topbar_texto:  form.cor_topbar_texto  || null,
+      cor_aba:           form.cor_aba           || null,
+      cor_btn_sec:       form.cor_btn_sec       || null,
+      cor_btn_txt:       form.cor_btn_txt       || null,
     }).eq('id', user.id);
 
     if (errNutri) { setBusy(false); return setErro('Erro: ' + errNutri.message); }
@@ -412,12 +442,24 @@ export default function Personalizacao() {
 
             {/* Linhas de cor — geral */}
             {[
-              { key: 'cor_fundo_nutri',   label: 'Fundo do app',          hint: 'Cor de fundo das telas e páginas internas',                  defaultVal: '', allowEmpty: true },
+              { key: 'cor_fundo_nutri',   label: 'Fundo do app',          hint: 'Cor sólida de fundo das telas e páginas internas',           defaultVal: '', allowEmpty: true },
               { key: 'cor_sidebar',       label: 'Sidebar',               hint: 'Cor de fundo do menu lateral',                              defaultVal: NUTRI_DEFAULTS.cor_sidebar },
               { key: 'cor_card_nutri',    label: 'Cards e painéis',       hint: 'Cor de fundo dos cartões e seções internas',                 defaultVal: '', allowEmpty: true },
               { key: 'cor_primaria',      label: 'Botões principais',     hint: 'Cor dos botões de ação e elementos de destaque',             defaultVal: NUTRI_DEFAULTS.cor_primaria },
-              { key: 'cor_abas',          label: 'Abas ativas',           hint: 'Indicador da aba selecionada — vazio = usa cor dos botões',  defaultVal: NUTRI_DEFAULTS.cor_abas },
               { key: 'cor_texto',         label: 'Letras',                hint: 'Cor do texto principal em títulos, labels e parágrafos',     defaultVal: NUTRI_DEFAULTS.cor_texto },
+            ].map(campo => (
+              <ColorRow key={campo.key} {...campo} value={form[campo.key]} onChange={v => set(campo.key, v)} />
+            ))}
+
+            {/* Mini-separador abas e botões */}
+            <div style={{ fontSize: 10, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: 1, fontWeight: 600, padding: '14px 0 4px', borderTop: '0.5px solid var(--border)', marginTop: 6 }}>
+              Abas e botões (vazio = automático)
+            </div>
+            {[
+              { key: 'cor_aba',      label: 'Cor das abas',              hint: 'Fundo da barra de abas (Evolução, Plano, Exames…)',           defaultVal: '', allowEmpty: true },
+              { key: 'cor_abas',     label: 'Aba ativa',                 hint: 'Cor da aba selecionada no momento',                          defaultVal: NUTRI_DEFAULTS.cor_abas },
+              { key: 'cor_btn_sec',  label: 'Botões secundários',        hint: 'Fundo dos botões de ação secundária (ex: "Nova consulta")',   defaultVal: '', allowEmpty: true },
+              { key: 'cor_btn_txt',  label: 'Texto dos botões',          hint: 'Cor do texto e borda nos botões secundários',                defaultVal: '', allowEmpty: true },
             ].map(campo => (
               <ColorRow key={campo.key} {...campo} value={form[campo.key]} onChange={v => set(campo.key, v)} />
             ))}

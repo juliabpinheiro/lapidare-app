@@ -251,7 +251,7 @@ export default function PacientePerfil() {
 
       {/* Tabs */}
       <div style={{
-        display: 'flex', gap: 2, background: 'var(--bg2)',
+        display: 'flex', gap: 2, background: 'var(--tab-bg, var(--bg2))',
         borderRadius: 10, padding: 3, marginBottom: 16,
         overflowX: 'auto', scrollbarWidth: 'thin',
       }}>
@@ -279,8 +279,8 @@ export default function PacientePerfil() {
               flex: '0 0 auto',
               padding: '7px 12px', fontSize: 13, fontWeight: 500,
               borderRadius: 8, border: 'none', cursor: 'pointer',
-              color: tab === t.id ? 'var(--dark)' : 'var(--text3)',
-              background: tab === t.id ? 'var(--white)' : 'transparent',
+              color: tab === t.id ? 'var(--tab-ativa-txt, var(--dark))' : 'var(--tab-txt, var(--text3))',
+              background: tab === t.id ? 'var(--tab-ativa-bg, var(--white))' : 'transparent',
               boxShadow: tab === t.id ? 'var(--shadow-sm, 0 1px 2px rgba(0,0,0,.05))' : 'none',
               fontFamily: 'var(--font-sans)',
               whiteSpace: 'nowrap',

@@ -5,7 +5,8 @@
    ============================================================= */
 
 .nutri-panel {
-  --bg: #faf8f5;
+  /* --bg removido: era local e bloqueava o ThemeProvider de aplicar cor personalizada.
+     Agora usa --fundo-nutri (setado pelo theme.jsx) com fallback fixo. */
   --bg2: #f2ede6;
   --bg3: #eae4dc;
   --white: #ffffff;
@@ -27,7 +28,7 @@
   --r: 8px;
 
   height: 100vh;
-  background: var(--bg3);
+  background: var(--fundo-nutri, #eae4dc);
   color: var(--dark);
   font-family: var(--font-sans);
   display: grid;
@@ -150,7 +151,7 @@
 .nutri-panel .main {
   display: flex; flex-direction: column;
   height: 100vh; overflow: hidden;
-  background: var(--bg);
+  background: var(--fundo-nutri, #faf8f5);
 }
 
 /* ── TOPBAR ── */
@@ -179,7 +180,7 @@
 /* ── CONTENT ── */
 .nutri-panel .content {
   flex: 1; overflow-y: auto;
-  padding: 24px; background: var(--bg);
+  padding: 24px; background: var(--fundo-nutri, #faf8f5);
 }
 .nutri-panel .content::-webkit-scrollbar { width: 4px; }
 .nutri-panel .content::-webkit-scrollbar-track { background: transparent; }
@@ -300,14 +301,18 @@
 }
 .nutri-panel .btn:hover { background: #2e2520; }
 .nutri-panel .btn-outline {
-  background: none; color: var(--dark);
-  border: 0.5px solid var(--border);
+  background: var(--btn-sec-bg, none);
+  color: var(--btn-sec-txt, var(--dark));
+  border: 0.5px solid var(--btn-sec-txt, var(--border));
   border-radius: 6px;
   padding: 7px 14px; font-size: 13px;
   cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
   font-family: var(--font-sans);
 }
-.nutri-panel .btn-outline:hover { background: #f5f0e8; }
+.nutri-panel .btn-outline:hover {
+  background: var(--btn-sec-bg, #f5f0e8);
+  filter: brightness(.94);
+}
 
 /* ── INPUTS ── */
 .nutri-panel .input-field,
