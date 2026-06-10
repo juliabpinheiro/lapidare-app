@@ -154,8 +154,6 @@ export function ThemeProvider({ children }) {
     const sidebarTxt = tema.cor_texto_sidebar
       ? tema.cor_texto_sidebar
       : (lum_sidebar > 0.50 ? '#1a1612' : '#faf8f5');
-    // DEBUG — remover após confirmar o contraste
-    console.log('[sidebar-text]', { sidebar, lum: lum_sidebar.toFixed(3), texto: sidebarTxt });
     r.style.setProperty('--sidebar-text', sidebarTxt);
 
     const overrideTexto = tema.cor_texto_sidebar;
