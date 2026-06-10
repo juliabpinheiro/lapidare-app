@@ -152,6 +152,16 @@ export default function ChatPaciente() {
           <i className="ti ti-send" style={{ fontSize: 16 }} aria-hidden="true"></i>
         </button>
       </div>
+      <div style={{
+        textAlign: 'center', fontSize: 11, color: 'var(--muted)',
+        padding: '6px 16px 12px', lineHeight: 1.5,
+      }}>
+        Urgente? Mande mensagem no WhatsApp{' '}
+        <a href="https://wa.me/5521989611108" target="_blank" rel="noopener noreferrer"
+          style={{ color: 'inherit', textDecoration: 'underline', textDecorationStyle: 'dotted' }}>
+          (21) 98961-1108
+        </a>
+      </div>
     </div>
   );
 }
