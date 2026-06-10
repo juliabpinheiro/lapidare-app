@@ -190,6 +190,7 @@ export default function Personalizacao() {
     // fundo nutri — sempre sólido (sem gradiente)
     r.style.setProperty('--fundo-nutri', form.cor_fundo_nutri || '#faf8f5');
     if (form.cor_texto_sidebar) r.style.setProperty('--dark-text', form.cor_texto_sidebar);
+    else r.style.removeProperty('--dark-text');
     if (form.cor_card_nutri) r.style.setProperty('--nutri-card', form.cor_card_nutri);
     else r.style.removeProperty('--nutri-card');
     if (form.cor_nav_item) r.style.setProperty('--nav-item-text', form.cor_nav_item);
@@ -443,7 +444,8 @@ export default function Personalizacao() {
             {/* Linhas de cor — geral */}
             {[
               { key: 'cor_fundo_nutri',   label: 'Fundo do app',          hint: 'Cor sólida de fundo das telas e páginas internas',           defaultVal: '', allowEmpty: true },
-              { key: 'cor_sidebar',       label: 'Sidebar',               hint: 'Cor de fundo do menu lateral',                              defaultVal: NUTRI_DEFAULTS.cor_sidebar },
+              { key: 'cor_sidebar',       label: 'Fundo do menu lateral', hint: 'Cor de fundo do menu lateral e dos botões principais',       defaultVal: NUTRI_DEFAULTS.cor_sidebar },
+              { key: 'cor_texto_sidebar', label: 'Texto do menu lateral', hint: 'Cor dos itens do menu lateral — vazio = contraste automático',  defaultVal: '', allowEmpty: true },
               { key: 'cor_card_nutri',    label: 'Cards e painéis',       hint: 'Cor de fundo dos cartões e seções internas',                 defaultVal: '', allowEmpty: true },
               { key: 'cor_primaria',      label: 'Botões principais',     hint: 'Cor dos botões de ação e elementos de destaque',             defaultVal: NUTRI_DEFAULTS.cor_primaria },
               { key: 'cor_texto',         label: 'Letras',                hint: 'Cor do texto principal em títulos, labels e parágrafos',     defaultVal: NUTRI_DEFAULTS.cor_texto },
@@ -469,10 +471,9 @@ export default function Personalizacao() {
               Sidebar — detalhes (vazio = automático)
             </div>
             {[
-              { key: 'cor_texto_sidebar', label: 'Texto da sidebar (geral)',   hint: 'Base para todos os textos da sidebar — sobrescreve os individuais abaixo', defaultVal: '', allowEmpty: true },
-              { key: 'cor_nav_item',      label: 'Itens do menu',              hint: '"Visão geral", "Pacientes", "Agenda"… (estado inativo)',                  defaultVal: '', allowEmpty: true },
-              { key: 'cor_nav_grupo',     label: 'Categorias do menu',         hint: '"ATENDIMENTO", "GESTÃO DO CONSULTÓRIO", "SESSÃO"',                        defaultVal: '', allowEmpty: true },
-              { key: 'cor_sidebar_nome',  label: 'Nome da nutricionista',      hint: 'Texto com seu nome no rodapé da sidebar',                                 defaultVal: '', allowEmpty: true },
+              { key: 'cor_nav_item',      label: 'Itens do menu',              hint: '"Visão geral", "Pacientes", "Agenda"… (estado inativo)',   defaultVal: '', allowEmpty: true },
+              { key: 'cor_nav_grupo',     label: 'Categorias do menu',         hint: '"ATENDIMENTO", "GESTÃO DO CONSULTÓRIO", "SESSÃO"',         defaultVal: '', allowEmpty: true },
+              { key: 'cor_sidebar_nome',  label: 'Nome da nutricionista',      hint: 'Texto com seu nome no rodapé da sidebar',                  defaultVal: '', allowEmpty: true },
             ].map(campo => (
               <ColorRow key={campo.key} {...campo} value={form[campo.key]} onChange={v => set(campo.key, v)} />
             ))}
