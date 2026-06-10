@@ -55,7 +55,7 @@
   border-radius: 50%;
   background: var(--dark);
   border: 0.5px solid var(--dark-line);
-  color: var(--dark-muted);
+  color: var(--sidebar-text);
   font-size: 16px;
   cursor: pointer;
   display: flex; align-items: center; justify-content: center;
@@ -69,9 +69,9 @@
   flex-shrink: 0;
 }
 .nutri-panel .sidebar-brand {
-  font-size: 11px; color: var(--amber);
+  font-size: 11px; color: var(--sidebar-text);
   letter-spacing: 2.5px; text-transform: uppercase;
-  font-weight: 500; margin-bottom: 4px;
+  font-weight: 500; margin-bottom: 4px; opacity: 0.75;
   white-space: nowrap;
 }
 .nutri-panel .sidebar-title {
@@ -112,7 +112,7 @@
 .nutri-panel .sidebar.collapsed .nav-item span:not(.nav-icon) { display: none; }
 .nutri-panel .sidebar.collapsed .nav-item { padding: 10px 0; justify-content: center; }
 .nutri-panel .nav-badge {
-  font-size: 11px; background: var(--amber); color: var(--dark);
+  font-size: 11px; background: var(--amber); color: var(--sidebar-text);
   padding: 1px 6px; border-radius: 20px; font-weight: 500;
   margin-left: auto;
 }
@@ -125,9 +125,9 @@
   flex-shrink: 0;
 }
 .nutri-panel .sidebar-footer-label {
-  font-size: 11px; color: var(--amber);
+  font-size: 11px; color: var(--sidebar-text);
   letter-spacing: 2px; text-transform: uppercase;
-  font-weight: 500; margin-bottom: 4px;
+  font-weight: 500; margin-bottom: 4px; opacity: 0.75;
 }
 .nutri-panel .sidebar-footer-val {
   font-size: 14px; color: var(--sidebar-nome-text, var(--sidebar-text)); line-height: 1.3;
