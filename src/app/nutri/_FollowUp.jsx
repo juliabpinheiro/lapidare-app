@@ -7,9 +7,10 @@ export default function FollowUp({ pacienteId, nutriId, pacienteNome }) {
   const [templates, setTemplates] = useState([]);
   const [editar, setEditar] = useState(null);          // followup sendo editado (ou objeto novo)
   const [modelosOpen, setModelosOpen] = useState(false);
+  const [relatorios, setRelatorios] = useState(null);
 
   async function carregar() {
-    const [fRes, tRes] = await Promise.all([
+    const [fRes, tRes, rRes] = await Promise.all([
       supabase.from('followups').select('*')
         .eq('paciente_id', pacienteId)
         .order('data', { ascending: false })
@@ -17,9 +18,13 @@ export default function FollowUp({ pacienteId, nutriId, pacienteNome }) {
       supabase.from('followup_templates').select('*')
         .eq('nutri_id', nutriId)
         .order('created_at'),
+      supabase.from('relatorio_semanal').select('*')
+        .eq('paciente_id', pacienteId)
+        .order('semana_inicio', { ascending: false }),
     ]);
     setFollowups(fRes.data ?? []);
     setTemplates(tRes.data ?? []);
+    setRelatorios(rRes.data ?? []);
   }
   useEffect(() => { carregar(); }, [pacienteId, nutriId]);
 
@@ -150,6 +155,54 @@ export default function FollowUp({ pacienteId, nutriId, pacienteNome }) {
           )}
         </div>
       </div>
+
+      {/* Relatórios semanais enviados pela paciente */}
+      {relatorios !== null && relatorios.length > 0 && (
+        <div className="card" style={{ marginTop: 16 }}>
+          <div className="card-header">
+            <div>
+              <div className="card-title">Relatórios semanais</div>
+              <div className="card-sub">Respostas enviadas pela paciente — visível só pra você</div>
+            </div>
+          </div>
+          <div className="card-body">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {relatorios.map(r => (
+                <div key={r.id} style={{
+                  border: '0.5px solid var(--border)', borderRadius: 10,
+                  padding: 14, background: 'var(--white)',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'start', gap: 12 }}>
+                    <div style={{
+                      flexShrink: 0, padding: '4px 10px',
+                      borderRadius: 6, background: 'var(--bg2)',
+                      fontSize: 11, fontWeight: 500, color: 'var(--dark)',
+                    }}>
+                      {dataBR(r.semana_inicio)}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 4 }}>
+                        {r.pergunta}
+                      </div>
+                      <pre style={{
+                        fontFamily: 'var(--font-sans)',
+                        whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                        margin: 0, fontSize: 13, lineHeight: 1.55,
+                        color: 'var(--dark)',
+                      }}>{r.resposta}</pre>
+                      {r.respondido_em && (
+                        <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 6 }}>
+                          Enviado em {dataBR(r.respondido_em)}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {editar && (
         <ModalEditarFollowup

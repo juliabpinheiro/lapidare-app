@@ -17,6 +17,7 @@ import MapaGeral from './_MapaGeral.jsx';
 import Bioimpedancia from './_Bioimpedancia.jsx';
 import Exames from './_Exames.jsx';
 import PlanoBuilder from './_PlanoBuilder.jsx';
+import Recibo from './_Recibo.jsx';
 import DicaJSON from '../../components/DicaJSON.jsx';
 import { gerarPlanoHtml } from '../../lib/gerarPlanoHtml.js';
 
@@ -89,6 +90,16 @@ export default function PacientePerfil() {
     }
   }
 
+  async function inativarOuReativar() {
+    const ativando = paciente.ativo === false;
+    const msg = ativando
+      ? `Reativar ${paciente.nome}? Ela voltará a ter acesso ao app.`
+      : `Inativar ${paciente.nome}? Ela perderá acesso ao app, mas todos os dados serão mantidos.`;
+    if (!window.confirm(msg)) return;
+    await supabase.from('pacientes').update({ ativo: !ativando }).eq('id', id);
+    carregar();
+  }
+
   async function salvarNascimento() {
     setSalvandoNasc(true);
     const { error } = await supabase.from('pacientes')
@@ -146,7 +157,15 @@ export default function PacientePerfil() {
           fontSize: 18, fontWeight: 600, color: 'var(--dark)',
         }}>{iniciais(paciente.nome)}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="page-title" style={{ marginBottom: 2 }}>{paciente.nome}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+            <div className="page-title" style={{ marginBottom: 0 }}>{paciente.nome}</div>
+            {paciente.ativo === false && (
+              <span style={{
+                fontSize: 11, fontWeight: 600, padding: '2px 8px',
+                background: '#fee2e2', color: '#b91c1c', borderRadius: 20,
+              }}>Inativa</span>
+            )}
+          </div>
           <div className="page-sub" style={{ marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <span>{paciente.email} · cadastrada em {dataBR(paciente.created_at)}</span>
             <button onClick={enviarRedefinicaoSenha}
@@ -160,6 +179,19 @@ export default function PacientePerfil() {
               }}>
               <i className="ti ti-key" aria-hidden="true" style={{ fontSize: 13 }}></i>
               Enviar redefinição de senha
+            </button>
+            <button onClick={inativarOuReativar}
+              title={paciente.ativo === false ? 'Reativar paciente' : 'Inativar paciente'}
+              style={{
+                background: 'transparent',
+                border: `0.5px solid ${paciente.ativo === false ? 'var(--green)' : 'var(--red)'}`,
+                borderRadius: 6, padding: '3px 9px', fontSize: 11,
+                color: paciente.ativo === false ? 'var(--green)' : 'var(--red)',
+                cursor: 'pointer', fontFamily: 'var(--font-sans)',
+                display: 'inline-flex', alignItems: 'center', gap: 4,
+              }}>
+              <i className={`ti ti-${paciente.ativo === false ? 'user-check' : 'user-off'}`} style={{ fontSize: 13 }} aria-hidden="true"></i>
+              {paciente.ativo === false ? 'Reativar' : 'Inativar'}
             </button>
           </div>
           {editandoNasc ? (
@@ -271,6 +303,7 @@ export default function PacientePerfil() {
           { id: 'checkin',     label: 'Check-in',     icon: 'clipboard-check' },
           { id: 'exames',      label: 'Exames',       icon: 'test-pipe' },
           { id: 'followup',    label: 'Follow-up',    icon: 'notebook' },
+          { id: 'recibo',      label: 'Recibo',       icon: 'receipt' },
         ].map(t => (
           <button
             key={t.id}
@@ -307,6 +340,7 @@ export default function PacientePerfil() {
       {tab === 'ebooks' && <EbooksDaPaciente pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'avaliacao' && <RegistrarAvaliacao pacienteId={paciente.id} nutriId={user.id} />}
       {tab === 'checkin' && <CheckinPersonalizado pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
+      {tab === 'recibo'  && <Recibo pacienteId={paciente.id} nutriId={user.id} />}
     </>
   );
 }
@@ -422,6 +456,62 @@ function CheckinPersonalizado({ pacienteId, nutriId, pacienteNome }) {
           )}
         </div>
       </div>
+
+      {/* ── Calendário de check-ins (últimas 8 semanas) ── */}
+      {envios.length > 0 && (() => {
+        const hoje = new Date();
+        const semanas = Array.from({ length: 8 }, (_, i) => {
+          const d = new Date(hoje);
+          d.setDate(hoje.getDate() - (7 * i));
+          // segunda-feira da semana de d
+          const day = d.getDay();
+          const diff = day === 0 ? -6 : 1 - day;
+          const seg = new Date(d); seg.setDate(d.getDate() + diff);
+          return seg.toISOString().slice(0, 10);
+        }).reverse();
+        return (
+          <div className="card" style={{ padding: '14px 16px', marginBottom: 4 }}>
+            <div style={{ fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#888888', fontWeight: 500, marginBottom: 10 }}>
+              Calendário de check-ins — últimas 8 semanas
+            </div>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {semanas.map(seg => {
+                const fim = new Date(seg); fim.setDate(fim.getDate() + 6);
+                const envioSemana = envios.find(e => {
+                  const d = e.enviado_em?.slice(0, 10);
+                  return d >= seg && d <= fim.toISOString().slice(0, 10);
+                });
+                const respondeu = !!envioSemana?.respondido_em;
+                const enviou = !!envioSemana;
+                const isSemanaAtual = (() => {
+                  const h = hoje.toISOString().slice(0, 10);
+                  return h >= seg && h <= fim.toISOString().slice(0, 10);
+                })();
+                const label = `${seg.slice(5).replace('-', '/')}`;
+                return (
+                  <div key={seg} title={`Semana de ${label}${envioSemana ? (respondeu ? ' · Respondeu' : ' · Aguardando') : ' · Sem check-in'}`}
+                    style={{
+                      width: 48, textAlign: 'center',
+                      border: isSemanaAtual ? '1.5px solid var(--amber)' : '0.5px solid var(--border)',
+                      borderRadius: 8, padding: '6px 4px',
+                      background: respondeu ? '#dcfce7' : enviou ? '#fef9c3' : 'var(--white)',
+                    }}>
+                    <div style={{ fontSize: 9, color: respondeu ? '#16a34a' : enviou ? '#92400e' : '#cccccc', marginBottom: 4 }}>
+                      <i className={`ti ti-${respondeu ? 'check' : enviou ? 'clock' : 'minus'}`} style={{ fontSize: 13 }} aria-hidden="true"></i>
+                    </div>
+                    <div style={{ fontSize: 9, color: '#888888', lineHeight: 1.2 }}>{label}</div>
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ display: 'flex', gap: 14, marginTop: 8, fontSize: 10, color: '#888888' }}>
+              <span><i className="ti ti-check" style={{ color: '#16a34a' }} aria-hidden="true"></i> Respondeu</span>
+              <span><i className="ti ti-clock" style={{ color: '#92400e' }} aria-hidden="true"></i> Aguardando</span>
+              <span><i className="ti ti-minus" aria-hidden="true"></i> Sem envio</span>
+            </div>
+          </div>
+        );
+      })()}
 
       <div className="section-label">Últimos check-ins ({envios.length})</div>
       {envios.length === 0 ? (

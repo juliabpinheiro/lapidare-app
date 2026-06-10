@@ -3,13 +3,28 @@ import { supabase } from '../../lib/supabase.js';
 import { useSession } from '../../lib/session.jsx';
 import { dataBR } from '../../lib/utils.js';
 import { gerarPlanoHtml } from '../../lib/gerarPlanoHtml.js';
+import HidratacaoCard from '../../components/HidratacaoCard.jsx';
+
+const PERGUNTA_SEMANAL = 'Me conta como foi sua alimentação e treino essa semana. Está conseguindo ver evolução no espelho e nas roupas? Me conte como está se sentindo.';
+
+function getMondayISO() {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  const seg = new Date(d); seg.setDate(d.getDate() + diff);
+  return seg.toISOString().slice(0, 10);
+}
 
 export default function Plano() {
-  const { user } = useSession();
+  const { user, profile } = useSession();
   const [plano, setPlano] = useState(undefined); // undefined=loading, null=vazio
   const [validade, setValidade] = useState(null);
   const [openSubs, setOpenSubs] = useState({});
-  const [planoVisual, setPlanoVisual] = useState(null); // PDF final liberado
+  const [planoVisual, setPlanoVisual] = useState(null);
+  const [relatorio, setRelatorio] = useState(undefined); // undefined=loading, null=sem resp
+  const [respostaRelatorio, setRespostaRelatorio] = useState('');
+  const [enviandoRelatorio, setEnviandoRelatorio] = useState(false);
+  const [recibos, setRecibos] = useState([]);
 
   useEffect(() => {
     let active = true;
@@ -32,6 +47,36 @@ export default function Plano() {
     return () => { active = false; };
   }, [user]);
 
+  useEffect(() => {
+    if (!user) return;
+    supabase.from('relatorio_semanal')
+      .select('id, resposta, respondido_em')
+      .eq('paciente_id', user.id).eq('semana_inicio', getMondayISO())
+      .maybeSingle()
+      .then(({ data }) => setRelatorio(data ?? null));
+
+    supabase.from('recibos_paciente')
+      .select('id, nome, arquivo_url, created_at')
+      .eq('paciente_id', user.id)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => setRecibos(data ?? []));
+  }, [user]);
+
+  async function submitRelatorio() {
+    if (!respostaRelatorio.trim() || enviandoRelatorio) return;
+    setEnviandoRelatorio(true);
+    const { data } = await supabase.from('relatorio_semanal').insert({
+      paciente_id: user.id,
+      nutri_id: profile?.nutri_id ?? null,
+      semana_inicio: getMondayISO(),
+      pergunta: PERGUNTA_SEMANAL,
+      resposta: respostaRelatorio.trim(),
+      respondido_em: new Date().toISOString(),
+    }).select().maybeSingle();
+    setEnviandoRelatorio(false);
+    if (data) { setRelatorio(data); setRespostaRelatorio(''); }
+  }
+
   const toggleSubs = (key) => setOpenSubs(s => ({ ...s, [key]: !s[key] }));
 
   if (plano === undefined) {
@@ -40,13 +85,16 @@ export default function Plano() {
 
   if (!plano) {
     return (
-      <div className="empty-state">
-        <i className="ti ti-salad empty-icon" aria-hidden="true"></i>
-        <div className="empty-title">Plano não publicado ainda</div>
-        <div className="empty-sub">
-          Sua nutricionista está preparando seu plano personalizado. Você será notificada quando estiver pronto.
+      <>
+        <HidratacaoCard />
+        <div className="empty-state">
+          <i className="ti ti-salad empty-icon" aria-hidden="true"></i>
+          <div className="empty-title">Plano não publicado ainda</div>
+          <div className="empty-sub">
+            Sua nutricionista está preparando seu plano personalizado. Você será notificada quando estiver pronto.
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -72,6 +120,58 @@ export default function Plano() {
 
   return (
     <>
+      {/* Card de hidratação */}
+      <HidratacaoCard />
+
+      {/* Relatório semanal */}
+      {relatorio === null && (
+        <div className="card" style={{ padding: '16px 16px', marginBottom: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <i className="ti ti-message-heart" style={{ fontSize: 18, color: 'var(--gold-deep)' }} aria-hidden="true"></i>
+            <div style={{ fontWeight: 600, fontSize: 14 }}>Relatório da semana</div>
+          </div>
+          <p style={{ fontSize: 13, lineHeight: 1.65, color: '#555555', marginBottom: 12 }}>
+            {PERGUNTA_SEMANAL}
+          </p>
+          <textarea
+            value={respostaRelatorio}
+            onChange={e => setRespostaRelatorio(e.target.value)}
+            placeholder="Escreva aqui sua resposta…"
+            rows={4}
+            style={{
+              width: '100%', padding: '10px 12px', fontSize: 13,
+              border: '0.5px solid var(--border)', borderRadius: 8,
+              fontFamily: 'var(--font-sans)', resize: 'vertical',
+              outline: 'none', marginBottom: 10, boxSizing: 'border-box',
+            }}
+          />
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <button
+              onClick={submitRelatorio}
+              disabled={enviandoRelatorio || !respostaRelatorio.trim()}
+              style={{
+                background: 'var(--dark)', color: '#fff', border: 'none',
+                borderRadius: 8, padding: '8px 18px', fontSize: 13,
+                fontWeight: 600, cursor: 'pointer', opacity: respostaRelatorio.trim() ? 1 : 0.5,
+                fontFamily: 'var(--font-sans)',
+              }}>
+              {enviandoRelatorio ? 'Enviando…' : 'Enviar'}
+            </button>
+          </div>
+        </div>
+      )}
+      {relatorio?.respondido_em && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          background: '#f0fdf4', border: '0.5px solid #bbf7d0',
+          borderRadius: 10, padding: '10px 14px', marginBottom: 10,
+          fontSize: 13, color: '#16a34a',
+        }}>
+          <i className="ti ti-check" style={{ fontSize: 16 }} aria-hidden="true"></i>
+          Relatório da semana enviado — obrigada!
+        </div>
+      )}
+
       {/* Banner do plano completo */}
       {planoVisual && (
         <div style={{
@@ -118,7 +218,7 @@ export default function Plano() {
         ))}
         {(plano.macros?.agua_l || plano.macros?.fibras_g) && (
           <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 4 }}>
-            💧 Meta: {plano.macros.agua_l}L · 🌾 Fibras: {plano.macros.fibras_g}g
+            Meta: {plano.macros.agua_l}L agua · {plano.macros.fibras_g}g fibras
           </div>
         )}
       </div>
@@ -216,6 +316,35 @@ export default function Plano() {
           </div>
         );
       })()}
+
+      {/* Recibos */}
+      {recibos.length > 0 && (
+        <div className="card" style={{ padding: '16px 20px', marginTop: 4 }}>
+          <div style={{ fontSize: 10, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 600, marginBottom: 12 }}>
+            Meus recibos
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {recibos.map(r => (
+              <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <i className="ti ti-file-type-pdf" style={{ color: 'var(--red)', fontSize: 20, flexShrink: 0 }} aria-hidden="true"></i>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.nome}</div>
+                  <div style={{ fontSize: 11, color: 'var(--muted)' }}>{dataBR(r.created_at)}</div>
+                </div>
+                <a href={r.arquivo_url} target="_blank" rel="noopener noreferrer" style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 4,
+                  fontSize: 12, padding: '5px 12px', borderRadius: 8,
+                  background: 'var(--dark)', color: '#fff', textDecoration: 'none',
+                  fontWeight: 600, flexShrink: 0,
+                }}>
+                  <i className="ti ti-download" style={{ fontSize: 14 }} aria-hidden="true"></i>
+                  Baixar PDF
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {validade && (
         <div style={{ padding: '8px 16px', fontSize: 10, color: 'var(--muted)', textAlign: 'center' }}>
