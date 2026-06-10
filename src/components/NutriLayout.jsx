@@ -168,7 +168,7 @@ export default function NutriLayout() {
           <span className="topbar-page">{meta.label}</span>
           <div className="topbar-right">
             <span className="topbar-date">{mesAno()}</span>
-            <div className="topbar-avatar">{iniciais(profile?.nome)}</div>
+            <div className="topbar-avatar">{iniciais(profile?.nome?.replace(/^nutricionista\s+/i, ''))}</div>
           </div>
         </header>
 
