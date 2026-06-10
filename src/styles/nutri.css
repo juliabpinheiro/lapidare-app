@@ -39,7 +39,7 @@
 
 /* ── SIDEBAR ── */
 .nutri-panel .sidebar {
-  background: var(--dark);
+  background: var(--sidebar-bg, var(--dark));
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -76,7 +76,7 @@
 }
 .nutri-panel .sidebar-title {
   font-family: var(--font-serif);
-  font-size: 18px; color: var(--dark-text); line-height: 1.2;
+  font-size: 18px; color: var(--sidebar-text, #faf8f5); line-height: 1.2;
   white-space: nowrap;
 }
 .nutri-panel .sidebar.collapsed .sidebar-brand,
@@ -85,7 +85,7 @@
 .nutri-panel .sidebar-nav { flex: 1; overflow-y: auto; padding: 12px 0; }
 .nutri-panel .sidebar-nav::-webkit-scrollbar { display: none; }
 .nutri-panel .nav-group {
-  font-size: 11px; color: var(--nav-grupo-text, var(--dark-label));
+  font-size: 11px; color: var(--nav-grupo-text, var(--sidebar-text));
   letter-spacing: 2px; text-transform: uppercase;
   font-weight: 500; padding: 14px 20px 5px;
 }
@@ -93,7 +93,7 @@
 .nutri-panel .nav-item {
   display: flex; align-items: center; gap: 10px;
   padding: 9px 20px; font-size: 14px;
-  color: var(--nav-item-text, var(--dark-muted)); cursor: pointer;
+  color: var(--nav-item-text, var(--sidebar-text)); cursor: pointer; opacity: 0.75;
   border-left: 2px solid transparent;
   transition: background .15s, color .15s;
   white-space: nowrap; text-decoration: none;
@@ -101,10 +101,10 @@
   width: 100%;
   text-align: left;
 }
-.nutri-panel .nav-item:hover { background: var(--dark-shade); color: var(--dark-text); }
+.nutri-panel .nav-item:hover { background: var(--dark-shade); color: var(--nav-item-text, var(--sidebar-text)); opacity: 1; }
 .nutri-panel .nav-item.active {
-  background: var(--dark-shade); color: var(--dark-text);
-  border-left-color: var(--amber);
+  background: var(--dark-shade); color: var(--nav-item-text, var(--sidebar-text));
+  opacity: 1; border-left-color: var(--amber);
 }
 .nutri-panel .nav-icon {
   font-size: 17px; width: 18px; text-align: center; flex-shrink: 0;
@@ -130,18 +130,18 @@
   font-weight: 500; margin-bottom: 4px;
 }
 .nutri-panel .sidebar-footer-val {
-  font-size: 14px; color: var(--sidebar-nome-text, var(--dark-text)); line-height: 1.3;
+  font-size: 14px; color: var(--sidebar-nome-text, var(--sidebar-text)); line-height: 1.3;
   word-break: break-word;
 }
 .nutri-panel .sidebar-logout {
   display: inline-flex; align-items: center; gap: 5px;
   margin-top: 12px; padding: 6px 10px;
   border-radius: 4px; font-size: 13px;
-  color: var(--dark-muted); text-decoration: none;
+  color: var(--sidebar-text); opacity: 0.7; text-decoration: none;
   border: 0.5px solid var(--dark-shade);
   cursor: pointer; background: none;
 }
-.nutri-panel .sidebar-logout:hover { background: var(--dark-shade); }
+.nutri-panel .sidebar-logout:hover { background: var(--dark-shade); opacity: 1; }
 .nutri-panel .sidebar.collapsed .sidebar-footer-label,
 .nutri-panel .sidebar.collapsed .sidebar-footer-val,
 .nutri-panel .sidebar.collapsed .sidebar-logout span { display: none; }

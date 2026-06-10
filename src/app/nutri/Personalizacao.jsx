@@ -182,7 +182,12 @@ export default function Personalizacao() {
     if (!profile) return;
     const r = document.documentElement;
     const sidebar = form.cor_sidebar || form.cor_primaria;
-    r.style.setProperty('--dark',      sidebar);
+    r.style.setProperty('--dark',       sidebar);
+    r.style.setProperty('--sidebar-bg', sidebar);
+    const sidebarTxt = form.cor_texto_sidebar
+      ? form.cor_texto_sidebar
+      : (luminanciaSimples(sidebar) > 0.45 ? '#1a1612' : '#faf8f5');
+    r.style.setProperty('--sidebar-text', sidebarTxt);
     r.style.setProperty('--gold-deep', form.cor_primaria);
     r.style.setProperty('--amber',     form.cor_secundaria);
     r.style.setProperty('--gold',      form.cor_secundaria);

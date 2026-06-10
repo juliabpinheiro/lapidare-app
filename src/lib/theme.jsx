@@ -128,6 +128,8 @@ export function ThemeProvider({ children }) {
 
     // ─── Sidebar + botões primários ───
     r.style.setProperty('--dark', sidebar);
+    // --sidebar-bg: isola o fundo do sidebar — só usado no background do .sidebar
+    r.style.setProperty('--sidebar-bg', sidebar);
 
     // ─── Abas ativas ───
     r.style.setProperty('--aba-cor', tema.cor_abas ?? primaria);
@@ -143,6 +145,14 @@ export function ThemeProvider({ children }) {
 
     r.style.setProperty('--dark-shade', mistura(sidebar, '#000000', 0.15));
     r.style.setProperty('--dark-line',  mistura(sidebar, '#000000', 0.25));
+
+    // --sidebar-text: cor de texto dedicada para itens do sidebar
+    // Usa cor_texto_sidebar se definida; senão, branco ou preto puro por contraste.
+    // NUNCA herda de --dark-muted/--dark-label (que são blends do fundo).
+    const sidebarTxt = tema.cor_texto_sidebar
+      ? tema.cor_texto_sidebar
+      : (luminancia(sidebar) > 0.45 ? '#1a1612' : '#faf8f5');
+    r.style.setProperty('--sidebar-text', sidebarTxt);
 
     const overrideTexto = tema.cor_texto_sidebar;
     if (overrideTexto) {
