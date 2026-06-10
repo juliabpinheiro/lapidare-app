@@ -94,7 +94,7 @@ function ColorRow({ label, hint, value, onChange, defaultVal, allowEmpty }) {
           if (/^#[0-9a-fA-F]{0,6}$/.test(v)) onChange(v);
         }}
         placeholder={allowEmpty ? 'automático' : defaultVal}
-        style={{ width: 86, fontFamily: 'monospace', fontSize: 12, textAlign: 'center' }}
+        style={{ width: 86, fontFamily: 'monospace', fontSize: 12, textAlign: 'center', color: '#222222' }}
       />
       {value !== defaultVal && (
         <button
@@ -329,33 +329,33 @@ export default function Personalizacao() {
   /* JSX */
   return (
     <>
-      <div className="page-title">Personalização</div>
-      <div className="page-sub">Deixe o app com a cara da sua marca — sem mexer em código</div>
+      <div className="page-title" style={{ color: '#222222' }}>Personalização</div>
+      <div className="page-sub" style={{ color: '#666666' }}>Deixe o app com a cara da sua marca — sem mexer em código</div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 300px', gap: 20 }}>
         <div>
 
           {/* ── Marca ── */}
           <div className="card" style={{ padding: 18, marginBottom: 14 }}>
-            <div className="card-title" style={{ marginBottom: 10 }}>Marca</div>
+            <div className="card-title" style={{ marginBottom: 10, color: '#222222' }}>Marca</div>
 
-            <label className="form-lbl">Nome da marca</label>
-            <input value={form.marca_nome} onChange={e => set('marca_nome', e.target.value)} placeholder="Ex: Lapidare, Nutri Ana…" />
-            <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 4, fontStyle: 'italic' }}>Aparece no topo da sidebar e na tela de Login das pacientes.</div>
+            <label className="form-lbl" style={{ color: '#555555' }}>Nome da marca</label>
+            <input value={form.marca_nome} onChange={e => set('marca_nome', e.target.value)} placeholder="Ex: Lapidare, Nutri Ana…" style={{ color: '#222222' }} />
+            <div style={{ fontSize: 11, color: '#888888', marginTop: 4, fontStyle: 'italic' }}>Aparece no topo da sidebar e na tela de Login das pacientes.</div>
 
-            <label className="form-lbl" style={{ marginTop: 14 }}>Subtítulo</label>
-            <input value={form.marca_subtitulo} onChange={e => set('marca_subtitulo', e.target.value)} placeholder='Ex: "Nutrição estratégica", "by Sara Dias"' />
+            <label className="form-lbl" style={{ marginTop: 14, color: '#555555' }}>Subtítulo</label>
+            <input value={form.marca_subtitulo} onChange={e => set('marca_subtitulo', e.target.value)} placeholder='Ex: "Nutrição estratégica", "by Sara Dias"' style={{ color: '#222222' }} />
 
-            <label className="form-lbl" style={{ marginTop: 14 }}>Logo</label>
+            <label className="form-lbl" style={{ marginTop: 14, color: '#555555' }}>Logo</label>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12, border: '0.5px dashed var(--border)', borderRadius: 10, background: 'var(--bg2)' }}>
               {form.logo_url ? (
                 <img src={form.logo_url} alt="Logo" style={{ width: 56, height: 56, objectFit: 'contain', background: 'var(--white)', borderRadius: 8, padding: 4 }} />
               ) : (
-                <div style={{ width: 56, height: 56, borderRadius: 8, background: 'var(--white)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text3)', fontSize: 11 }}>Sem logo</div>
+                <div style={{ width: 56, height: 56, borderRadius: 8, background: 'var(--white)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999999', fontSize: 11 }}>Sem logo</div>
               )}
               <div style={{ flex: 1 }}>
                 <input type="file" accept="image/*" onChange={uploadLogo} disabled={uploading} style={{ fontSize: 12 }} />
-                <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 4 }}>PNG ou SVG · máx 2 MB · ideal 300×300px</div>
+                <div style={{ fontSize: 11, color: '#888888', marginTop: 4 }}>PNG ou SVG · máx 2 MB · ideal 300×300px</div>
               </div>
               {form.logo_url && (
                 <button onClick={() => { if (window.confirm('Remover logo?')) set('logo_url', null); }}
@@ -368,22 +368,22 @@ export default function Personalizacao() {
 
           {/* ── Perfil da nutri ── */}
           <div className="card" style={{ padding: 18, marginBottom: 14 }}>
-            <div className="card-title" style={{ marginBottom: 4 }}>Meu perfil</div>
-            <div style={{ fontSize: 12, color: 'var(--text3)', marginBottom: 12 }}>Como você aparece <strong>pras suas pacientes</strong> no chat e nos banners.</div>
+            <div className="card-title" style={{ marginBottom: 4, color: '#222222' }}>Meu perfil</div>
+            <div style={{ fontSize: 12, color: '#666666', marginBottom: 12 }}>Como você aparece <strong>pras suas pacientes</strong> no chat e nos banners.</div>
 
-            <label className="form-lbl">Seu nome</label>
-            <input value={form.nome} onChange={e => set('nome', e.target.value)} placeholder='Ex: "Dra. Kelly Oliveira", "Nutri Ana"' />
+            <label className="form-lbl" style={{ color: '#555555' }}>Seu nome</label>
+            <input value={form.nome} onChange={e => set('nome', e.target.value)} placeholder='Ex: "Dra. Kelly Oliveira", "Nutri Ana"' style={{ color: '#222222' }} />
 
-            <label className="form-lbl" style={{ marginTop: 14 }}>Foto de perfil</label>
+            <label className="form-lbl" style={{ marginTop: 14, color: '#555555' }}>Foto de perfil</label>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12, border: '0.5px dashed var(--border)', borderRadius: 10, background: 'var(--bg2)' }}>
               {form.foto_url ? (
                 <img src={form.foto_url} alt="Foto" style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover' }} />
               ) : (
-                <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--white)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text3)', fontSize: 11 }}>Sem foto</div>
+                <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--white)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999999', fontSize: 11 }}>Sem foto</div>
               )}
               <div style={{ flex: 1 }}>
                 <input type="file" accept="image/*" onChange={uploadFoto} disabled={uploading} style={{ fontSize: 12 }} />
-                <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 4 }}>JPG ou PNG · máx 2 MB · ideal quadrada</div>
+                <div style={{ fontSize: 11, color: '#888888', marginTop: 4 }}>JPG ou PNG · máx 2 MB · ideal quadrada</div>
               </div>
               {form.foto_url && (
                 <button onClick={() => { if (window.confirm('Remover foto?')) set('foto_url', null); }}
@@ -396,7 +396,7 @@ export default function Personalizacao() {
 
           {/* ── Tipografia ── */}
           <div className="card" style={{ padding: 18, marginBottom: 14 }}>
-            <div className="card-title" style={{ marginBottom: 10 }}>Tipografia</div>
+            <div className="card-title" style={{ marginBottom: 10, color: '#222222' }}>Tipografia</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
               {TIPOGRAFIAS.map(t => {
                 const ativo = form.tipografia === t.id;
@@ -409,7 +409,7 @@ export default function Personalizacao() {
                       fontFamily: 'var(--font-sans)', textAlign: 'left',
                     }}>
                     <div style={{ fontSize: 18, fontWeight: 500, marginBottom: 4, fontFamily: previewFontPara(t.id) }}>{t.nome}</div>
-                    <div style={{ fontSize: 11, color: 'var(--text3)', lineHeight: 1.4 }}>{t.desc}</div>
+                    <div style={{ fontSize: 11, color: '#888888', lineHeight: 1.4 }}>{t.desc}</div>
                   </button>
                 );
               })}
@@ -540,7 +540,7 @@ export default function Personalizacao() {
 
         {/* ── Preview lateral ── */}
         <div>
-          <div className="section-label" style={{ marginBottom: 8 }}>Preview ao vivo</div>
+          <div className="section-label" style={{ marginBottom: 8, color: '#555555' }}>Preview ao vivo</div>
           <div style={{ position: 'sticky', top: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
 
             {/* Preview nutri */}
