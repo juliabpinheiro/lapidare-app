@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 
 const COPOS = [
-  { id: 0, horario: '08:00', ml: 250 },
-  { id: 1, horario: '10:00', ml: 250 },
-  { id: 2, horario: '12:00', ml: 250 },
-  { id: 3, horario: '14:00', ml: 250 },
-  { id: 4, horario: '16:00', ml: 250 },
-  { id: 5, horario: '17:30', ml: 250 },
+  { id: 0, horario: '08:00', ml: 500 },
+  { id: 1, horario: '10:00', ml: 400 },
+  { id: 2, horario: '12:00', ml: 400 },
+  { id: 3, horario: '14:00', ml: 400 },
+  { id: 4, horario: '16:00', ml: 400 },
+  { id: 5, horario: '17:30', ml: 400 },
 ];
-const TOTAL_ML = 1500;
+const TOTAL_ML = 2500;
 
 function hojeISO() {
   return new Date().toISOString().slice(0, 10);
