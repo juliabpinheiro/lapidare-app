@@ -1873,6 +1873,24 @@ create policy exames_storage_delete on storage.objects
 
 
 -- =============================================================
+-- Migração — feed_pratos: reação da nutri + nutri_id
+-- =============================================================
+alter table public.feed_pratos
+  add column if not exists nutri_id     uuid references auth.users(id) on delete cascade,
+  add column if not exists reacao_nutri text check (reacao_nutri in ('coracao', 'atencao'));
+
+create index if not exists feed_pratos_nutri_id_idx on public.feed_pratos(nutri_id, created_at desc);
+
+-- Atualiza política: nutri pode reagir nos posts das suas pacientes
+drop policy if exists feed_update on public.feed_pratos;
+create policy feed_update on public.feed_pratos
+  for update using (
+    paciente_id = auth.uid()
+    or paciente_id in (select id from public.pacientes where nutri_id = auth.uid())
+    or nutri_id = auth.uid()
+  );
+
+-- =============================================================
 -- FIM — Lapidare setup
 -- =============================================================
 -- Pós-instalação na nutri:

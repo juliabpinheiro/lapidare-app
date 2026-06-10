@@ -37,7 +37,7 @@ export default function FeedPaciente() {
     if (!user) return;
     const { data } = await supabase
       .from('feed_pratos')
-      .select('id, refeicao, legenda, storage_path, comentario_nutri, created_at')
+      .select('id, refeicao, legenda, storage_path, comentario_nutri, reacao_nutri, created_at')
       .eq('paciente_id', user.id)
       .order('created_at', { ascending: false });
     setPosts(data ?? []);
@@ -89,6 +89,7 @@ export default function FeedPaciente() {
 
     const { error: insErr } = await supabase.from('feed_pratos').insert({
       paciente_id: user.id,
+      nutri_id: profile?.nutri_id ?? null,
       storage_path: path,
       refeicao,
       legenda: legenda.trim() || null,
@@ -211,10 +212,36 @@ export default function FeedPaciente() {
               )}
             </div>
             {p.legenda && <div className="feed-caption">{p.legenda}</div>}
-            {p.comentario_nutri && (
+            {(p.reacao_nutri || p.comentario_nutri) && (
               <div className="feed-comment">
-                <span className="who">{nutriNome}</span>
-                {p.comentario_nutri}
+                {p.reacao_nutri === 'coracao' && (
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: 4, width: 'fit-content',
+                    fontSize: 11, fontWeight: 600, color: '#e05555',
+                    background: '#fdf0f0', borderRadius: 20, padding: '2px 8px',
+                    marginBottom: p.comentario_nutri ? 8 : 0,
+                  }}>
+                    <i className="ti ti-heart-filled" style={{ fontSize: 12 }} aria-hidden="true"></i>
+                    Aprovado
+                  </div>
+                )}
+                {p.reacao_nutri === 'atencao' && (
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: 4, width: 'fit-content',
+                    fontSize: 11, fontWeight: 600, color: '#c97c2e',
+                    background: '#fef5eb', borderRadius: 20, padding: '2px 8px',
+                    marginBottom: p.comentario_nutri ? 8 : 0,
+                  }}>
+                    <i className="ti ti-alert-circle-filled" style={{ fontSize: 12 }} aria-hidden="true"></i>
+                    Atenção
+                  </div>
+                )}
+                {p.comentario_nutri && (
+                  <>
+                    <span className="who">{nutriNome}</span>
+                    {p.comentario_nutri}
+                  </>
+                )}
               </div>
             )}
           </div>
