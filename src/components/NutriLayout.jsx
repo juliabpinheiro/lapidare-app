@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useSession, signOut } from '../lib/session.jsx';
 import { useTheme } from '../lib/theme.jsx';
@@ -45,6 +45,8 @@ export default function NutriLayout() {
   const tema = useTheme();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const navRef = useRef(null);
+  const scrollNav = (dir) => navRef.current?.scrollBy({ top: dir * 120, behavior: 'smooth' });
   const [unreadChat, setUnreadChat] = useState(0);
   const location = useLocation();
 
@@ -100,15 +102,20 @@ export default function NutriLayout() {
             aria-label="Alternar menu"
           >‹</button>
           {tema.logo_url ? (
-            <img src={tema.logo_url} alt={tema.marca_nome}
+            <img src={tema.logo_url} alt={tema.marca_nome || ''}
               className="sidebar-logo"
-              style={{ maxHeight: 36, maxWidth: '80%', objectFit: 'contain', marginBottom: 6 }} />
+              style={{ maxHeight: 36, maxWidth: '80%', objectFit: 'contain', display: 'block', margin: '0 auto 10px' }} />
           ) : null}
-          <div className="sidebar-brand">{tema.marca_nome}</div>
-          <div className="sidebar-title">{tema.marca_subtitulo || 'Painel da Nutri'}</div>
+          <div className="sidebar-nutri-role">Nutricionista</div>
+          <div className="sidebar-nutri-name">{profile?.nome}</div>
+          <div className="sidebar-brand">{tema.marca_subtitulo || tema.marca_nome}</div>
         </div>
 
-        <nav className="sidebar-nav">
+        <button className="sidebar-scroll-btn" onClick={() => scrollNav(-1)} aria-label="Rolar menu para cima">
+          <i className="ti ti-chevron-up" aria-hidden="true"></i>
+        </button>
+
+        <nav className="sidebar-nav" ref={navRef}>
           {NAV_CONFIG.map(group => (
             <div key={group.group}>
               <div className="nav-group">{group.group}</div>
@@ -129,6 +136,10 @@ export default function NutriLayout() {
             </div>
           ))}
         </nav>
+
+        <button className="sidebar-scroll-btn" onClick={() => scrollNav(1)} aria-label="Rolar menu para baixo">
+          <i className="ti ti-chevron-down" aria-hidden="true"></i>
+        </button>
 
         <div className="sidebar-footer">
           <div className="sidebar-footer-label">Sessão</div>
