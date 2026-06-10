@@ -149,9 +149,12 @@ export function ThemeProvider({ children }) {
     // --sidebar-text: cor de texto dedicada para itens do sidebar
     // Usa cor_texto_sidebar se definida; senão, branco ou preto puro por contraste.
     // NUNCA herda de --dark-muted/--dark-label (que são blends do fundo).
+    const lum_sidebar = luminancia(sidebar);
     const sidebarTxt = tema.cor_texto_sidebar
       ? tema.cor_texto_sidebar
-      : (luminancia(sidebar) > 0.45 ? '#1a1612' : '#faf8f5');
+      : (lum_sidebar > 0.50 ? '#1a1612' : '#faf8f5');
+    // DEBUG — remover após confirmar o contraste
+    console.log('[sidebar-text]', { sidebar, lum: lum_sidebar.toFixed(3), texto: sidebarTxt });
     r.style.setProperty('--sidebar-text', sidebarTxt);
 
     const overrideTexto = tema.cor_texto_sidebar;
