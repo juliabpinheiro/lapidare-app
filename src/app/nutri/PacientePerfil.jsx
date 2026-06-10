@@ -457,61 +457,7 @@ function CheckinPersonalizado({ pacienteId, nutriId, pacienteNome }) {
         </div>
       </div>
 
-      {/* ── Calendário de check-ins (últimas 8 semanas) ── */}
-      {envios.length > 0 && (() => {
-        const hoje = new Date();
-        const semanas = Array.from({ length: 8 }, (_, i) => {
-          const d = new Date(hoje);
-          d.setDate(hoje.getDate() - (7 * i));
-          // segunda-feira da semana de d
-          const day = d.getDay();
-          const diff = day === 0 ? -6 : 1 - day;
-          const seg = new Date(d); seg.setDate(d.getDate() + diff);
-          return seg.toISOString().slice(0, 10);
-        }).reverse();
-        return (
-          <div className="card" style={{ padding: '14px 16px', marginBottom: 4 }}>
-            <div style={{ fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#888888', fontWeight: 500, marginBottom: 10 }}>
-              Calendário de check-ins — últimas 8 semanas
-            </div>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {semanas.map(seg => {
-                const fim = new Date(seg); fim.setDate(fim.getDate() + 6);
-                const envioSemana = envios.find(e => {
-                  const d = e.enviado_em?.slice(0, 10);
-                  return d >= seg && d <= fim.toISOString().slice(0, 10);
-                });
-                const respondeu = !!envioSemana?.respondido_em;
-                const enviou = !!envioSemana;
-                const isSemanaAtual = (() => {
-                  const h = hoje.toISOString().slice(0, 10);
-                  return h >= seg && h <= fim.toISOString().slice(0, 10);
-                })();
-                const label = `${seg.slice(5).replace('-', '/')}`;
-                return (
-                  <div key={seg} title={`Semana de ${label}${envioSemana ? (respondeu ? ' · Respondeu' : ' · Aguardando') : ' · Sem check-in'}`}
-                    style={{
-                      width: 48, textAlign: 'center',
-                      border: isSemanaAtual ? '1.5px solid var(--amber)' : '0.5px solid var(--border)',
-                      borderRadius: 8, padding: '6px 4px',
-                      background: respondeu ? '#dcfce7' : enviou ? '#fef9c3' : 'var(--white)',
-                    }}>
-                    <div style={{ fontSize: 9, color: respondeu ? '#16a34a' : enviou ? '#92400e' : '#cccccc', marginBottom: 4 }}>
-                      <i className={`ti ti-${respondeu ? 'check' : enviou ? 'clock' : 'minus'}`} style={{ fontSize: 13 }} aria-hidden="true"></i>
-                    </div>
-                    <div style={{ fontSize: 9, color: '#888888', lineHeight: 1.2 }}>{label}</div>
-                  </div>
-                );
-              })}
-            </div>
-            <div style={{ display: 'flex', gap: 14, marginTop: 8, fontSize: 10, color: '#888888' }}>
-              <span><i className="ti ti-check" style={{ color: '#16a34a' }} aria-hidden="true"></i> Respondeu</span>
-              <span><i className="ti ti-clock" style={{ color: '#92400e' }} aria-hidden="true"></i> Aguardando</span>
-              <span><i className="ti ti-minus" aria-hidden="true"></i> Sem envio</span>
-            </div>
-          </div>
-        );
-      })()}
+      <CalendarioCheckins pacienteId={pacienteId} />
 
       <div className="section-label">Últimos check-ins ({envios.length})</div>
       {envios.length === 0 ? (
@@ -560,6 +506,191 @@ function CheckinPersonalizado({ pacienteId, nutriId, pacienteNome }) {
         </div>
       )}
     </>
+  );
+}
+
+/* ============================================================
+   CALENDÁRIO MENSAL DE CHECK-INS
+   ============================================================ */
+const CAL_NAV_BTN = {
+  background: 'var(--bg2)', border: '0.5px solid var(--border)',
+  borderRadius: 6, padding: '4px 8px', cursor: 'pointer',
+  display: 'flex', alignItems: 'center', color: 'var(--dark)',
+};
+const MESES_CAL = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const DIAS_SEM_CAL = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+
+function CalendarioCheckins({ pacienteId }) {
+  const hoje = new Date();
+  const hojeISO = hoje.toISOString().slice(0, 10);
+  const [ano, setAno] = useState(hoje.getFullYear());
+  const [mes, setMes] = useState(hoje.getMonth());
+  const [envios, setEnvios] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [diaSel, setDiaSel] = useState(null);
+
+  useEffect(() => {
+    setCarregando(true);
+    const inicio = `${ano}-${String(mes + 1).padStart(2, '0')}-01`;
+    const fimDia = new Date(ano, mes + 1, 0).getDate();
+    const fim = `${ano}-${String(mes + 1).padStart(2, '0')}-${String(fimDia).padStart(2, '0')}`;
+    supabase
+      .from('checkin_envios')
+      .select('id, enviado_em, respondido_em, perguntas, respostas')
+      .eq('paciente_id', pacienteId)
+      .gte('enviado_em', inicio)
+      .lte('enviado_em', fim + 'T23:59:59.999Z')
+      .order('enviado_em', { ascending: true })
+      .then(({ data }) => { setEnvios(data ?? []); setCarregando(false); setDiaSel(null); });
+  }, [pacienteId, ano, mes]);
+
+  const porData = {};
+  envios.forEach(e => {
+    const d = e.enviado_em?.slice(0, 10);
+    if (d) { if (!porData[d]) porData[d] = []; porData[d].push(e); }
+  });
+
+  const diasNoMes = new Date(ano, mes + 1, 0).getDate();
+  const dow = new Date(ano, mes, 1).getDay();
+  const offset = dow === 0 ? 6 : dow - 1;
+
+  function navMes(delta) {
+    let m = mes + delta, a = ano;
+    if (m < 0) { m = 11; a--; }
+    if (m > 11) { m = 0; a++; }
+    setMes(m); setAno(a); setDiaSel(null);
+  }
+
+  function isoCell(day) {
+    return `${ano}-${String(mes + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  }
+
+  const enviosDiaSel = diaSel ? (porData[diaSel] ?? []) : [];
+
+  return (
+    <div className="card" style={{ padding: '16px 18px', marginBottom: 4 }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+        <span style={{ fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', color: '#888', fontWeight: 600 }}>
+          Calendário de check-ins
+        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button style={CAL_NAV_BTN} onClick={() => navMes(-1)} aria-label="mês anterior">
+            <i className="ti ti-chevron-left" style={{ fontSize: 13 }} aria-hidden="true"></i>
+          </button>
+          <span style={{ fontSize: 13, fontWeight: 600, minWidth: 138, textAlign: 'center' }}>
+            {MESES_CAL[mes]} {ano}
+          </span>
+          <button style={CAL_NAV_BTN} onClick={() => navMes(1)} aria-label="próximo mês">
+            <i className="ti ti-chevron-right" style={{ fontSize: 13 }} aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+
+      {/* Cabeçalho dias da semana */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 2 }}>
+        {DIAS_SEM_CAL.map(d => (
+          <div key={d} style={{ textAlign: 'center', fontSize: 10, color: '#aaa', fontWeight: 600, padding: '2px 0' }}>{d}</div>
+        ))}
+      </div>
+
+      {/* Grade de dias */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
+        {Array.from({ length: offset }, (_, i) => <div key={`o${i}`} />)}
+        {Array.from({ length: diasNoMes }, (_, i) => {
+          const day = i + 1;
+          const iso = isoCell(day);
+          const enviosDia = porData[iso] ?? [];
+          const temEnvio = enviosDia.length > 0;
+          const respondeu = enviosDia.some(e => !!e.respondido_em);
+          const isHoje = iso === hojeISO;
+          const isSel = iso === diaSel;
+          return (
+            <button
+              key={iso}
+              onClick={() => temEnvio && setDiaSel(isSel ? null : iso)}
+              style={{
+                padding: '7px 2px', borderRadius: 7, textAlign: 'center',
+                fontSize: 12, fontWeight: isHoje || isSel ? 700 : 400, lineHeight: 1,
+                background: isSel ? 'var(--dark)' : respondeu ? '#dcfce7' : temEnvio ? '#fef9c3' : 'transparent',
+                color: isSel ? '#fff' : isHoje ? 'var(--dark)' : temEnvio ? '#333' : '#bbb',
+                border: isHoje && !isSel ? '1.5px solid var(--amber)' : '1px solid transparent',
+                cursor: temEnvio ? 'pointer' : 'default',
+                position: 'relative',
+              }}
+            >
+              {day}
+              {temEnvio && (
+                <div style={{
+                  position: 'absolute', bottom: 2, left: '50%', transform: 'translateX(-50%)',
+                  width: 3, height: 3, borderRadius: '50%',
+                  background: isSel ? 'rgba(255,255,255,.6)' : respondeu ? '#16a34a' : '#ca8a04',
+                }} />
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Legenda */}
+      <div style={{ display: 'flex', gap: 14, marginTop: 10, fontSize: 10, color: '#888', flexWrap: 'wrap' }}>
+        {[
+          { bg: '#dcfce7', label: 'Respondeu' },
+          { bg: '#fef9c3', label: 'Aguardando' },
+          { border: '1.5px solid var(--amber)', bg: 'transparent', label: 'Hoje' },
+        ].map(item => (
+          <span key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ width: 10, height: 10, borderRadius: 3, display: 'inline-block', background: item.bg, border: item.border }} />
+            {item.label}
+          </span>
+        ))}
+        {carregando && <span style={{ marginLeft: 'auto', fontStyle: 'italic' }}>Carregando…</span>}
+      </div>
+
+      {/* Painel de detalhe do dia selecionado */}
+      {diaSel && (
+        <div style={{ marginTop: 14, paddingTop: 14, borderTop: '0.5px solid var(--border)' }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: '#555', marginBottom: 10, textTransform: 'capitalize' }}>
+            {new Date(diaSel + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+          </div>
+          {enviosDiaSel.length === 0 ? (
+            <div style={{ fontSize: 13, color: '#aaa' }}>Nenhum check-in neste dia.</div>
+          ) : enviosDiaSel.map((e, ei) => (
+            <div key={e.id} style={{ marginBottom: ei < enviosDiaSel.length - 1 ? 16 : 0 }}>
+              <div style={{
+                fontSize: 11, fontWeight: 600, marginBottom: 8,
+                color: e.respondido_em ? '#16a34a' : '#ca8a04',
+                display: 'flex', alignItems: 'center', gap: 5,
+              }}>
+                <i className={`ti ti-${e.respondido_em ? 'check' : 'clock'}`} style={{ fontSize: 12 }} aria-hidden="true"></i>
+                {e.respondido_em
+                  ? `Respondido às ${new Date(e.respondido_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
+                  : `Aguardando resposta · ${e.perguntas?.length ?? 0} perguntas enviadas`}
+              </div>
+              {e.respondido_em && e.perguntas?.length > 0 && e.respostas && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {e.perguntas.map((p, pi) => {
+                    const resp = e.respostas?.[p.id] ?? e.respostas?.[pi] ?? e.respostas?.[String(pi)];
+                    if (resp == null || resp === '') return null;
+                    return (
+                      <div key={p.id ?? pi} style={{ paddingLeft: 10, borderLeft: '2px solid var(--border)' }}>
+                        <div style={{ fontSize: 11, color: '#888', marginBottom: 2 }}>{p.pergunta}</div>
+                        <div style={{ fontSize: 13, color: '#333', fontWeight: 500 }}>
+                          {Array.isArray(resp) ? resp.join(', ') : typeof resp === 'boolean' ? (resp ? 'Sim' : 'Não') : String(resp)}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              {e.respondido_em && (!e.respostas || !e.perguntas?.length) && (
+                <div style={{ fontSize: 12, color: '#aaa', paddingLeft: 10 }}>Resposta registrada sem detalhes.</div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
