@@ -118,7 +118,8 @@ export function ThemeProvider({ children }) {
     const r = document.documentElement;
     const primaria   = tema.cor_primaria   ?? '#a08456';
     const secundaria = tema.cor_secundaria ?? '#c9a96e';
-    // cor_sidebar controla --dark (sidebar + botões primários). Fallback: primaria.
+    // cor_sidebar controla --sidebar-bg (fundo do sidebar) apenas.
+    // --dark nunca usa cor_sidebar; deriva só de cor_primaria.
     const sidebar    = tema.cor_sidebar    ?? primaria;
 
     // ─── Acento / destaque ───
@@ -126,9 +127,9 @@ export function ThemeProvider({ children }) {
     r.style.setProperty('--amber',     secundaria);
     r.style.setProperty('--gold',      secundaria);
 
-    // ─── Sidebar + botões primários ───
-    r.style.setProperty('--dark', sidebar);
-    // --sidebar-bg: isola o fundo do sidebar — só usado no background do .sidebar
+    // ─── Botões primários e texto de destaque — derivado APENAS de cor_primaria ───
+    r.style.setProperty('--dark', primaria);
+    // --sidebar-bg: fundo do .sidebar — única variável que recebe cor_sidebar
     r.style.setProperty('--sidebar-bg', sidebar);
 
     // ─── Abas ativas ───
