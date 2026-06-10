@@ -82,8 +82,8 @@ function ColorRow({ label, hint, value, onChange, defaultVal, allowEmpty }) {
         />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--dark)' }}>{label}</div>
-        {hint && <div style={{ fontSize: 11, color: 'var(--text3)', lineHeight: 1.4, marginTop: 1 }}>{hint}</div>}
+        <div style={{ fontSize: 13, fontWeight: 500, color: '#333333' }}>{label}</div>
+        {hint && <div style={{ fontSize: 11, color: '#666666', lineHeight: 1.4, marginTop: 1 }}>{hint}</div>}
       </div>
       <input
         type="text"
@@ -100,7 +100,7 @@ function ColorRow({ label, hint, value, onChange, defaultVal, allowEmpty }) {
         <button
           onClick={() => onChange(defaultVal)}
           title="Restaurar padrão"
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', fontSize: 14, padding: '0 2px', flexShrink: 0 }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#999999', fontSize: 14, padding: '0 2px', flexShrink: 0 }}
         >↻</button>
       )}
     </div>
@@ -420,18 +420,18 @@ export default function Personalizacao() {
           <div className="card" style={{ padding: 18, marginBottom: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
               <div>
-                <div className="card-title">Cores — painel da nutricionista</div>
-                <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 2 }}>Aparece somente no seu painel</div>
+                <div className="card-title" style={{ color: '#333333' }}>Cores — painel da nutricionista</div>
+                <div style={{ fontSize: 12, color: '#666666', marginTop: 2 }}>Aparece somente no seu painel</div>
               </div>
               <button
                 onClick={() => setForm(f => ({ ...f, ...NUTRI_DEFAULTS }))}
-                style={{ background: 'none', border: '0.5px solid var(--border)', borderRadius: 6, padding: '4px 10px', fontSize: 12, cursor: 'pointer', color: 'var(--text3)' }}>
+                style={{ background: 'none', border: '0.5px solid var(--border)', borderRadius: 6, padding: '4px 10px', fontSize: 12, cursor: 'pointer', color: '#888888' }}>
                 ↻ Restaurar padrão
               </button>
             </div>
 
             {/* Paletas prontas */}
-            <div style={{ fontSize: 11, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: 1, fontWeight: 500, marginBottom: 8 }}>Paletas prontas</div>
+            <div style={{ fontSize: 11, color: '#555555', textTransform: 'uppercase', letterSpacing: 1, fontWeight: 500, marginBottom: 8 }}>Paletas prontas</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 18 }}>
               {PALETAS_NUTRI.map(p => (
                 <button key={p.nome} onClick={() => setForm(f => ({ ...f, ...p }))}
@@ -459,7 +459,7 @@ export default function Personalizacao() {
             ))}
 
             {/* Mini-separador abas e botões */}
-            <div style={{ fontSize: 10, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: 1, fontWeight: 600, padding: '14px 0 4px', borderTop: '0.5px solid var(--border)', marginTop: 6 }}>
+            <div style={{ fontSize: 10, color: '#555555', textTransform: 'uppercase', letterSpacing: 1, fontWeight: 600, padding: '14px 0 4px', borderTop: '0.5px solid var(--border)', marginTop: 6 }}>
               Abas e botões (vazio = automático)
             </div>
             {[
@@ -472,7 +472,7 @@ export default function Personalizacao() {
             ))}
 
             {/* Mini-separador */}
-            <div style={{ fontSize: 10, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: 1, fontWeight: 600, padding: '14px 0 4px', borderTop: '0.5px solid var(--border)', marginTop: 6 }}>
+            <div style={{ fontSize: 10, color: '#555555', textTransform: 'uppercase', letterSpacing: 1, fontWeight: 600, padding: '14px 0 4px', borderTop: '0.5px solid var(--border)', marginTop: 6 }}>
               Sidebar — detalhes (vazio = automático)
             </div>
             {[
@@ -484,7 +484,7 @@ export default function Personalizacao() {
             ))}
 
             {/* Mini-separador topbar */}
-            <div style={{ fontSize: 10, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: 1, fontWeight: 600, padding: '14px 0 4px', borderTop: '0.5px solid var(--border)', marginTop: 6 }}>
+            <div style={{ fontSize: 10, color: '#555555', textTransform: 'uppercase', letterSpacing: 1, fontWeight: 600, padding: '14px 0 4px', borderTop: '0.5px solid var(--border)', marginTop: 6 }}>
               Barra superior (topbar) — vazio = usa cor da sidebar
             </div>
             {[
@@ -499,18 +499,18 @@ export default function Personalizacao() {
           <div className="card" style={{ padding: 18, marginBottom: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
               <div>
-                <div className="card-title">Cores — app da paciente</div>
-                <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 2 }}>O que suas pacientes veem ao abrir o app</div>
+                <div className="card-title" style={{ color: '#333333' }}>Cores — app da paciente</div>
+                <div style={{ fontSize: 12, color: '#666666', marginTop: 2 }}>O que suas pacientes veem ao abrir o app</div>
               </div>
               <button
                 onClick={() => setForm(f => ({ ...f, ...PAC_DEFAULTS }))}
-                style={{ background: 'none', border: '0.5px solid var(--border)', borderRadius: 6, padding: '4px 10px', fontSize: 12, cursor: 'pointer', color: 'var(--text3)' }}>
+                style={{ background: 'none', border: '0.5px solid var(--border)', borderRadius: 6, padding: '4px 10px', fontSize: 12, cursor: 'pointer', color: '#888888' }}>
                 ↻ Restaurar padrão
               </button>
             </div>
 
             {/* Paletas paciente */}
-            <div style={{ fontSize: 11, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: 1, fontWeight: 500, marginBottom: 8 }}>Paletas prontas</div>
+            <div style={{ fontSize: 11, color: '#555555', textTransform: 'uppercase', letterSpacing: 1, fontWeight: 500, marginBottom: 8 }}>Paletas prontas</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 18 }}>
               {PAC_PRESETS.map(p => (
                 <button key={p.label} onClick={() => setForm(f => ({ ...f, ...p }))}
@@ -545,7 +545,7 @@ export default function Personalizacao() {
 
             {/* Preview nutri */}
             <div>
-              <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>Painel da nutricionista</div>
+              <div style={{ fontSize: 10, fontWeight: 600, color: '#555555', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>Painel da nutricionista</div>
               <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', boxShadow: '0 2px 12px rgba(0,0,0,.08)' }}>
                 {/* Mini topbar */}
                 <div style={{ height: 26, background: form.cor_topbar || form.cor_sidebar || form.cor_primaria, display: 'flex', alignItems: 'center', padding: '0 8px', gap: 5, flexShrink: 0 }}>
@@ -598,7 +598,7 @@ export default function Personalizacao() {
 
             {/* Preview paciente */}
             <div>
-              <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>App da paciente</div>
+              <div style={{ fontSize: 10, fontWeight: 600, color: '#555555', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 8 }}>App da paciente</div>
               <div style={{ background: form.pac_bg, borderRadius: 14, padding: 14, boxShadow: '0 4px 16px rgba(0,0,0,.12)', border: '1px solid rgba(0,0,0,.06)' }}>
                 <div style={{ background: form.pac_btn, borderRadius: 10, padding: '9px 12px', marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ color: '#fff', fontSize: 12, fontWeight: 600 }}>Meu Plano</div>
