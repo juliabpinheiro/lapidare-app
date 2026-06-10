@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { supabase } from '../../lib/supabase.js';
 import { gerarPlanoHtml } from '../../lib/gerarPlanoHtml.js';
 
@@ -746,6 +746,7 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
   const [nutriInfo, setNutriInfo] = useState({ nome: '', crn: '', email: '' });
   const [pesoInfo, setPesoInfo]   = useState({ kg: null, altura_cm: null, pgc: null, cintura_cm: null, quadril_cm: null });
   const [draft, setDraft]         = useState('salvo'); // 'salvo' | 'salvando'
+  const [previaTab, setPreviaTab] = useState('app');
   const draftTimer                = useRef(null);
 
   /* Carrega info da nutri para o PDF */
@@ -878,6 +879,30 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
   }, { kcal: 0, prot_g: 0, cho_g: 0, lip_g: 0 });
 
   const temAlimentos = refeicoes.some(r => r.alimentos.length > 0);
+
+  const pdfHtml = useMemo(() => {
+    if (!temAlimentos) return '';
+    const pacienteDados = {
+      nome:       paciente?.nome,
+      idade:      _calcIdade(paciente?.nascimento),
+      peso_kg:    pesoInfo.kg,
+      altura_cm:  pesoInfo.altura_cm,
+      pgc:        pesoInfo.pgc,
+      cintura_cm: pesoInfo.cintura_cm,
+      quadril_cm: pesoInfo.quadril_cm,
+      objetivo:   paciente?.objetivo,
+    };
+    return gerarPlanoHtml({
+      pacienteNome,
+      plano:      buildPlano(),
+      extras:     { prioridades: orientacoes.prioridades, metas: orientacoes.metas, suplementos: orientacoes.suplementacao },
+      subsTexto:  buildSubsTexto(refeicoes),
+      nutriNome:  nutriInfo.nome,
+      nutriCrn:   nutriInfo.crn,
+      nutriEmail: nutriInfo.email,
+      pacienteDados,
+    });
+  }, [temAlimentos, refeicoes, orientacoes, nutriInfo, pesoInfo, paciente, pacienteNome]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── Constrói objeto plano para salvar/PDF ───────────────── */
   function buildPlano() {
@@ -1200,6 +1225,147 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
           ))}
         </div>
       </div>
+
+      {/* ── Prévia ── */}
+      {temAlimentos && (
+        <div className="card" style={{ padding: 20 }}>
+          {/* Cabeçalho + abas */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
+            <div className="section-title" style={{ marginBottom: 0 }}>Prévia</div>
+            <div style={{ display: 'flex', background: '#f5f1eb', borderRadius: 8, padding: 3, gap: 2 }}>
+              {[
+                { id: 'app', label: 'Como vai aparecer no app' },
+                { id: 'pdf', label: 'Como vai aparecer no PDF' },
+              ].map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => setPreviaTab(t.id)}
+                  style={{
+                    padding: '6px 14px', borderRadius: 6, border: 'none', cursor: 'pointer',
+                    fontSize: 12, fontWeight: 500,
+                    background: previaTab === t.id ? '#fff' : 'transparent',
+                    color:      previaTab === t.id ? '#222222' : '#888888',
+                    boxShadow:  previaTab === t.id ? '0 1px 3px rgba(0,0,0,.1)' : 'none',
+                    transition: 'all .15s',
+                  }}
+                >{t.label}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Aba: Como vai aparecer no app ── */}
+          {previaTab === 'app' && (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '0 0 8px' }}>
+              {/* Moldura do celular */}
+              <div style={{
+                width: 288, flexShrink: 0,
+                background: '#1a1a2e',
+                borderRadius: 44,
+                padding: '14px 8px',
+                boxShadow: '0 24px 72px rgba(0,0,0,.32), inset 0 0 0 1px rgba(255,255,255,.08)',
+                border: '6px solid #0d0d1a',
+              }}>
+                {/* Notch */}
+                <div style={{ width: 80, height: 20, background: '#0d0d1a', borderRadius: 10, margin: '0 auto 10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#2a2a3a', border: '1.5px solid #333' }} />
+                  <div style={{ width: 40, height: 5, borderRadius: 3, background: '#2a2a3a' }} />
+                </div>
+                {/* Tela */}
+                <div style={{ background: '#f0ebe3', borderRadius: 34, overflow: 'hidden', height: 560 }}>
+                  {/* App bar com macros do dia */}
+                  <div style={{ background: '#a08456', padding: '10px 14px 8px' }}>
+                    <div style={{ fontSize: 8, color: 'rgba(255,255,255,.6)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Meu Plano</div>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      {[
+                        { l: 'Kcal', v: fmt(totDia.kcal, 0) },
+                        { l: 'Prot', v: `${fmt(totDia.prot_g)}g` },
+                        { l: 'Carb', v: `${fmt(totDia.cho_g)}g` },
+                        { l: 'Gord', v: `${fmt(totDia.lip_g)}g` },
+                      ].map((m, i) => (
+                        <div key={m.l} style={{ flex: 1, textAlign: 'center', borderLeft: i > 0 ? '1px solid rgba(255,255,255,.2)' : 'none' }}>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: '#fff', lineHeight: 1 }}>{m.v}</div>
+                          <div style={{ fontSize: 7, color: 'rgba(255,255,255,.55)', textTransform: 'uppercase', letterSpacing: .5, marginTop: 2 }}>{m.l}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Cards de refeições */}
+                  <div style={{ overflowY: 'auto', height: 492, padding: '10px 10px 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {refeicoes.filter(r => r.alimentos.length > 0).map(ref => {
+                      const tot = somaAlimentos(ref.alimentos);
+                      return (
+                        <div key={ref.id} style={{ background: '#fff', borderRadius: 10, overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,.08)' }}>
+                          <div style={{ padding: '7px 10px', background: '#f5f0e8', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                            <div style={{ fontSize: 10, fontWeight: 700, color: '#3a3028' }}>{ref.nome || 'Refeição'}</div>
+                            <div style={{ fontSize: 8, color: '#8c7b6b' }}>{ref.horario}</div>
+                          </div>
+                          <div style={{ padding: '6px 10px 4px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            {ref.alimentos.slice(0, 5).map(al => (
+                              <div key={al.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 4 }}>
+                                <span style={{ fontSize: 9, color: '#3a3028', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{al.nome}</span>
+                                <span style={{ fontSize: 9, color: '#8c7b6b', flexShrink: 0 }}>{al.qty}</span>
+                              </div>
+                            ))}
+                            {ref.alimentos.length > 5 && (
+                              <div style={{ fontSize: 8, color: '#b4a896', fontStyle: 'italic' }}>+{ref.alimentos.length - 5} mais</div>
+                            )}
+                          </div>
+                          <div style={{ padding: '4px 10px 6px', display: 'flex', gap: 8, borderTop: '0.5px solid #f0ebe3' }}>
+                            {[
+                              { l: 'kcal', v: fmt(tot.kcal, 0) },
+                              { l: 'P', v: `${fmt(tot.prot_g)}g` },
+                              { l: 'C', v: `${fmt(tot.cho_g)}g` },
+                              { l: 'G', v: `${fmt(tot.lip_g)}g` },
+                            ].map(m => (
+                              <span key={m.l} style={{ fontSize: 8, color: '#8c7b6b' }}>
+                                <strong style={{ color: '#5a4a3a' }}>{m.v}</strong> {m.l}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Aba: Como vai aparecer no PDF ── */}
+          {previaTab === 'pdf' && (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '0 0 8px' }}>
+              <div>
+                <div style={{ fontSize: 11, color: '#888888', marginBottom: 8, textAlign: 'center' }}>
+                  Prévia — capa (página 1). Use "Gerar PDF" para ver o documento completo.
+                </div>
+                <div style={{
+                  width: Math.round(794 * 0.4),
+                  height: Math.round(1123 * 0.4),
+                  overflow: 'hidden',
+                  borderRadius: 6,
+                  border: '1px solid #d9d3c9',
+                  boxShadow: '0 4px 20px rgba(0,0,0,.15)',
+                  flexShrink: 0,
+                }}>
+                  <iframe
+                    srcDoc={pdfHtml}
+                    title="Prévia PDF"
+                    style={{
+                      width: 794,
+                      height: 1123,
+                      border: 'none',
+                      transform: 'scale(0.4)',
+                      transformOrigin: 'top left',
+                      pointerEvents: 'none',
+                      display: 'block',
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Modal ── */}
       {modal && (
