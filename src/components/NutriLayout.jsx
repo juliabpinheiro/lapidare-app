@@ -107,7 +107,7 @@ export default function NutriLayout() {
               style={{ maxHeight: 36, maxWidth: '80%', objectFit: 'contain', display: 'block', margin: '0 auto 10px' }} />
           ) : null}
           <div className="sidebar-nutri-role">Nutricionista</div>
-          <div className="sidebar-nutri-name">{profile?.nome}</div>
+          <div className="sidebar-nutri-name">{profile?.nome?.replace(/^nutricionista\s+/i, '')}</div>
           <div className="sidebar-brand">{tema.marca_subtitulo || tema.marca_nome}</div>
         </div>
 
