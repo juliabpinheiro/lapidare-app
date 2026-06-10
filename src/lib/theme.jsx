@@ -34,6 +34,7 @@ const DEFAULT_TEMA = {
   cor_sidebar_nome: null,   // null = --dark-text derivado
   cor_nav_divider: null,    // null = --dark-shade derivado
   cor_nav_active: null,     // null = --dark-shade derivado
+  cor_sidebar_detail: null, // null = --sidebar-text derivado
   cor_topbar: null,         // null = usa --dark (mesma cor da sidebar)
   cor_topbar_texto: null,   // null = --dark-text derivado
   cor_aba: null,            // null = usa --bg2 derivado
@@ -74,9 +75,10 @@ export function ThemeProvider({ children }) {
           cor_nav_item:      profile.cor_nav_item     ?? null,
           cor_nav_grupo:     profile.cor_nav_grupo    ?? null,
           cor_sidebar_nome:  profile.cor_sidebar_nome ?? null,
-          cor_nav_divider:   profile.cor_nav_divider  ?? null,
-          cor_nav_active:    profile.cor_nav_active   ?? null,
-          cor_topbar:        profile.cor_topbar       ?? null,
+          cor_nav_divider:    profile.cor_nav_divider   ?? null,
+          cor_nav_active:     profile.cor_nav_active    ?? null,
+          cor_sidebar_detail: profile.cor_sidebar_detail ?? null,
+          cor_topbar:         profile.cor_topbar        ?? null,
           cor_topbar_texto:  profile.cor_topbar_texto ?? null,
           cor_aba:           profile.cor_aba          ?? null,
           cor_btn_sec:       profile.cor_btn_sec      ?? null,
@@ -217,6 +219,9 @@ export function ThemeProvider({ children }) {
     if (tema.cor_nav_active) r.style.setProperty('--nav-active-bg', tema.cor_nav_active);
     else r.style.removeProperty('--nav-active-bg');
 
+    if (tema.cor_sidebar_detail) r.style.setProperty('--sidebar-detail-color', tema.cor_sidebar_detail);
+    else r.style.removeProperty('--sidebar-detail-color');
+
     // ─── Fundo sólido do painel da nutri (nunca gradiente) ───
     if (tema.cor_fundo_nutri) {
       r.style.setProperty('--fundo-nutri', tema.cor_fundo_nutri);
@@ -279,7 +284,7 @@ export function ThemeProvider({ children }) {
         r.style.setProperty('--ink-soft', mistura(pc.pac_text, '#ffffff', 0.25));
       }
     }
-  }, [tema.cor_primaria, tema.cor_secundaria, tema.cor_sidebar, tema.cor_fundo_nutri, tema.cor_abas, tema.cor_card_nutri, tema.cor_texto, tema.tipografia, tema.cor_texto_sidebar, tema.cor_nav_item, tema.cor_nav_grupo, tema.cor_sidebar_nome, tema.cor_nav_divider, tema.cor_nav_active, tema.cor_topbar, tema.cor_topbar_texto, tema.cor_aba, tema.cor_btn_sec, tema.cor_btn_txt, tema.pacConfig]);
+  }, [tema.cor_primaria, tema.cor_secundaria, tema.cor_sidebar, tema.cor_fundo_nutri, tema.cor_abas, tema.cor_card_nutri, tema.cor_texto, tema.tipografia, tema.cor_texto_sidebar, tema.cor_nav_item, tema.cor_nav_grupo, tema.cor_sidebar_nome, tema.cor_nav_divider, tema.cor_nav_active, tema.cor_sidebar_detail, tema.cor_topbar, tema.cor_topbar_texto, tema.cor_aba, tema.cor_btn_sec, tema.cor_btn_txt, tema.pacConfig]);
 
   return (
     <ThemeContext.Provider value={tema}>
