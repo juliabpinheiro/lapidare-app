@@ -300,6 +300,8 @@
   font-family: var(--font-sans);
 }
 .nutri-panel .btn:hover { background: #2e2520; }
+.nutri-panel .btn-save { background: #173103; }
+.nutri-panel .btn-save:hover { background: #0e2202; }
 .nutri-panel .btn-outline {
   background: var(--btn-sec-bg, none);
   color: var(--btn-sec-txt, var(--dark));

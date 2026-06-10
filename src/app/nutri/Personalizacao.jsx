@@ -354,7 +354,7 @@ export default function Personalizacao() {
                 <div style={{ width: 56, height: 56, borderRadius: 8, background: 'var(--white)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999999', fontSize: 11 }}>Sem logo</div>
               )}
               <div style={{ flex: 1 }}>
-                <input type="file" accept="image/*" onChange={uploadLogo} disabled={uploading} style={{ fontSize: 12 }} />
+                <input type="file" accept="image/*" onChange={uploadLogo} disabled={uploading} style={{ fontSize: 12, color: '#999999' }} />
                 <div style={{ fontSize: 11, color: '#888888', marginTop: 4 }}>PNG ou SVG · máx 2 MB · ideal 300×300px</div>
               </div>
               {form.logo_url && (
@@ -382,7 +382,7 @@ export default function Personalizacao() {
                 <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--white)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999999', fontSize: 11 }}>Sem foto</div>
               )}
               <div style={{ flex: 1 }}>
-                <input type="file" accept="image/*" onChange={uploadFoto} disabled={uploading} style={{ fontSize: 12 }} />
+                <input type="file" accept="image/*" onChange={uploadFoto} disabled={uploading} style={{ fontSize: 12, color: '#999999' }} />
                 <div style={{ fontSize: 11, color: '#888888', marginTop: 4 }}>JPG ou PNG · máx 2 MB · ideal quadrada</div>
               </div>
               {form.foto_url && (
@@ -408,7 +408,7 @@ export default function Personalizacao() {
                       borderRadius: 10, padding: 14, cursor: 'pointer',
                       fontFamily: 'var(--font-sans)', textAlign: 'left',
                     }}>
-                    <div style={{ fontSize: 18, fontWeight: 500, marginBottom: 4, fontFamily: previewFontPara(t.id) }}>{t.nome}</div>
+                    <div style={{ fontSize: 18, fontWeight: 500, marginBottom: 4, fontFamily: previewFontPara(t.id), color: '#222222' }}>{t.nome}</div>
                     <div style={{ fontSize: 11, color: '#888888', lineHeight: 1.4 }}>{t.desc}</div>
                   </button>
                 );
@@ -663,7 +663,7 @@ export default function Personalizacao() {
         <div style={{ flex: 1 }}>
           {erro && <div style={{ color: 'var(--red)', fontSize: 13 }}>{erro}</div>}
         </div>
-        <button className="btn" onClick={salvar} disabled={busy}>
+        <button className="btn btn-save" onClick={salvar} disabled={busy}>
           <i className="ti ti-device-floppy" aria-hidden="true"></i> {busy ? 'Salvando…' : 'Salvar personalização'}
         </button>
       </div>
