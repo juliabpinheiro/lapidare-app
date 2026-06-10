@@ -346,7 +346,7 @@
 .nutri-panel textarea {
   width: 100%; border: 0.5px solid var(--border);
   border-radius: 6px; padding: 8px 10px;
-  font-size: 13px; color: var(--dark);
+  font-size: 13px; color: var(--input-text-color, #222222);
   background: var(--white); font-family: var(--font-sans);
   outline: none;
 }
@@ -355,14 +355,16 @@
 .nutri-panel input:focus,
 .nutri-panel select:focus,
 .nutri-panel textarea:focus { border-color: var(--amber); }
+.nutri-panel input::placeholder,
+.nutri-panel textarea::placeholder { color: #888888; opacity: 1; }
 
 .nutri-panel .field { margin-bottom: 12px; }
 .nutri-panel .field-label {
-  display: block; font-size: 13px; color: var(--text2);
+  display: block; font-size: 13px; color: #555555;
   margin-bottom: 5px; font-weight: 500;
 }
 .nutri-panel .form-lbl {
-  font-size: 11px; color: var(--text3);
+  font-size: 11px; color: #555555;
   text-transform: uppercase; letter-spacing: 1px;
   margin-bottom: 4px; margin-top: 10px; display: block;
 }

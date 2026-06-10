@@ -28,6 +28,7 @@ const NUTRI_DEFAULTS = {
   cor_sidebar_detail: '',
   cor_topbar:         '',
   cor_topbar_texto: '',
+  cor_input_text:   '',
   // abas e botões
   cor_aba:          '',
   cor_btn_sec:      '',
@@ -160,6 +161,7 @@ export default function Personalizacao() {
       cor_sidebar_detail: profile.cor_sidebar_detail ?? '',
       cor_topbar:         profile.cor_topbar         ?? '',
       cor_topbar_texto:  profile.cor_topbar_texto  ?? '',
+      cor_input_text:    profile.cor_input_text     ?? '',
       cor_aba:           profile.cor_aba           ?? '',
       cor_btn_sec:       profile.cor_btn_sec       ?? '',
       cor_btn_txt:       profile.cor_btn_txt       ?? '',
@@ -220,6 +222,8 @@ export default function Personalizacao() {
     else r.style.removeProperty('--topbar-bg');
     if (form.cor_topbar_texto) r.style.setProperty('--topbar-text', form.cor_topbar_texto);
     else r.style.removeProperty('--topbar-text');
+    if (form.cor_input_text) r.style.setProperty('--input-text-color', form.cor_input_text);
+    else r.style.removeProperty('--input-text-color');
     // abas
     if (form.cor_aba) {
       r.style.setProperty('--tab-bg', form.cor_aba);
@@ -241,7 +245,7 @@ export default function Personalizacao() {
     if (form.cor_btn_txt) r.style.setProperty('--btn-sec-txt', form.cor_btn_txt);
     else r.style.removeProperty('--btn-sec-txt');
     r.dataset.tipografia = form.tipografia;
-  }, [profile, form.cor_sidebar, form.cor_primaria, form.cor_secundaria, form.cor_fundo_nutri, form.cor_card_nutri, form.cor_texto, form.cor_texto_sidebar, form.cor_abas, form.tipografia, form.cor_nav_item, form.cor_nav_grupo, form.cor_sidebar_nome, form.cor_nav_divider, form.cor_nav_active, form.cor_sidebar_detail, form.cor_topbar, form.cor_topbar_texto, form.cor_aba, form.cor_btn_sec, form.cor_btn_txt]);
+  }, [profile, form.cor_sidebar, form.cor_primaria, form.cor_secundaria, form.cor_fundo_nutri, form.cor_card_nutri, form.cor_texto, form.cor_texto_sidebar, form.cor_abas, form.tipografia, form.cor_nav_item, form.cor_nav_grupo, form.cor_sidebar_nome, form.cor_nav_divider, form.cor_nav_active, form.cor_sidebar_detail, form.cor_topbar, form.cor_topbar_texto, form.cor_input_text, form.cor_aba, form.cor_btn_sec, form.cor_btn_txt]);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -276,6 +280,7 @@ export default function Personalizacao() {
       cor_sidebar_detail: form.cor_sidebar_detail || null,
       cor_topbar:         form.cor_topbar         || null,
       cor_topbar_texto:  form.cor_topbar_texto  || null,
+      cor_input_text:    form.cor_input_text     || null,
       cor_aba:           form.cor_aba           || null,
       cor_btn_sec:       form.cor_btn_sec       || null,
       cor_btn_txt:       form.cor_btn_txt       || null,
@@ -469,6 +474,7 @@ export default function Personalizacao() {
               { key: 'cor_card_nutri',    label: 'Cards e painéis',       hint: 'Cor de fundo dos cartões e seções internas',                 defaultVal: '', allowEmpty: true },
               { key: 'cor_primaria',      label: 'Botões principais',     hint: 'Cor dos botões de ação e elementos de destaque',             defaultVal: NUTRI_DEFAULTS.cor_primaria },
               { key: 'cor_texto',         label: 'Letras',                hint: 'Cor do texto principal em títulos, labels e parágrafos',     defaultVal: NUTRI_DEFAULTS.cor_texto },
+              { key: 'cor_input_text',   label: 'Texto dos campos de input', hint: 'Cor do texto digitado nos campos de formulário — vazio = #222222', defaultVal: '', allowEmpty: true },
             ].map(campo => (
               <ColorRow key={campo.key} {...campo} value={form[campo.key]} onChange={v => set(campo.key, v)} />
             ))}

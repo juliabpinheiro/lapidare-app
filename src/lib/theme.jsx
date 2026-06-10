@@ -40,6 +40,7 @@ const DEFAULT_TEMA = {
   cor_aba: null,            // null = usa --bg2 derivado
   cor_btn_sec: null,        // null = transparent
   cor_btn_txt: null,        // null = --dark
+  cor_input_text: null,     // null = #222222 fixo
   nutri_nome: 'Sua nutri',
   nutri_foto_url: null,
 };
@@ -83,6 +84,7 @@ export function ThemeProvider({ children }) {
           cor_aba:           profile.cor_aba          ?? null,
           cor_btn_sec:       profile.cor_btn_sec      ?? null,
           cor_btn_txt:       profile.cor_btn_txt      ?? null,
+          cor_input_text:    profile.cor_input_text   ?? null,
           nutri_nome:        profile.nome             ?? 'Sua nutri',
           nutri_foto_url:    profile.foto_url         ?? null,
         });
@@ -259,6 +261,9 @@ export function ThemeProvider({ children }) {
     if (tema.cor_btn_txt) r.style.setProperty('--btn-sec-txt', tema.cor_btn_txt);
     else r.style.removeProperty('--btn-sec-txt');
 
+    if (tema.cor_input_text) r.style.setProperty('--input-text-color', tema.cor_input_text);
+    else r.style.removeProperty('--input-text-color');
+
     // ─── Cores exclusivas do app da paciente ───
     // Aplicadas por cima das cores de marca; só presentes quando role=paciente.
     const pc = tema.pacConfig;
@@ -284,7 +289,7 @@ export function ThemeProvider({ children }) {
         r.style.setProperty('--ink-soft', mistura(pc.pac_text, '#ffffff', 0.25));
       }
     }
-  }, [tema.cor_primaria, tema.cor_secundaria, tema.cor_sidebar, tema.cor_fundo_nutri, tema.cor_abas, tema.cor_card_nutri, tema.cor_texto, tema.tipografia, tema.cor_texto_sidebar, tema.cor_nav_item, tema.cor_nav_grupo, tema.cor_sidebar_nome, tema.cor_nav_divider, tema.cor_nav_active, tema.cor_sidebar_detail, tema.cor_topbar, tema.cor_topbar_texto, tema.cor_aba, tema.cor_btn_sec, tema.cor_btn_txt, tema.pacConfig]);
+  }, [tema.cor_primaria, tema.cor_secundaria, tema.cor_sidebar, tema.cor_fundo_nutri, tema.cor_abas, tema.cor_card_nutri, tema.cor_texto, tema.tipografia, tema.cor_texto_sidebar, tema.cor_nav_item, tema.cor_nav_grupo, tema.cor_sidebar_nome, tema.cor_nav_divider, tema.cor_nav_active, tema.cor_sidebar_detail, tema.cor_topbar, tema.cor_topbar_texto, tema.cor_aba, tema.cor_btn_sec, tema.cor_btn_txt, tema.cor_input_text, tema.pacConfig]);
 
   return (
     <ThemeContext.Provider value={tema}>

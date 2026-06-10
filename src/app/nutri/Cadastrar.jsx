@@ -105,7 +105,7 @@ export default function Cadastrar() {
           </div>
 
           <label style={{ display: 'block', marginBottom: 12 }}>
-            <span style={{ display: 'block', fontSize: 11, color: 'var(--text3)', marginBottom: 5, fontWeight: 500 }}>
+            <span style={{ display: 'block', fontSize: 11, color: '#555555', marginBottom: 5, fontWeight: 500 }}>
               Observação (opcional)
             </span>
             <textarea value={form.obs} onChange={e => set('obs')(e.target.value)} rows={2}
@@ -164,10 +164,10 @@ export default function Cadastrar() {
                 {recentes.map(p => (
                   <div key={p.id} className="card" style={{ padding: '10px 12px' }}>
                     <div style={{ fontSize: 13, fontWeight: 500 }}>{p.nome}</div>
-                    <div style={{ fontSize: 11, color: 'var(--text3)' }}>
+                    <div style={{ fontSize: 11, color: '#555555' }}>
                       {p.email} · cadastrada em {dataBR(p.created_at)}
                     </div>
-                    <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 2 }}>
+                    <div style={{ fontSize: 10, color: '#555555', marginTop: 2 }}>
                       {[p.objetivo, p.tipo_plano, p.modalidade].filter(Boolean).join(' · ')}
                     </div>
                   </div>
@@ -201,7 +201,7 @@ function CartaoSucesso({ nome, email, mensagemWhats, onDispensar }) {
           </div>
         </div>
         <button onClick={onDispensar}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: 'var(--text3)', padding: 0 }}>
+          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: '#555555', padding: 0 }}>
           <i className="ti ti-x" aria-hidden="true"></i>
         </button>
       </div>
@@ -233,7 +233,7 @@ function CartaoSucesso({ nome, email, mensagemWhats, onDispensar }) {
 function Field({ label, value, onChange, type = 'text', required, autoFocus }) {
   return (
     <label style={{ display: 'block', marginBottom: 12 }}>
-      <span style={{ display: 'block', fontSize: 11, color: 'var(--text3)', marginBottom: 5, fontWeight: 500 }}>
+      <span style={{ display: 'block', fontSize: 11, color: '#555555', marginBottom: 5, fontWeight: 500 }}>
         {label}
       </span>
       <input
@@ -255,7 +255,7 @@ function SelectField({ label, value, onChange, options }) {
   const opts = options.map(o => typeof o === 'string' ? { v: o, l: o } : o);
   return (
     <label style={{ display: 'block', marginBottom: 12 }}>
-      <span style={{ display: 'block', fontSize: 11, color: 'var(--text3)', marginBottom: 5, fontWeight: 500 }}>
+      <span style={{ display: 'block', fontSize: 11, color: '#555555', marginBottom: 5, fontWeight: 500 }}>
         {label}
       </span>
       <select value={value} onChange={e => onChange(e.target.value)}
