@@ -31,6 +31,7 @@ const NAV_CONFIG = [
       { id: 'servicos',         path: '/nutri/servicos',        label: 'Meus serviços',       icon: 'settings' },
       { id: 'previsibilidade',  path: '/nutri/previsibilidade', label: 'Previsibilidade',     icon: 'trending-up' },
       { id: 'financeiro',       path: '/nutri/financeiro',      label: 'Financeiro real',     icon: 'credit-card' },
+      { id: 'contratos',        path: '/nutri/contratos',       label: 'Contratos',           icon: 'file-invoice' },
       { id: 'personalizacao',         path: '/nutri/personalizacao',         label: 'Personalização',          icon: 'palette' },
     ],
   },
