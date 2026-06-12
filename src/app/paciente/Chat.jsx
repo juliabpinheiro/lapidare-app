@@ -156,7 +156,7 @@ export default function ChatPaciente() {
         textAlign: 'center', fontSize: 11, color: 'var(--muted)',
         padding: '6px 16px 12px', lineHeight: 1.5,
       }}>
-        Urgente? Mande mensagem no WhatsApp{' '}
+        Observação: Caso seja urgente, mande mensagem no WhatsApp{' '}
         <a href="https://wa.me/5521989611108" target="_blank" rel="noopener noreferrer"
           style={{ color: 'inherit', textDecoration: 'underline', textDecorationStyle: 'dotted' }}>
           (21) 98961-1108
