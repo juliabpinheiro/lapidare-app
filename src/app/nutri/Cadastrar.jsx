@@ -5,17 +5,16 @@ import { dataBR } from '../../lib/utils.js';
 
 const OBJETIVOS  = ['Emagrecimento', 'Hipertrofia', 'Reeducação alimentar', 'Saúde geral', 'Performance esportiva'];
 const PLANOS     = [
-  { v: 'trimestral',     l: 'Trimestral' },
-  { v: 'semestral',      l: 'Semestral' },
-  { v: 'consultoria',    l: 'Consultoria' },
-  { v: 'acompanhamento', l: 'Acompanhamento' },
+  { v: 'avulso',     l: 'Avulso' },
+  { v: 'trimestral', l: 'Trimestral' },
+  { v: 'semestral',  l: 'Semestral' },
 ];
 const MODALIDADES = ['Presencial', 'Online', 'Híbrido'];
 
 const FORM_VAZIO = {
   nome: '', email: '', nascimento: '',
   objetivo: 'Emagrecimento', tipoPlano: 'trimestral',
-  modalidade: 'Online', obs: '',
+  valorPlano: '', modalidade: 'Online', obs: '',
 };
 
 export default function Cadastrar() {
@@ -65,10 +64,27 @@ export default function Cadastrar() {
       p_modalidade: form.modalidade,
       p_obs:        form.obs.trim() || null,
     });
+
+    if (error) { setBusy(false); return setErro(error.message); }
+
+    // Salva valor e cria contrato pendente (paciente aceita no primeiro acesso)
+    const pacienteId = data?.id;
+    const valor = parseFloat(String(form.valorPlano).replace(',', '.')) || null;
+    if (pacienteId && valor && ['avulso', 'trimestral', 'semestral'].includes(form.tipoPlano)) {
+      await Promise.all([
+        supabase.from('pacientes').update({ valor_plano: valor }).eq('id', pacienteId),
+        supabase.from('contratos_pacientes').insert({
+          paciente_id: pacienteId,
+          nutri_id:    user.id,
+          tipo_plano:  form.tipoPlano,
+          valor,
+          data_inicio: new Date().toISOString().slice(0, 10),
+          aceito:      false,
+        }),
+      ]);
+    }
+
     setBusy(false);
-
-    if (error) return setErro(error.message);
-
     setSucesso({ nome: form.nome.trim(), email: form.email.trim().toLowerCase() });
     resetForm();
     carregarRecentes();
@@ -99,8 +115,9 @@ export default function Cadastrar() {
           </div>
 
           <SelectField label="Objetivo" value={form.objetivo} onChange={set('objetivo')} options={OBJETIVOS} />
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
             <SelectField label="Tipo de plano" value={form.tipoPlano} onChange={set('tipoPlano')} options={PLANOS} />
+            <Field label="Valor do plano (R$)" inputMode="decimal" placeholder="ex: 350,00" value={form.valorPlano} onChange={set('valorPlano')} />
             <SelectField label="Modalidade" value={form.modalidade} onChange={set('modalidade')} options={MODALIDADES} />
           </div>
 
@@ -230,14 +247,14 @@ function CartaoSucesso({ nome, email, mensagemWhats, onDispensar }) {
 }
 
 
-function Field({ label, value, onChange, type = 'text', required, autoFocus }) {
+function Field({ label, value, onChange, type = 'text', inputMode, placeholder, required, autoFocus }) {
   return (
     <label style={{ display: 'block', marginBottom: 12 }}>
       <span style={{ display: 'block', fontSize: 11, color: '#555555', marginBottom: 5, fontWeight: 500 }}>
         {label}
       </span>
       <input
-        type={type} value={value}
+        type={type} value={value} inputMode={inputMode} placeholder={placeholder}
         onChange={e => onChange(e.target.value)}
         required={required} autoFocus={autoFocus}
         style={{
