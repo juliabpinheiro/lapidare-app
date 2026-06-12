@@ -178,9 +178,11 @@
 
 /* ── TOPBAR ── */
 .nutri-panel .topbar {
-  height: 52px; background: var(--topbar-bg, var(--dark));
-  display: flex; align-items: center;
-  padding: 0 24px; gap: 12px; flex-shrink: 0;
+  height: calc(52px + env(safe-area-inset-top, 0px));
+  background: var(--topbar-bg, var(--dark));
+  display: flex; align-items: flex-end;
+  padding: env(safe-area-inset-top, 0px) 24px 10px;
+  gap: 12px; flex-shrink: 0;
 }
 .nutri-panel .topbar-zone {
   font-size: 12px; color: var(--topbar-text, var(--dark-muted));
@@ -440,6 +442,12 @@
   .nutri-panel {
     grid-template-columns: 1fr;
   }
+
+  /* Sidebar drawer: começa no topo da tela (atrás da status bar), empurra cabeçalho para baixo */
+  .nutri-panel .sidebar-head {
+    padding-top: max(24px, calc(env(safe-area-inset-top, 0px) + 12px));
+  }
+
   .nutri-panel .sidebar {
     position: fixed;
     top: 0; left: 0; bottom: 0;
