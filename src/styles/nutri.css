@@ -178,10 +178,9 @@
 
 /* ── TOPBAR ── */
 .nutri-panel .topbar {
-  height: calc(52px + env(safe-area-inset-top, 0px));
   background: var(--topbar-bg, var(--dark));
-  display: flex; align-items: flex-end;
-  padding: env(safe-area-inset-top, 0px) 24px 10px;
+  display: flex; align-items: center;
+  padding: calc(env(safe-area-inset-top, 0px) + 12px) 24px 14px;
   gap: 12px; flex-shrink: 0;
 }
 .nutri-panel .topbar-zone {
