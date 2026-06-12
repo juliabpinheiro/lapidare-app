@@ -46,13 +46,14 @@ function ExpiracaoScreen({ nutriNome }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Texto do contrato
 // ─────────────────────────────────────────────────────────────────────────────
-function ContratoTexto({ nome, tipoBR, valorBR, dataInicioBR }) {
+function ContratoTexto({ nome, tipoBR, valorBR, dataInicioBR, modalidade }) {
   const P = ({ style, children }) => (
     <p style={{ marginBottom: 8, ...style }}>{children}</p>
   );
   const H = ({ children }) => (
     <p style={{ fontWeight: 700, marginTop: 16, marginBottom: 4 }}>{children}</p>
   );
+  const modalidadeBR = modalidade === 'Presencial' ? 'Presencial' : 'Online';
 
   return (
     <div style={{ fontSize: 12, lineHeight: 1.75, color: '#2b2b2b' }}>
@@ -78,34 +79,45 @@ function ContratoTexto({ nome, tipoBR, valorBR, dataInicioBR }) {
       </ul>
       <P>Cada consulta ocorrerá em intervalos de 30 dias corridos.</P>
 
-      <H>CLÁUSULA 3ª — DA PRESCRIÇÃO DIETÉTICA</H>
+      <H>CLÁUSULA 3ª — DA MODALIDADE DE ATENDIMENTO</H>
+      <P>
+        O atendimento será realizado na modalidade <strong>{modalidadeBR}</strong>, conforme
+        escolha da CONTRATANTE no ato da contratação.
+      </P>
+      {modalidadeBR === 'Presencial' ? (
+        <P>Modalidade Presencial: as consultas ocorrerão em local a ser informado pela CONTRATADA.</P>
+      ) : (
+        <P>Modalidade Online: as consultas ocorrerão por videochamada em plataforma digital a ser definida pela CONTRATADA.</P>
+      )}
+
+      <H>CLÁUSULA 4ª — DA PRESCRIÇÃO DIETÉTICA</H>
       <P>O plano alimentar será entregue em até 3 dias úteis após cada consulta.</P>
 
-      <H>CLÁUSULA 4ª — DO PAGAMENTO</H>
+      <H>CLÁUSULA 5ª — DO PAGAMENTO</H>
       <P>
         O valor total de R$ {valorBR} foi integralmente pago pela CONTRATANTE previamente ao
         acesso ao plano, sendo condição para utilização dos serviços.
       </P>
 
-      <H>CLÁUSULA 5ª — DO AGENDAMENTO, REMARCAÇÃO E CANCELAMENTO</H>
-      <P>5.1. Remarcações ou cancelamentos somente serão aceitos com antecedência mínima de 24 horas.</P>
-      <P>5.2. Cancelamentos com menos de 24 horas serão considerados consulta realizada, sem direito a reposição ou reembolso.</P>
+      <H>CLÁUSULA 6ª — DO AGENDAMENTO, REMARCAÇÃO E CANCELAMENTO</H>
+      <P>6.1. Remarcações ou cancelamentos somente serão aceitos com antecedência mínima de 24 horas.</P>
+      <P>6.2. Cancelamentos com menos de 24 horas serão considerados consulta realizada, sem direito a reposição ou reembolso.</P>
 
-      <H>CLÁUSULA 6ª — DA INTRANSFERIBILIDADE</H>
-      <P>6.1. Os serviços são pessoais e intransferíveis, não podendo ser cedidos a terceiros.</P>
-      <P>6.2. Consultas não utilizadas dentro do período contratado serão perdidas, sem transferência para meses subsequentes.</P>
+      <H>CLÁUSULA 7ª — DA INTRANSFERIBILIDADE</H>
+      <P>7.1. Os serviços são pessoais e intransferíveis, não podendo ser cedidos a terceiros.</P>
+      <P>7.2. Consultas não utilizadas dentro do período contratado serão perdidas, sem transferência para meses subsequentes.</P>
 
-      <H>CLÁUSULA 7ª — DAS RESPONSABILIDADES</H>
-      <P>7.1. A CONTRATADA prestará os serviços com ética e conforme as normas do CFN.</P>
-      <P>7.2. A CONTRATANTE é responsável pelas informações fornecidas sobre seu estado de saúde.</P>
+      <H>CLÁUSULA 8ª — DAS RESPONSABILIDADES</H>
+      <P>8.1. A CONTRATADA prestará os serviços com ética e conforme as normas do CFN.</P>
+      <P>8.2. A CONTRATANTE é responsável pelas informações fornecidas sobre seu estado de saúde.</P>
 
-      <H>CLÁUSULA 8ª — DA RESCISÃO</H>
+      <H>CLÁUSULA 9ª — DA RESCISÃO</H>
       <P>
-        8.1. A rescisão por iniciativa da CONTRATANTE somente será aceita mediante comunicação
+        9.1. A rescisão por iniciativa da CONTRATANTE somente será aceita mediante comunicação
         prévia de até 3 dias úteis antes da data de entrega do plano alimentar.
       </P>
       <P>
-        8.2. Em hipótese alguma haverá reembolso em caso de rescisão por iniciativa da
+        9.2. Em hipótese alguma haverá reembolso em caso de rescisão por iniciativa da
         CONTRATANTE, pelos seguintes motivos: (a) os planos Trimestral e Semestral são
         contratados com valor diferenciado em razão do compromisso pelo período integral;
         (b) o plano Avulso implica consulta já realizada; (c) a CONTRATADA reserva agenda
@@ -113,11 +125,11 @@ function ContratoTexto({ nome, tipoBR, valorBR, dataInicioBR }) {
         desistência; (d) o pagamento integral é condição de acesso ao plano.
       </P>
       <P>
-        8.3. Em caso de rescisão por iniciativa da CONTRATADA sem justo motivo, será devolvido
+        9.3. Em caso de rescisão por iniciativa da CONTRATADA sem justo motivo, será devolvido
         o valor proporcional às consultas não realizadas.
       </P>
 
-      <H>CLÁUSULA 9ª — DO FORO</H>
+      <H>CLÁUSULA 10ª — DO FORO</H>
       <P>
         Fica eleito o foro da Comarca do Rio de Janeiro/RJ para dirimir quaisquer litígios,
         nos termos do Código Civil Brasileiro e da Lei nº 14.063/2020.
@@ -173,16 +185,17 @@ function ModalContrato({ contrato, profile, user, onAceite }) {
   return (
     <div style={{
       position: 'fixed', inset: 0, background: 'var(--bg, #faf8f5)',
-      display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
-      zIndex: 1000, padding: '16px 16px 32px', overflowY: 'auto',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: 1000, padding: '16px',
       fontFamily: 'var(--font-sans)',
     }}>
       <div style={{
         background: '#ffffff', borderRadius: 16, maxWidth: 640, width: '100%',
-        margin: 'auto', boxShadow: '0 10px 40px rgba(0,0,0,.14)',
+        maxHeight: 'calc(100dvh - 32px)', boxShadow: '0 10px 40px rgba(0,0,0,.14)',
+        display: 'flex', flexDirection: 'column',
       }}>
         {/* Header */}
-        <div style={{ padding: '22px 24px 14px', borderBottom: '0.5px solid var(--hair, #e6dfd0)' }}>
+        <div style={{ padding: '22px 24px 14px', borderBottom: '0.5px solid var(--hair, #e6dfd0)', flexShrink: 0 }}>
           <div style={{ fontSize: 10, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--gold-deep, #a08456)', fontWeight: 500, marginBottom: 4 }}>
             Antes de começar
           </div>
@@ -194,18 +207,19 @@ function ModalContrato({ contrato, profile, user, onAceite }) {
           </div>
         </div>
 
-        {/* Corpo do contrato */}
-        <div style={{ padding: '16px 24px', overflowY: 'auto', maxHeight: '52vh' }}>
+        {/* Corpo do contrato — rola internamente */}
+        <div style={{ padding: '16px 24px', overflowY: 'auto', flex: 1, minHeight: 0 }}>
           <ContratoTexto
             nome={profile?.nome ?? ''}
             tipoBR={tipoBR}
             valorBR={valorBR}
             dataInicioBR={dataInicioBR}
+            modalidade={profile?.modalidade ?? 'Online'}
           />
         </div>
 
-        {/* Footer */}
-        <div style={{ padding: '14px 24px 22px', borderTop: '0.5px solid var(--hair, #e6dfd0)' }}>
+        {/* Footer fixo — sempre visível */}
+        <div style={{ padding: '14px 24px 22px', borderTop: '0.5px solid var(--hair, #e6dfd0)', flexShrink: 0 }}>
           <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', marginBottom: 14 }}>
             <input
               type="checkbox" checked={checado} onChange={e => setChecado(e.target.checked)}

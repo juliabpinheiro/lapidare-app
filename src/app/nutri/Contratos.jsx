@@ -21,9 +21,10 @@ const PILLS = {
 };
 
 /* ── Texto do contrato (read-only) ──────────────────────────────────── */
-function ContratoTexto({ nome, tipoBR, valorBR, dataInicioBR }) {
+function ContratoTexto({ nome, tipoBR, valorBR, dataInicioBR, modalidade }) {
   const P = ({ style, children }) => <p style={{ marginBottom: 8, ...style }}>{children}</p>;
   const H = ({ children }) => <p style={{ fontWeight: 700, marginTop: 16, marginBottom: 4 }}>{children}</p>;
+  const modalidadeBR = modalidade === 'Presencial' ? 'Presencial' : 'Online';
   return (
     <div style={{ fontSize: 12, lineHeight: 1.75, color: '#2b2b2b' }}>
       <P style={{ fontWeight: 700, textAlign: 'center', fontSize: 13, marginBottom: 16 }}>
@@ -41,24 +42,31 @@ function ContratoTexto({ nome, tipoBR, valorBR, dataInicioBR }) {
         <li>Plano Semestral: consultas em 6 meses consecutivos a partir da assinatura.</li>
       </ul>
       <P>Cada consulta ocorrerá em intervalos de 30 dias corridos.</P>
-      <H>CLÁUSULA 3ª — DA PRESCRIÇÃO DIETÉTICA</H>
+      <H>CLÁUSULA 3ª — DA MODALIDADE DE ATENDIMENTO</H>
+      <P>O atendimento será realizado na modalidade <strong>{modalidadeBR}</strong>, conforme escolha da CONTRATANTE no ato da contratação.</P>
+      {modalidadeBR === 'Presencial' ? (
+        <P>Modalidade Presencial: as consultas ocorrerão em local a ser informado pela CONTRATADA.</P>
+      ) : (
+        <P>Modalidade Online: as consultas ocorrerão por videochamada em plataforma digital a ser definida pela CONTRATADA.</P>
+      )}
+      <H>CLÁUSULA 4ª — DA PRESCRIÇÃO DIETÉTICA</H>
       <P>O plano alimentar será entregue em até 3 dias úteis após cada consulta.</P>
-      <H>CLÁUSULA 4ª — DO PAGAMENTO</H>
+      <H>CLÁUSULA 5ª — DO PAGAMENTO</H>
       <P>O valor total de R$ {valorBR} foi integralmente pago pela CONTRATANTE previamente ao acesso ao plano, sendo condição para utilização dos serviços.</P>
-      <H>CLÁUSULA 5ª — DO AGENDAMENTO, REMARCAÇÃO E CANCELAMENTO</H>
-      <P>5.1. Remarcações ou cancelamentos somente serão aceitos com antecedência mínima de 24 horas.</P>
-      <P>5.2. Cancelamentos com menos de 24 horas serão considerados consulta realizada, sem direito a reposição ou reembolso.</P>
-      <H>CLÁUSULA 6ª — DA INTRANSFERIBILIDADE</H>
-      <P>6.1. Os serviços são pessoais e intransferíveis, não podendo ser cedidos a terceiros.</P>
-      <P>6.2. Consultas não utilizadas dentro do período contratado serão perdidas, sem transferência para meses subsequentes.</P>
-      <H>CLÁUSULA 7ª — DAS RESPONSABILIDADES</H>
-      <P>7.1. A CONTRATADA prestará os serviços com ética e conforme as normas do CFN.</P>
-      <P>7.2. A CONTRATANTE é responsável pelas informações fornecidas sobre seu estado de saúde.</P>
-      <H>CLÁUSULA 8ª — DA RESCISÃO</H>
-      <P>8.1. A rescisão por iniciativa da CONTRATANTE somente será aceita mediante comunicação prévia de até 3 dias úteis antes da data de entrega do plano alimentar.</P>
-      <P>8.2. Em hipótese alguma haverá reembolso em caso de rescisão por iniciativa da CONTRATANTE, pelos seguintes motivos: (a) os planos Trimestral e Semestral são contratados com valor diferenciado em razão do compromisso pelo período integral; (b) o plano Avulso implica consulta já realizada; (c) a CONTRATADA reserva agenda exclusiva para a CONTRATANTE, incorrendo em perda financeira direta em caso de desistência; (d) o pagamento integral é condição de acesso ao plano.</P>
-      <P>8.3. Em caso de rescisão por iniciativa da CONTRATADA sem justo motivo, será devolvido o valor proporcional às consultas não realizadas.</P>
-      <H>CLÁUSULA 9ª — DO FORO</H>
+      <H>CLÁUSULA 6ª — DO AGENDAMENTO, REMARCAÇÃO E CANCELAMENTO</H>
+      <P>6.1. Remarcações ou cancelamentos somente serão aceitos com antecedência mínima de 24 horas.</P>
+      <P>6.2. Cancelamentos com menos de 24 horas serão considerados consulta realizada, sem direito a reposição ou reembolso.</P>
+      <H>CLÁUSULA 7ª — DA INTRANSFERIBILIDADE</H>
+      <P>7.1. Os serviços são pessoais e intransferíveis, não podendo ser cedidos a terceiros.</P>
+      <P>7.2. Consultas não utilizadas dentro do período contratado serão perdidas, sem transferência para meses subsequentes.</P>
+      <H>CLÁUSULA 8ª — DAS RESPONSABILIDADES</H>
+      <P>8.1. A CONTRATADA prestará os serviços com ética e conforme as normas do CFN.</P>
+      <P>8.2. A CONTRATANTE é responsável pelas informações fornecidas sobre seu estado de saúde.</P>
+      <H>CLÁUSULA 9ª — DA RESCISÃO</H>
+      <P>9.1. A rescisão por iniciativa da CONTRATANTE somente será aceita mediante comunicação prévia de até 3 dias úteis antes da data de entrega do plano alimentar.</P>
+      <P>9.2. Em hipótese alguma haverá reembolso em caso de rescisão por iniciativa da CONTRATANTE, pelos seguintes motivos: (a) os planos Trimestral e Semestral são contratados com valor diferenciado em razão do compromisso pelo período integral; (b) o plano Avulso implica consulta já realizada; (c) a CONTRATADA reserva agenda exclusiva para a CONTRATANTE, incorrendo em perda financeira direta em caso de desistência; (d) o pagamento integral é condição de acesso ao plano.</P>
+      <P>9.3. Em caso de rescisão por iniciativa da CONTRATADA sem justo motivo, será devolvido o valor proporcional às consultas não realizadas.</P>
+      <H>CLÁUSULA 10ª — DO FORO</H>
       <P>Fica eleito o foro da Comarca do Rio de Janeiro/RJ para dirimir quaisquer litígios, nos termos do Código Civil Brasileiro e da Lei nº 14.063/2020.</P>
       <P style={{ marginTop: 16 }}>Rio de Janeiro, {dataInicioBR}.</P>
       <P><strong>CONTRATADA:</strong> Júlia Barbosa Pinheiro — CRN 20100737</P>
@@ -108,6 +116,7 @@ function ModalContrato({ contrato, onClose }) {
                 {pill.label}
               </span>
               <span style={{ fontSize: 12, color: 'var(--muted)' }}>{tipoBR} · R$ {valorBR}</span>
+              <span style={{ fontSize: 12, color: 'var(--muted)' }}>{contrato.paciente?.modalidade ?? 'Online'}</span>
               <span style={{ fontSize: 12, color: 'var(--muted)' }}>Início: {dataBR(contrato.data_inicio)}</span>
             </div>
           </div>
@@ -118,7 +127,7 @@ function ModalContrato({ contrato, onClose }) {
 
         {/* Corpo */}
         <div style={{ padding: '16px 24px', maxHeight: '62vh', overflowY: 'auto' }}>
-          <ContratoTexto nome={nome} tipoBR={tipoBR} valorBR={valorBR} dataInicioBR={dataInicioBR} />
+          <ContratoTexto nome={nome} tipoBR={tipoBR} valorBR={valorBR} dataInicioBR={dataInicioBR} modalidade={contrato.paciente?.modalidade} />
         </div>
 
         {/* Rodapé com metadados de aceite */}
@@ -163,7 +172,7 @@ export default function Contratos() {
     if (!user) return;
     supabase
       .from('contratos_pacientes')
-      .select('*, paciente:pacientes(nome)')
+      .select('*, paciente:pacientes(nome, modalidade)')
       .eq('nutri_id', user.id)
       .order('created_at', { ascending: false })
       .then(({ data }) => setContratos(data ?? []));
@@ -264,6 +273,7 @@ export default function Contratos() {
               <tr>
                 <th>Paciente</th>
                 <th>Plano</th>
+                <th>Modalidade</th>
                 <th>Valor</th>
                 <th>Início</th>
                 <th>Aceite</th>
@@ -285,6 +295,7 @@ export default function Contratos() {
                       <div style={{ fontWeight: 500 }}>{c.paciente?.nome ?? '—'}</div>
                     </td>
                     <td>{TIPO_BR[c.tipo_plano] ?? c.tipo_plano}</td>
+                    <td>{c.paciente?.modalidade ?? '—'}</td>
                     <td>R$ {Number(c.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                     <td>{dataBR(c.data_inicio)}</td>
                     <td>

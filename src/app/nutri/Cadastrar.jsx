@@ -9,7 +9,7 @@ const PLANOS     = [
   { v: 'trimestral', l: 'Trimestral' },
   { v: 'semestral',  l: 'Semestral' },
 ];
-const MODALIDADES = ['Presencial', 'Online', 'Híbrido'];
+const MODALIDADES = ['Presencial', 'Online'];
 
 const FORM_VAZIO = {
   nome: '', email: '', nascimento: '',
@@ -118,7 +118,7 @@ export default function Cadastrar() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
             <SelectField label="Tipo de plano" value={form.tipoPlano} onChange={set('tipoPlano')} options={PLANOS} />
             <Field label="Valor do plano (R$)" inputMode="decimal" placeholder="ex: 350,00" value={form.valorPlano} onChange={set('valorPlano')} />
-            <SelectField label="Modalidade" value={form.modalidade} onChange={set('modalidade')} options={MODALIDADES} />
+            <SelectField label="Modalidade de atendimento" value={form.modalidade} onChange={set('modalidade')} options={MODALIDADES} />
           </div>
 
           <label style={{ display: 'block', marginBottom: 12 }}>
