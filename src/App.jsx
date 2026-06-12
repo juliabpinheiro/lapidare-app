@@ -31,6 +31,7 @@ import Biblioteca from './app/nutri/Biblioteca.jsx';
 import Personalizacao from './app/nutri/Personalizacao.jsx';
 import PersonalizacaoPaciente from './app/nutri/PersonalizacaoPaciente.jsx';
 import Contratos from './app/nutri/Contratos.jsx';
+import Documentos from './app/nutri/Documentos.jsx';
 
 import Inicio from './app/paciente/Inicio.jsx';
 import Plano from './app/paciente/Plano.jsx';
@@ -79,6 +80,7 @@ export default function App() {
             <Route path="/nutri/personalizacao" element={<Personalizacao />} />
             <Route path="/nutri/personalizacao-paciente" element={<PersonalizacaoPaciente />} />
             <Route path="/nutri/contratos" element={<Contratos />} />
+            <Route path="/nutri/documentos" element={<Documentos />} />
           </Route>
 
           {/* App da Paciente */}
