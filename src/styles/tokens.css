@@ -7,6 +7,9 @@
    ============================================================ */
 
 :root {
+  /* Safe area — usada em headers/topbars para não sobrepor a status bar do celular */
+  --sat: env(safe-area-inset-top, 0px);
+
   /* Cores — base bege/dourado Lapidare */
   --bg: #f0ebe3;
   --bg-soft: #f5f2ec;

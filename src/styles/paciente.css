@@ -44,8 +44,8 @@
 
 /* ── HEADER ── */
 .paciente-app .app-header {
-  padding: max(20px, calc(env(safe-area-inset-top, 0px) + 12px)) 22px 18px;
-  display: flex; justify-content: space-between; align-items: flex-end;
+  padding: max(18px, calc(var(--sat, 0px) + 12px)) 22px 18px;
+  display: flex; justify-content: space-between; align-items: center;
   flex-shrink: 0; gap: 10px;
   background: var(--bg);
   position: sticky; top: 0; z-index: 10;

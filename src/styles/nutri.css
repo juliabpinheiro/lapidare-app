@@ -180,7 +180,8 @@
 .nutri-panel .topbar {
   background: var(--topbar-bg, var(--dark));
   display: flex; align-items: center;
-  padding: calc(env(safe-area-inset-top, 0px) + 12px) 24px 14px;
+  /* max() garante mínimo de 12px mesmo sem notch; var(--sat) = env(safe-area-inset-top) */
+  padding: max(12px, calc(var(--sat, 0px) + 12px)) 24px 14px;
   gap: 12px; flex-shrink: 0;
 }
 .nutri-panel .topbar-zone {
@@ -471,8 +472,8 @@
     display: inline-flex;
   }
 
-  /* Topbar: esconde a categoria, foco no título */
-  .nutri-panel .topbar { padding: 0 14px; gap: 8px; }
+  /* Topbar: esconde a categoria, foco no título — mantém safe area */
+  .nutri-panel .topbar { padding: max(12px, calc(var(--sat, 0px) + 12px)) 14px 12px; gap: 8px; }
   .nutri-panel .topbar-zone,
   .nutri-panel .topbar-sep,
   .nutri-panel .topbar-date { display: none; }
