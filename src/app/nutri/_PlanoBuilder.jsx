@@ -180,6 +180,72 @@ const TACO_DATA = [
   { nome: 'Granola',                    cat: 'carbo', kcal: 394, prot_g: 7.6,  cho_g: 64.9, lip_g: 13.7 },
   { nome: 'Linhaça',                    cat: 'carbo', kcal: 495, prot_g: 18.3, cho_g: 28.9, lip_g: 34.4 },
   { nome: 'Chia',                       cat: 'carbo', kcal: 490, prot_g: 16.5, cho_g: 42.1, lip_g: 30.7 },
+  // Pães e torradas adicionais
+  { nome: 'Pão de forma branco',        cat: 'carbo', kcal: 266, prot_g: 8.0,  cho_g: 51.5, lip_g: 3.5  },
+  { nome: 'Pão sírio',                  cat: 'carbo', kcal: 264, prot_g: 8.6,  cho_g: 54.2, lip_g: 1.9  },
+  { nome: 'Torrada tradicional',        cat: 'carbo', kcal: 418, prot_g: 12.0, cho_g: 78.5, lip_g: 6.5  },
+  { nome: 'Torrada integral',           cat: 'carbo', kcal: 396, prot_g: 12.5, cho_g: 72.0, lip_g: 7.0  },
+  { nome: 'Bisnaguinha',                cat: 'carbo', kcal: 310, prot_g: 8.5,  cho_g: 55.5, lip_g: 5.8  },
+  { nome: 'Pão de mel',                 cat: 'carbo', kcal: 363, prot_g: 5.0,  cho_g: 72.5, lip_g: 5.5  },
+  { nome: 'Broa de milho',              cat: 'carbo', kcal: 333, prot_g: 5.5,  cho_g: 62.0, lip_g: 7.5  },
+  // Cuscuz e massas adicionais
+  { nome: 'Cuscuz paulista cozido',     cat: 'carbo', kcal: 165, prot_g: 6.0,  cho_g: 27.0, lip_g: 3.8  },
+  { nome: 'Nhoque de batata cozido',    cat: 'carbo', kcal: 145, prot_g: 3.5,  cho_g: 28.5, lip_g: 2.3  },
+  // Carnes bovinas adicionais
+  { nome: 'Alcatra grelhada',           cat: 'prot',  kcal: 185, prot_g: 26.0, cho_g: 0.0,  lip_g: 9.0  },
+  { nome: 'Fraldinha grelhada',         cat: 'prot',  kcal: 178, prot_g: 25.5, cho_g: 0.0,  lip_g: 8.2  },
+  { nome: 'Filé mignon grelhado',       cat: 'prot',  kcal: 195, prot_g: 28.0, cho_g: 0.0,  lip_g: 8.8  },
+  { nome: 'Costela bovina cozida',      cat: 'prot',  kcal: 292, prot_g: 25.0, cho_g: 0.0,  lip_g: 20.5 },
+  { nome: 'Linguiça bovina grelhada',   cat: 'prot',  kcal: 250, prot_g: 14.0, cho_g: 2.5,  lip_g: 21.0 },
+  // Aves adicionais
+  { nome: 'Frango sobrecoxa cozida s/p',cat: 'prot',  kcal: 190, prot_g: 22.0, cho_g: 0.0,  lip_g: 11.0 },
+  { nome: 'Ovo frito',                  cat: 'prot',  kcal: 196, prot_g: 13.6, cho_g: 0.5,  lip_g: 15.6 },
+  { nome: 'Clara de ovo cozida',        cat: 'prot',  kcal: 52,  prot_g: 10.9, cho_g: 0.7,  lip_g: 0.2  },
+  // Suínos adicionais
+  { nome: 'Pernil suíno assado',        cat: 'prot',  kcal: 215, prot_g: 25.5, cho_g: 0.0,  lip_g: 12.5 },
+  { nome: 'Linguiça de porco grelhada', cat: 'prot',  kcal: 345, prot_g: 16.0, cho_g: 2.5,  lip_g: 29.5 },
+  { nome: 'Costela suína assada',       cat: 'prot',  kcal: 308, prot_g: 19.5, cho_g: 0.0,  lip_g: 25.5 },
+  { nome: 'Presunto',                   cat: 'prot',  kcal: 145, prot_g: 18.0, cho_g: 3.5,  lip_g: 6.5  },
+  { nome: 'Apresuntado',                cat: 'prot',  kcal: 130, prot_g: 14.5, cho_g: 4.5,  lip_g: 6.0  },
+  // Peixes adicionais
+  { nome: 'Salmão grelhado',            cat: 'prot',  kcal: 208, prot_g: 20.1, cho_g: 0.0,  lip_g: 13.5 },
+  { nome: 'Merluza cozida',             cat: 'prot',  kcal: 78,  prot_g: 16.8, cho_g: 0.0,  lip_g: 1.1  },
+  { nome: 'Bacalhau cozido',            cat: 'prot',  kcal: 152, prot_g: 32.8, cho_g: 0.0,  lip_g: 2.0  },
+  { nome: 'Atum fresco grelhado',       cat: 'prot',  kcal: 184, prot_g: 29.9, cho_g: 0.0,  lip_g: 6.8  },
+  // Laticínios adicionais
+  { nome: 'Leite semidesnatado',        cat: 'prot',  kcal: 46,  prot_g: 3.3,  cho_g: 4.8,  lip_g: 1.5  },
+  { nome: 'Iogurte natural desnatado',  cat: 'prot',  kcal: 50,  prot_g: 5.0,  cho_g: 6.5,  lip_g: 0.3  },
+  // Queijos adicionais
+  { nome: 'Queijo coalho',              cat: 'prot',  kcal: 264, prot_g: 15.0, cho_g: 1.0,  lip_g: 22.5 },
+  { nome: 'Queijo ricota',              cat: 'prot',  kcal: 155, prot_g: 11.0, cho_g: 3.5,  lip_g: 11.0 },
+  { nome: 'Queijo minas padrão',        cat: 'prot',  kcal: 283, prot_g: 21.0, cho_g: 3.0,  lip_g: 21.0 },
+  // Legumes adicionais
+  { nome: 'Couve-flor cozida',          cat: 'carbo', kcal: 23,  prot_g: 2.4,  cho_g: 3.6,  lip_g: 0.2  },
+  { nome: 'Couve refogada',             cat: 'carbo', kcal: 63,  prot_g: 3.5,  cho_g: 9.5,  lip_g: 0.8  },
+  { nome: 'Agrião cru',                 cat: 'carbo', kcal: 19,  prot_g: 1.7,  cho_g: 2.9,  lip_g: 0.3  },
+  { nome: 'Repolho cru',                cat: 'carbo', kcal: 22,  prot_g: 1.3,  cho_g: 5.0,  lip_g: 0.1  },
+  { nome: 'Acelga cozida',              cat: 'carbo', kcal: 16,  prot_g: 1.4,  cho_g: 2.4,  lip_g: 0.3  },
+  { nome: 'Ervilha fresca',             cat: 'leg',   kcal: 75,  prot_g: 5.2,  cho_g: 13.7, lip_g: 0.4  },
+  // Frutas adicionais
+  { nome: 'Banana nanica',              cat: 'fruta', kcal: 89,  prot_g: 1.4,  cho_g: 23.1, lip_g: 0.1  },
+  { nome: 'Limão',                      cat: 'fruta', kcal: 29,  prot_g: 0.9,  cho_g: 7.4,  lip_g: 0.4  },
+  { nome: 'Coco fresco',                cat: 'fruta', kcal: 354, prot_g: 3.3,  cho_g: 14.3, lip_g: 33.5 },
+  { nome: 'Goiaba',                     cat: 'fruta', kcal: 54,  prot_g: 1.1,  cho_g: 14.3, lip_g: 0.5  },
+  { nome: 'Acerola',                    cat: 'fruta', kcal: 32,  prot_g: 0.8,  cho_g: 7.3,  lip_g: 0.2  },
+  // Oleaginosas e sementes adicionais
+  { nome: 'Macadâmia',                  cat: 'carbo', kcal: 718, prot_g: 7.9,  cho_g: 13.8, lip_g: 75.8 },
+  { nome: 'Pistache torrado',           cat: 'carbo', kcal: 562, prot_g: 20.2, cho_g: 27.5, lip_g: 45.5 },
+  { nome: 'Avelã',                      cat: 'carbo', kcal: 628, prot_g: 15.0, cho_g: 16.7, lip_g: 60.8 },
+  { nome: 'Linhaça dourada',            cat: 'carbo', kcal: 495, prot_g: 18.0, cho_g: 29.0, lip_g: 34.2 },
+  { nome: 'Quinoa em grão cru',         cat: 'carbo', kcal: 368, prot_g: 14.1, cho_g: 64.2, lip_g: 6.1  },
+  // Bebidas adicionais
+  { nome: 'Água de coco',               cat: 'carbo', kcal: 19,  prot_g: 0.7,  cho_g: 3.7,  lip_g: 0.2  },
+  { nome: 'Café com leite',             cat: 'carbo', kcal: 30,  prot_g: 1.5,  cho_g: 2.5,  lip_g: 1.3  },
+  // Doces e açúcares adicionais
+  { nome: 'Açúcar mascavo',             cat: 'carbo', kcal: 350, prot_g: 0.7,  cho_g: 90.0, lip_g: 0.1  },
+  { nome: 'Chocolate ao leite',         cat: 'carbo', kcal: 535, prot_g: 7.5,  cho_g: 59.5, lip_g: 29.0 },
+  // Gorduras adicionais
+  { nome: 'Óleo de soja',               cat: 'carbo', kcal: 884, prot_g: 0.0,  cho_g: 0.0,  lip_g: 100.0},
 ];
 
 /* ── Tabela TBCA — USP (por 100g) ───────────────────────────── */
@@ -238,6 +304,30 @@ const TBCA_DATA = [
   { nome: 'Farofa de manteiga',               cat: 'carbo', kcal: 413, prot_g: 2.5,  cho_g: 68.5, lip_g: 15.0 },
   { nome: 'Paçoca de amendoim',               cat: 'carbo', kcal: 460, prot_g: 12.0, cho_g: 58.0, lip_g: 20.0 },
   { nome: 'Brigadeiro',                       cat: 'carbo', kcal: 388, prot_g: 5.5,  cho_g: 68.5, lip_g: 10.5 },
+  // Massas e preparações adicionais
+  { nome: 'Yakisoba cozido',                  cat: 'carbo', kcal: 117, prot_g: 4.5,  cho_g: 16.8, lip_g: 3.5  },
+  { nome: 'Lasanha de carne',                 cat: 'prot',  kcal: 155, prot_g: 8.5,  cho_g: 14.5, lip_g: 7.0  },
+  // Suínos adicionais
+  { nome: 'Bacon',                            cat: 'prot',  kcal: 541, prot_g: 37.0, cho_g: 1.4,  lip_g: 42.0 },
+  // Queijos adicionais
+  { nome: 'Queijo cheddar',                   cat: 'prot',  kcal: 404, prot_g: 25.0, cho_g: 1.3,  lip_g: 33.0 },
+  { nome: 'Queijo brie',                      cat: 'prot',  kcal: 334, prot_g: 20.8, cho_g: 0.5,  lip_g: 27.7 },
+  { nome: 'Queijo gorgonzola',                cat: 'prot',  kcal: 353, prot_g: 21.4, cho_g: 2.3,  lip_g: 28.7 },
+  // Sementes adicionais
+  { nome: 'Semente de girassol',              cat: 'carbo', kcal: 582, prot_g: 23.4, cho_g: 20.0, lip_g: 51.5 },
+  { nome: 'Psyllium',                         cat: 'carbo', kcal: 37,  prot_g: 0.5,  cho_g: 8.7,  lip_g: 0.3  },
+  // Bebidas vegetais adicionais
+  { nome: 'Leite de aveia',                   cat: 'carbo', kcal: 47,  prot_g: 1.0,  cho_g: 8.0,  lip_g: 1.5  },
+  { nome: 'Leite de amêndoas',                cat: 'carbo', kcal: 17,  prot_g: 0.6,  cho_g: 0.6,  lip_g: 1.5  },
+  // Chás e bebidas
+  { nome: 'Chá verde',                        cat: 'carbo', kcal: 1,   prot_g: 0.2,  cho_g: 0.2,  lip_g: 0.0  },
+  { nome: 'Chá preto',                        cat: 'carbo', kcal: 1,   prot_g: 0.2,  cho_g: 0.1,  lip_g: 0.0  },
+  { nome: 'Refrigerante cola',                cat: 'carbo', kcal: 39,  prot_g: 0.0,  cho_g: 10.0, lip_g: 0.0  },
+  { nome: 'Refrigerante zero',                cat: 'carbo', kcal: 0,   prot_g: 0.0,  cho_g: 0.0,  lip_g: 0.0  },
+  // Doces adicionais
+  { nome: 'Bolo de chocolate',                cat: 'carbo', kcal: 383, prot_g: 5.0,  cho_g: 54.0, lip_g: 16.5 },
+  { nome: 'Sorvete de creme',                 cat: 'carbo', kcal: 207, prot_g: 3.5,  cho_g: 23.5, lip_g: 11.5 },
+  { nome: 'Gelatina',                         cat: 'carbo', kcal: 48,  prot_g: 1.5,  cho_g: 10.7, lip_g: 0.0  },
 ];
 
 /* ── Tabela Tucunduva (por 100g / porção indicada) ──────────── */
