@@ -486,110 +486,115 @@ function TabTabela({ dados, rotulo, onAdicionar }) {
 /* ── Lista pronta de substituições ──────────────────────────── */
 const LISTA_PRONTA_DATA = [
   { cat: 'carbo', label: 'Carboidrato', itens: [
-    'Pão de forma tradicional ou integral sem grãos – 2 fatias',
-    'Pão francês sem miolo – 1 unidade',
-    'Torrada integral – 4 unidades',
-    'Rap10 – 1 unidade',
-    'Goma de tapioca 45g',
-    'Pão sírio 50g',
-    'Cuscuz já pronto 100g',
-    'Pão bisnaguinha 3 unidades',
-    'Torrada lev magic toast 7 unidades',
-    'Arroz branco ou integral 100g',
-    'Batata inglesa 120g',
-    'Aipim/mandioca 100g',
-    'Batata doce 105g',
-    'Inhame 100g',
-    'Batata baroa/mandioquinha 150g',
-    'Milho para pipoca 30g',
-    'Farelo de aveia 30g',
-    'Quinoa já cozida 80g',
-    'Macarrão tradicional ou integral 100g',
-    'Abóbora 170g',
-    'Milho 120g',
-    'Farofa 25g',
-    'Pão de hambúrguer 50g',
+    { nome: 'Pão de forma tradicional ou integral sem grãos',  qty: '2 fatias' },
+    { nome: 'Pão francês sem miolo',                           qty: '1 unidade' },
+    { nome: 'Torrada integral',                                qty: '4 unidades' },
+    { nome: 'Rap10',                                           qty: '1 unidade' },
+    { nome: 'Goma de tapioca',                                 qty: '45g' },
+    { nome: 'Pão sírio',                                       qty: '50g' },
+    { nome: 'Cuscuz já pronto',                                qty: '100g' },
+    { nome: 'Pão bisnaguinha',                                 qty: '3 unidades' },
+    { nome: 'Torrada Lev Magic Toast',                         qty: '7 unidades' },
+    { nome: 'Arroz branco ou integral',                        qty: '100g' },
+    { nome: 'Batata inglesa',                                  qty: '120g' },
+    { nome: 'Aipim/mandioca',                                  qty: '100g' },
+    { nome: 'Batata-doce',                                     qty: '105g' },
+    { nome: 'Inhame',                                          qty: '100g' },
+    { nome: 'Batata baroa/mandioquinha',                       qty: '150g' },
+    { nome: 'Milho para pipoca',                               qty: '30g' },
+    { nome: 'Farelo de aveia',                                 qty: '30g' },
+    { nome: 'Quinoa cozida',                                   qty: '80g' },
+    { nome: 'Macarrão tradicional ou integral',                qty: '100g' },
+    { nome: 'Abóbora',                                         qty: '170g' },
+    { nome: 'Milho',                                           qty: '120g' },
+    { nome: 'Farofa',                                          qty: '25g' },
+    { nome: 'Pão de hambúrguer',                               qty: '50g' },
   ]},
   { cat: 'prot', label: 'Proteína', itens: [
-    'Ovo – 1 unidade',
-    'Queijo Minas Frescal 30g',
-    'Queijo minas padrão 20g',
-    'Queijo meia cura 20g',
-    'Queijo curado 20g',
-    'Muçarela 20g',
-    'Ricota 40g',
-    'Muçarela de búfala 20g',
-    'Queijo coalho 15g',
-    'Peito de frango 100g',
-    'Sobrecoxa sem pele 90g',
-    'Fígado 100g',
-    'Moela 100g',
-    'Picanha sem gordura 80g',
-    'Músculo 120g',
-    'Patinho moído 100g',
-    'Bife de alcatra 100g',
-    'Whey protein 30g',
-    'Lombo suíno 100g',
-    'Picanha suína 90g',
-    'Tilápia 150g',
-    'Salmão 100g',
-    'Filé de merluza 110g',
-    'Camarão 120g',
-    'Sardinha enlatada em água 105g',
-    'Atum enlatado em água 100g',
-    'Ovo de galinha 2 unidades',
-    'Iogurte natural desnatado 160g',
-    'Iogurte grego zero 1 unidade',
-    'Leite desnatado 150ml',
+    { nome: 'Ovo',                                             qty: '1 unidade' },
+    { nome: 'Queijo minas frescal',                            qty: '30g' },
+    { nome: 'Queijo minas padrão',                             qty: '20g' },
+    { nome: 'Queijo meia cura',                                qty: '20g' },
+    { nome: 'Queijo curado',                                   qty: '20g' },
+    { nome: 'Muçarela',                                        qty: '20g' },
+    { nome: 'Ricota',                                          qty: '40g' },
+    { nome: 'Muçarela de búfala',                              qty: '20g' },
+    { nome: 'Queijo coalho',                                   qty: '15g' },
+    { nome: 'Peito de frango',                                 qty: '100g' },
+    { nome: 'Sobrecoxa sem pele',                              qty: '90g' },
+    { nome: 'Fígado',                                          qty: '100g' },
+    { nome: 'Moela',                                           qty: '100g' },
+    { nome: 'Picanha sem gordura',                             qty: '80g' },
+    { nome: 'Músculo',                                         qty: '120g' },
+    { nome: 'Patinho moído',                                   qty: '100g' },
+    { nome: 'Bife de alcatra',                                 qty: '100g' },
+    { nome: 'Whey protein',                                    qty: '30g' },
+    { nome: 'Lombo suíno',                                     qty: '100g' },
+    { nome: 'Picanha suína',                                   qty: '90g' },
+    { nome: 'Tilápia',                                         qty: '150g' },
+    { nome: 'Salmão',                                          qty: '100g' },
+    { nome: 'Filé de merluza',                                 qty: '110g' },
+    { nome: 'Camarão',                                         qty: '120g' },
+    { nome: 'Sardinha enlatada em água',                       qty: '105g' },
+    { nome: 'Atum enlatado em água',                           qty: '100g' },
+    { nome: 'Ovo de galinha',                                  qty: '2 unidades' },
+  ]},
+  { cat: 'prot', label: 'Proteína Líquida', itens: [
+    { nome: 'Iogurte natural desnatado (somente com 2 ingredientes) — Nestlé, Batavo ou Paulista', qty: '160g' },
+    { nome: 'Itambé Fit sabor morango',                        qty: '160ml' },
+    { nome: 'Iogurte grego zero',                              qty: '1 unidade' },
+    { nome: 'Batavo Pense Zero',                               qty: '160ml' },
+    { nome: 'Leite desnatado',                                 qty: '150ml' },
+    { nome: 'Leite em pó desnatado',                           qty: '2 colheres de sopa' },
   ]},
   { cat: 'fruta', label: 'Fruta', itens: [
-    'Banana prata – 1 unidade',
-    'Uva 15 unidades',
-    'Morango 15 unidades',
-    'Melão 300g',
-    'Mamão 150g',
-    'Melancia 350g',
-    'Manga 200g',
-    'Maçã 1 unidade',
-    'Tangerina 1 unidade',
-    'Laranja 1 unidade',
-    'Kiwi 2 unidades',
-    'Abacate 50g',
-    'Abacaxi 150g',
-    'Pera 1 unidade',
-    'Coco seco 15g',
-    'Caqui 1 unidade',
-    'Pêssego 2 unidades',
-    'Acerola 200g',
-    'Jabuticaba 200g',
-    'Cajá 200g',
-    'Figo 150g',
-    'Goiaba 200g',
-    'Jambo 300g',
-    'Mangaba 180g',
-    'Pitaya 200g',
+    { nome: 'Banana prata',                                    qty: '1 unidade' },
+    { nome: 'Uva',                                             qty: '15 unidades' },
+    { nome: 'Morango',                                         qty: '15 unidades' },
+    { nome: 'Melão',                                           qty: '300g' },
+    { nome: 'Mamão',                                           qty: '150g' },
+    { nome: 'Melancia',                                        qty: '350g' },
+    { nome: 'Manga',                                           qty: '200g' },
+    { nome: 'Maçã',                                            qty: '1 unidade' },
+    { nome: 'Tangerina',                                       qty: '1 unidade' },
+    { nome: 'Laranja',                                         qty: '1 unidade' },
+    { nome: 'Kiwi',                                            qty: '2 unidades' },
+    { nome: 'Abacate',                                         qty: '50g' },
+    { nome: 'Abacaxi',                                         qty: '150g' },
+    { nome: 'Pera',                                            qty: '1 unidade' },
+    { nome: 'Coco seco',                                       qty: '15g' },
+    { nome: 'Caqui',                                           qty: '1 unidade' },
+    { nome: 'Pêssego',                                         qty: '2 unidades' },
+    { nome: 'Acerola',                                         qty: '200g' },
+    { nome: 'Jabuticaba',                                      qty: '200g' },
+    { nome: 'Cajá',                                            qty: '200g' },
+    { nome: 'Figo',                                            qty: '150g' },
+    { nome: 'Goiaba',                                          qty: '200g' },
+    { nome: 'Jambo',                                           qty: '300g' },
+    { nome: 'Mangaba',                                         qty: '180g' },
+    { nome: 'Pitaya',                                          qty: '200g' },
   ]},
   { cat: 'leg', label: 'Leguminosa', itens: [
-    'Feijão 150g',
-    'Lentilha 150g',
-    'Soja 75g',
-    'Grão de bico 75g',
+    { nome: 'Feijão',                                          qty: '150g' },
+    { nome: 'Lentilha',                                        qty: '150g' },
+    { nome: 'Soja',                                            qty: '75g' },
+    { nome: 'Grão-de-bico',                                    qty: '75g' },
   ]},
   { cat: 'bebida', label: 'Bebida', itens: [
-    'Café puro',
-    'Café com adoçante',
-    'Suco de limão com adoçante',
-    'Suco de morango com adoçante',
-    'Suco de melancia com adoçante',
-    'Suco de acerola com adoçante',
-    'Suco de maracujá com adoçante',
+    { nome: 'Café puro',                                       qty: '' },
+    { nome: 'Café com adoçante',                               qty: '' },
+    { nome: 'Suco de limão com adoçante',                      qty: '' },
+    { nome: 'Suco de morango com adoçante',                    qty: '' },
+    { nome: 'Suco de melancia com adoçante',                   qty: '' },
+    { nome: 'Suco de acerola com adoçante',                    qty: '' },
+    { nome: 'Suco de maracujá com adoçante',                   qty: '' },
   ]},
 ];
 
 /* ── Modal: adicionar alimento ou substituto ────────────────── */
 function ModalAlimento({ isSub, nutriId, onConfirm, onConfirmMulti, onFechar }) {
   const [tab, setTab]           = useState(isSub ? 'lista' : 'taco');
-  const [listaSel, setListaSel] = useState(new Set());
+  const [listaSel, setListaSel] = useState(new Map()); // key → qty editável
   const [manual, setManual]     = useState({ nome: '', qty: '', kcal: '', prot_g: '', cho_g: '', lip_g: '' });
   const [salvos, setSalvos]     = useState([]);
   const [editandoId, setEditandoId] = useState(null);
@@ -639,10 +644,18 @@ function ModalAlimento({ isSub, nutriId, onConfirm, onConfirmMulti, onFechar }) 
     setSalvos(prev => prev.filter(s => s.id !== id));
   }
 
-  function toggleLista(key) {
+  function toggleLista(key, defaultQty) {
     setListaSel(prev => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key); else next.add(key);
+      const next = new Map(prev);
+      if (next.has(key)) next.delete(key); else next.set(key, defaultQty);
+      return next;
+    });
+  }
+
+  function setListaQty(key, qty) {
+    setListaSel(prev => {
+      const next = new Map(prev);
+      next.set(key, qty);
       return next;
     });
   }
@@ -651,12 +664,14 @@ function ModalAlimento({ isSub, nutriId, onConfirm, onConfirmMulti, onFechar }) 
     const selecionados = [];
     for (const cat of LISTA_PRONTA_DATA) {
       for (const item of cat.itens) {
-        if (listaSel.has(`${cat.cat}::${item}`)) {
-          selecionados.push({ id: uid(), nome: item, qty: '', kcal: null, prot_g: null, cho_g: null, lip_g: null, subs: [], catKey: cat.cat });
+        const key = `${cat.cat}::${item.nome}`;
+        if (listaSel.has(key)) {
+          const qty = listaSel.get(key) ?? item.qty;
+          selecionados.push({ id: uid(), nome: item.nome, qty: qty || '', kcal: null, prot_g: null, cho_g: null, lip_g: null, subs: [], catKey: cat.cat });
         }
       }
     }
-    if (selecionados.length === 0) return;
+    if (!selecionados.length) return;
     onConfirmMulti(selecionados);
   }
 
@@ -697,23 +712,55 @@ function ModalAlimento({ isSub, nutriId, onConfirm, onConfirmMulti, onFechar }) 
           {tab === 'lista' && (
             <>
               <div style={{ fontSize: 12, color: 'var(--text3)', marginBottom: 12 }}>
-                Selecione os substitutos e clique em "Adicionar selecionados".
+                Selecione os substitutos — edite a quantidade se necessário — e clique em "Adicionar selecionados".
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                 {LISTA_PRONTA_DATA.map(cat => (
-                  <div key={cat.cat}>
-                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.07em', color: 'var(--terra)', marginBottom: 6 }}>
+                  <div key={`${cat.cat}::${cat.label}`}>
+                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.07em', color: 'var(--terra)', marginBottom: 8 }}>
                       {cat.label}
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {cat.itens.map(item => {
-                        const key = `${cat.cat}::${item}`;
+                        const key = `${cat.cat}::${item.nome}`;
                         const checked = listaSel.has(key);
+                        const qty = checked ? (listaSel.get(key) ?? item.qty) : item.qty;
                         return (
-                          <label key={key} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, cursor: 'pointer', padding: '4px 6px', borderRadius: 6, background: checked ? '#fffbf5' : 'transparent' }}>
-                            <input type="checkbox" checked={checked} onChange={() => toggleLista(key)} style={{ marginTop: 2, accentColor: 'var(--verde)', flexShrink: 0 }} />
-                            <span style={{ fontSize: 13, color: 'var(--dark)', lineHeight: 1.4 }}>{item}</span>
-                          </label>
+                          <div
+                            key={key}
+                            onClick={() => toggleLista(key, item.qty)}
+                            style={{
+                              display: 'flex', alignItems: 'flex-start', gap: 10,
+                              padding: '10px 12px', borderRadius: 8, cursor: 'pointer',
+                              border: `1px solid ${checked ? 'var(--green)' : 'var(--border)'}`,
+                              background: checked ? '#f5fbf0' : '#fafafa',
+                              transition: 'all .12s',
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() => toggleLista(key, item.qty)}
+                              onClick={e => e.stopPropagation()}
+                              style={{ width: 17, height: 17, marginTop: 2, accentColor: 'var(--verde)', flexShrink: 0, cursor: 'pointer' }}
+                            />
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--dark)', lineHeight: 1.4 }}>{item.nome}</div>
+                              {checked ? (
+                                <input
+                                  value={qty}
+                                  onChange={e => setListaQty(key, e.target.value)}
+                                  onClick={e => e.stopPropagation()}
+                                  placeholder="Quantidade"
+                                  style={{ marginTop: 5, fontSize: 12, width: '100%', maxWidth: 200 }}
+                                />
+                              ) : (
+                                item.qty
+                                  ? <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 2 }}>{item.qty}</div>
+                                  : null
+                              )}
+                            </div>
+                          </div>
                         );
                       })}
                     </div>
@@ -1286,7 +1333,7 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
                         <td style={{ padding: '7px 10px', whiteSpace: 'nowrap' }}>
                           <button
                             onClick={() => setModal({ refId: ref.id, alimentoId: al.id })}
-                            style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 4, cursor: 'pointer', fontSize: 10, color: 'var(--text3)', padding: '2px 7px', marginRight: 4 }}
+                            style={{ background: 'none', border: '1px solid var(--red)', borderRadius: 4, cursor: 'pointer', fontSize: 10, color: 'var(--red)', fontWeight: 600, padding: '2px 7px', marginRight: 4 }}
                             title="Adicionar substituto"
                           >
                             + sub
