@@ -146,9 +146,6 @@ function pag1(pacienteNome, macros, e, pacienteDados) {
   const protP = (prot != null && kcalTotal > 0) ? Math.round(prot * 4 / kcalTotal * 100) : null;
   const lipP  = (lip  != null && kcalTotal > 0) ? Math.round(lip  * 9 / kcalTotal * 100) : null;
 
-  const fibras = macros?.fibras_g ? `${macros.fibras_g}g` : '—';
-  const agua   = macros?.agua_l   ? `${macros.agua_l}L`   : '—';
-
   const bioPartes = [
     pd.idade     != null ? `${pd.idade} anos`    : null,
     pd.peso_kg   != null ? `${pd.peso_kg} kg`    : null,
@@ -168,7 +165,7 @@ function pag1(pacienteNome, macros, e, pacienteDados) {
     ? `<div class="alerta-cintura">Acima de 80 cm — risco aumentado</div>`
     : '';
 
-  const consultaN = e?.consulta_n ?? '—';
+  const consultaN = (e?.consulta_n ?? '').trim();
 
   return pagina(`
   <div class="capa-topo">
@@ -179,7 +176,7 @@ function pag1(pacienteNome, macros, e, pacienteDados) {
     ${bioPartes.length ? `<div class="capa-bio">${bioPartes.map(esc).join(' · ')}</div>` : ''}
     ${pd.objetivo ? `<div class="capa-objetivo">Objetivo: ${esc(pd.objetivo)}</div>` : ''}
     <div class="capa-sep"></div>
-    <div class="capa-consulta">CONSULTA Nº ${esc(String(consultaN))} · ${_hoje()} · NUTRICIONISTA JÚLIA PINHEIRO | CRN 20100737</div>
+    <div class="capa-consulta">${consultaN ? `CONSULTA Nº ${esc(consultaN)} · ` : ''}${_hoje()} · NUTRICIONISTA JÚLIA PINHEIRO | CRN 20100737</div>
   </div>
   <div class="dados-macros">
     <div>
@@ -219,10 +216,7 @@ function pag1(pacienteNome, macros, e, pacienteDados) {
         </div>
       </div>
       <div class="calorias-total"><strong>${kcalTotal ? Math.round(kcalTotal) : '—'} kcal</strong> · total diário</div>
-      <div class="circunf-grid" style="margin-top:10px">
-        <div class="circunf-box"><div class="circunf-nome">fibras</div><div class="circunf-val">${fibras}</div></div>
-        <div class="circunf-box"><div class="circunf-nome">água/dia</div><div class="circunf-val">${agua}</div></div>
-      </div>
+      ${(e?.agua_diaria ?? '').trim() ? `<div class="circunf-grid" style="margin-top:10px"><div class="circunf-box"><div class="circunf-nome">água/dia</div><div class="circunf-val">${esc((e.agua_diaria ?? '').trim())}</div></div></div>` : ''}
     </div>
   </div>`);
 }

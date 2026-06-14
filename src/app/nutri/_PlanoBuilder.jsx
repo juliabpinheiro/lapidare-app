@@ -910,10 +910,11 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
     catch { return []; }
   });
   const [orientacoes, setOrientacoes] = useState(() => {
+    const base = { prioridades: '', metas: '', suplementacao: '', consulta_n: '', agua_diaria: '' };
     try {
       const s = localStorage.getItem(`plano_orientacoes_${pacienteId}`);
-      return s ? JSON.parse(s) : { prioridades: '', metas: '', suplementacao: '' };
-    } catch { return { prioridades: '', metas: '', suplementacao: '' }; }
+      return s ? { ...base, ...JSON.parse(s) } : base;
+    } catch { return base; }
   });
   const [modal, setModal]         = useState(null); // { refId, alimentoId: string|null }
   const [publicando, setPublicando] = useState(false);
@@ -953,7 +954,7 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
       .limit(1).maybeSingle()
       .then(({ data }) => {
         const o = data?.dados?.orientacoes;
-        if (o?.prioridades || o?.metas || o?.suplementacao) setOrientacoes(o);
+        if (o?.prioridades || o?.metas || o?.suplementacao) setOrientacoes(prev => ({ ...prev, ...o }));
       });
   }, [pacienteId]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -1070,7 +1071,7 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
     return gerarPlanoHtml({
       pacienteNome,
       plano:      buildPlano(),
-      extras:     { prioridades: orientacoes.prioridades, metas: orientacoes.metas, suplementos: orientacoes.suplementacao },
+      extras:     { prioridades: orientacoes.prioridades, metas: orientacoes.metas, suplementos: orientacoes.suplementacao, consulta_n: orientacoes.consulta_n, agua_diaria: orientacoes.agua_diaria },
       subsTexto:  buildSubsTexto(refeicoes),
       nutriNome:  nutriInfo.nome,
       nutriCrn:   nutriInfo.crn,
@@ -1119,9 +1120,11 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
       pacienteNome,
       plano:         buildPlano(),
       extras:        {
-        prioridades: orientacoes.prioridades,
-        metas:       orientacoes.metas,
-        suplementos: orientacoes.suplementacao,
+        prioridades:  orientacoes.prioridades,
+        metas:        orientacoes.metas,
+        suplementos:  orientacoes.suplementacao,
+        consulta_n:   orientacoes.consulta_n,
+        agua_diaria:  orientacoes.agua_diaria,
       },
       subsTexto:     buildSubsTexto(refeicoes),
       nutriNome:     nutriInfo.nome,
@@ -1364,7 +1367,27 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
 
       {/* ── Orientações do Plano ── */}
       <div className="card" style={{ padding: 20 }}>
-        <div className="section-title" style={{ marginBottom: 16 }}>Orientações do Plano</div>
+        <div className="section-title" style={{ marginBottom: 14 }}>Orientações do Plano</div>
+        <div style={{ display: 'flex', gap: 14, marginBottom: 16, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+          <div>
+            <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '.08em', fontWeight: 500 }}>Nº da consulta</div>
+            <input
+              value={orientacoes.consulta_n ?? ''}
+              onChange={ev => setOrientacoes(prev => ({ ...prev, consulta_n: ev.target.value }))}
+              placeholder="Ex: 1ª consulta, retorno"
+              style={{ width: 200, fontSize: 13 }}
+            />
+          </div>
+          <div>
+            <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '.08em', fontWeight: 500 }}>Água diária</div>
+            <input
+              value={orientacoes.agua_diaria ?? ''}
+              onChange={ev => setOrientacoes(prev => ({ ...prev, agua_diaria: ev.target.value }))}
+              placeholder="Ex: 2,5L"
+              style={{ width: 120, fontSize: 13 }}
+            />
+          </div>
+        </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
           {[
             { key: 'prioridades',   label: 'prioridades',  ph: 'Ex:\n— Fracionar refeições\n— Reduzir ultraprocessados' },
