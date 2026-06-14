@@ -182,6 +182,217 @@ const TACO_DATA = [
   { nome: 'Chia',                       cat: 'carbo', kcal: 490, prot_g: 16.5, cho_g: 42.1, lip_g: 30.7 },
 ];
 
+/* ── Tabela TBCA — USP (por 100g) ───────────────────────────── */
+const TBCA_DATA = [
+  // Cereais, pães e derivados
+  { nome: 'Quinoa cozida',                    cat: 'carbo', kcal: 120, prot_g: 4.4,  cho_g: 21.3, lip_g: 1.9  },
+  { nome: 'Amaranto cozido',                  cat: 'carbo', kcal: 102, prot_g: 3.8,  cho_g: 18.7, lip_g: 1.6  },
+  { nome: 'Trigo bulgur cozido',              cat: 'carbo', kcal: 83,  prot_g: 3.1,  cho_g: 18.6, lip_g: 0.2  },
+  { nome: 'Cevada em grão cozida',            cat: 'carbo', kcal: 123, prot_g: 2.3,  cho_g: 28.2, lip_g: 0.4  },
+  { nome: 'Arroz parboilizado cozido',        cat: 'carbo', kcal: 133, prot_g: 2.7,  cho_g: 29.3, lip_g: 0.2  },
+  { nome: 'Macarrão integral cozido',         cat: 'carbo', kcal: 142, prot_g: 6.0,  cho_g: 27.2, lip_g: 0.9  },
+  { nome: 'Pão de queijo assado',             cat: 'carbo', kcal: 327, prot_g: 4.6,  cho_g: 40.6, lip_g: 16.4 },
+  { nome: 'Bolo simples de fubá',             cat: 'carbo', kcal: 296, prot_g: 4.7,  cho_g: 49.9, lip_g: 9.1  },
+  { nome: 'Biscoito cream cracker',           cat: 'carbo', kcal: 441, prot_g: 9.2,  cho_g: 68.4, lip_g: 15.5 },
+  // Leguminosas e derivados
+  { nome: 'Feijão vermelho cozido',           cat: 'leg',   kcal: 72,  prot_g: 4.6,  cho_g: 12.8, lip_g: 0.6  },
+  { nome: 'Feijão-fradinho cozido',           cat: 'leg',   kcal: 78,  prot_g: 5.5,  cho_g: 14.0, lip_g: 0.5  },
+  { nome: 'Feijão-de-corda cozido',           cat: 'leg',   kcal: 67,  prot_g: 4.2,  cho_g: 11.7, lip_g: 0.6  },
+  { nome: 'Tofu',                             cat: 'prot',  kcal: 76,  prot_g: 8.1,  cho_g: 1.9,  lip_g: 4.2  },
+  { nome: 'Edamame cozido',                   cat: 'prot',  kcal: 121, prot_g: 11.9, cho_g: 8.9,  lip_g: 5.2  },
+  // Proteínas animais
+  { nome: 'Carne-seca cozida desfiada',       cat: 'prot',  kcal: 188, prot_g: 33.0, cho_g: 0.0,  lip_g: 6.0  },
+  { nome: 'Linguiça defumada grelhada',       cat: 'prot',  kcal: 272, prot_g: 15.0, cho_g: 3.0,  lip_g: 22.5 },
+  { nome: 'Frango assado com pele',           cat: 'prot',  kcal: 215, prot_g: 24.9, cho_g: 0.0,  lip_g: 12.6 },
+  { nome: 'Peru peito assado',                cat: 'prot',  kcal: 135, prot_g: 29.0, cho_g: 0.0,  lip_g: 1.7  },
+  { nome: 'Polvo cozido',                     cat: 'prot',  kcal: 82,  prot_g: 14.9, cho_g: 2.2,  lip_g: 1.0  },
+  { nome: 'Tambaqui assado',                  cat: 'prot',  kcal: 154, prot_g: 24.0, cho_g: 0.0,  lip_g: 6.3  },
+  { nome: 'Linguado grelhado',                cat: 'prot',  kcal: 91,  prot_g: 18.8, cho_g: 0.0,  lip_g: 1.9  },
+  // Laticínios
+  { nome: 'Queijo prato',                     cat: 'prot',  kcal: 354, prot_g: 24.0, cho_g: 1.5,  lip_g: 28.0 },
+  { nome: 'Queijo parmesão ralado',           cat: 'prot',  kcal: 392, prot_g: 35.7, cho_g: 3.2,  lip_g: 25.8 },
+  { nome: 'Creme de leite 20%',              cat: 'prot',  kcal: 194, prot_g: 2.5,  cho_g: 3.0,  lip_g: 19.5 },
+  { nome: 'Coalhada seca',                    cat: 'prot',  kcal: 136, prot_g: 9.5,  cho_g: 4.0,  lip_g: 9.0  },
+  { nome: 'Iogurte líquido desnatado',        cat: 'prot',  kcal: 45,  prot_g: 4.0,  cho_g: 6.2,  lip_g: 0.2  },
+  // Frutas
+  { nome: 'Caju',                             cat: 'fruta', kcal: 43,  prot_g: 0.9,  cho_g: 10.0, lip_g: 0.3  },
+  { nome: 'Açaí polpa',                       cat: 'fruta', kcal: 58,  prot_g: 1.1,  cho_g: 6.1,  lip_g: 3.3  },
+  { nome: 'Cupuaçu',                          cat: 'fruta', kcal: 49,  prot_g: 1.4,  cho_g: 10.8, lip_g: 0.5  },
+  { nome: 'Graviola',                         cat: 'fruta', kcal: 65,  prot_g: 1.0,  cho_g: 16.3, lip_g: 0.3  },
+  { nome: 'Maracujá polpa',                   cat: 'fruta', kcal: 64,  prot_g: 2.4,  cho_g: 13.4, lip_g: 0.4  },
+  { nome: 'Carambola',                        cat: 'fruta', kcal: 32,  prot_g: 0.6,  cho_g: 6.9,  lip_g: 0.3  },
+  { nome: 'Nectarina',                        cat: 'fruta', kcal: 44,  prot_g: 1.1,  cho_g: 10.5, lip_g: 0.3  },
+  // Verduras e legumes
+  { nome: 'Quiabo cozido',                    cat: 'carbo', kcal: 33,  prot_g: 2.0,  cho_g: 5.8,  lip_g: 0.4  },
+  { nome: 'Jiló cozido',                      cat: 'carbo', kcal: 23,  prot_g: 1.2,  cho_g: 4.2,  lip_g: 0.3  },
+  { nome: 'Rúcula crua',                      cat: 'carbo', kcal: 25,  prot_g: 2.6,  cho_g: 3.7,  lip_g: 0.7  },
+  { nome: 'Abóbora moranga cozida',           cat: 'carbo', kcal: 26,  prot_g: 0.7,  cho_g: 6.0,  lip_g: 0.1  },
+  { nome: 'Cará cozido',                      cat: 'carbo', kcal: 98,  prot_g: 1.5,  cho_g: 23.0, lip_g: 0.2  },
+  { nome: 'Maxixe cozido',                    cat: 'carbo', kcal: 18,  prot_g: 0.8,  cho_g: 2.6,  lip_g: 0.5  },
+  // Oleaginosas e outros
+  { nome: 'Gergelim',                         cat: 'carbo', kcal: 573, prot_g: 17.7, cho_g: 23.5, lip_g: 49.7 },
+  { nome: 'Tahine (pasta de gergelim)',       cat: 'prot',  kcal: 595, prot_g: 17.0, cho_g: 21.2, lip_g: 53.8 },
+  { nome: 'Semente de abóbora',              cat: 'carbo', kcal: 559, prot_g: 30.2, cho_g: 17.0, lip_g: 45.8 },
+  { nome: 'Margarina',                        cat: 'carbo', kcal: 718, prot_g: 0.5,  cho_g: 0.5,  lip_g: 80.0 },
+  { nome: 'Azeite de dendê',                  cat: 'carbo', kcal: 884, prot_g: 0.0,  cho_g: 0.0,  lip_g: 100.0},
+  { nome: 'Farofa de manteiga',               cat: 'carbo', kcal: 413, prot_g: 2.5,  cho_g: 68.5, lip_g: 15.0 },
+  { nome: 'Paçoca de amendoim',               cat: 'carbo', kcal: 460, prot_g: 12.0, cho_g: 58.0, lip_g: 20.0 },
+  { nome: 'Brigadeiro',                       cat: 'carbo', kcal: 388, prot_g: 5.5,  cho_g: 68.5, lip_g: 10.5 },
+];
+
+/* ── Tabela Tucunduva (por 100g / porção indicada) ──────────── */
+const TUCUNDUVA_DATA = [
+  // Nordeste
+  { nome: 'Baião-de-dois',                    cat: 'carbo', kcal: 151, prot_g: 5.7,  cho_g: 25.8, lip_g: 3.2  },
+  { nome: 'Carne-de-sol grelhada',            cat: 'prot',  kcal: 195, prot_g: 30.0, cho_g: 0.0,  lip_g: 8.0  },
+  { nome: 'Cuscuz nordestino com queijo',     cat: 'carbo', kcal: 194, prot_g: 6.5,  cho_g: 27.3, lip_g: 6.8  },
+  { nome: 'Pirão de peixe',                   cat: 'carbo', kcal: 85,  prot_g: 4.5,  cho_g: 15.5, lip_g: 1.0  },
+  { nome: 'Tapioca com coco',                 cat: 'carbo', kcal: 228, prot_g: 1.5,  cho_g: 39.2, lip_g: 7.5  },
+  { nome: 'Mungunzá (canjica branca)',        cat: 'carbo', kcal: 145, prot_g: 3.5,  cho_g: 27.8, lip_g: 2.5  },
+  { nome: 'Canjica amarela com coco',         cat: 'carbo', kcal: 178, prot_g: 3.0,  cho_g: 32.0, lip_g: 4.5  },
+  { nome: 'Sarapatel',                        cat: 'prot',  kcal: 166, prot_g: 14.0, cho_g: 5.0,  lip_g: 10.0 },
+  { nome: 'Buchada de bode',                  cat: 'prot',  kcal: 142, prot_g: 16.5, cho_g: 1.5,  lip_g: 7.5  },
+  // Amazônia
+  { nome: 'Açaí com banana e granola (tigela)', cat: 'fruta', kcal: 157, prot_g: 2.8, cho_g: 28.5, lip_g: 4.5 },
+  { nome: 'Tacacá',                           cat: 'carbo', kcal: 45,  prot_g: 3.2,  cho_g: 7.5,  lip_g: 0.5  },
+  { nome: 'Tucumã',                           cat: 'fruta', kcal: 157, prot_g: 1.3,  cho_g: 24.5, lip_g: 6.0  },
+  { nome: 'Pupunha cozida',                   cat: 'carbo', kcal: 167, prot_g: 3.3,  cho_g: 24.5, lip_g: 6.5  },
+  { nome: 'Buriti polpa',                     cat: 'fruta', kcal: 193, prot_g: 1.5,  cho_g: 33.0, lip_g: 6.0  },
+  { nome: 'Bacaba polpa',                     cat: 'fruta', kcal: 97,  prot_g: 1.2,  cho_g: 14.5, lip_g: 4.0  },
+  { nome: 'Pirarucu assado',                  cat: 'prot',  kcal: 115, prot_g: 25.0, cho_g: 0.0,  lip_g: 1.5  },
+  { nome: 'Filhote/Dourada grelhado',         cat: 'prot',  kcal: 109, prot_g: 22.5, cho_g: 0.0,  lip_g: 2.0  },
+  { nome: 'Maniçoba',                         cat: 'leg',   kcal: 185, prot_g: 9.0,  cho_g: 12.5, lip_g: 10.5 },
+  // Sul e Sudeste
+  { nome: 'Feijão tropeiro',                  cat: 'carbo', kcal: 187, prot_g: 9.5,  cho_g: 22.8, lip_g: 5.5  },
+  { nome: 'Tutu de feijão',                   cat: 'leg',   kcal: 148, prot_g: 6.8,  cho_g: 21.5, lip_g: 3.8  },
+  { nome: 'Angu (polenta de milho)',          cat: 'carbo', kcal: 78,  prot_g: 1.8,  cho_g: 16.5, lip_g: 0.8  },
+  { nome: 'Pinhão cozido',                    cat: 'carbo', kcal: 165, prot_g: 3.6,  cho_g: 35.7, lip_g: 1.0  },
+  { nome: 'Quirera de milho cozida',          cat: 'carbo', kcal: 90,  prot_g: 2.0,  cho_g: 19.5, lip_g: 0.5  },
+  // Bahia e outras regiões
+  { nome: 'Moqueca de peixe (porção)',        cat: 'prot',  kcal: 142, prot_g: 15.5, cho_g: 5.5,  lip_g: 6.0  },
+  { nome: 'Vatapá',                           cat: 'carbo', kcal: 218, prot_g: 8.5,  cho_g: 22.0, lip_g: 11.0 },
+  { nome: 'Acarajé (unidade)',                cat: 'carbo', kcal: 265, prot_g: 6.0,  cho_g: 27.5, lip_g: 15.5 },
+  { nome: 'Caruru',                           cat: 'carbo', kcal: 125, prot_g: 5.5,  cho_g: 12.0, lip_g: 5.5  },
+  { nome: 'Xinxim de galinha',                cat: 'prot',  kcal: 173, prot_g: 16.0, cho_g: 5.5,  lip_g: 9.5  },
+  // Vegetais regionais
+  { nome: 'Ora-pro-nóbis refogada',           cat: 'carbo', kcal: 40,  prot_g: 3.2,  cho_g: 5.5,  lip_g: 0.8  },
+  { nome: 'Taioba refogada',                  cat: 'carbo', kcal: 32,  prot_g: 2.5,  cho_g: 4.8,  lip_g: 0.5  },
+  { nome: 'Vinagreira refogada',              cat: 'carbo', kcal: 22,  prot_g: 1.8,  cho_g: 3.5,  lip_g: 0.3  },
+  // Doces e sobremesas típicas
+  { nome: 'Cocada branca',                    cat: 'carbo', kcal: 414, prot_g: 2.8,  cho_g: 73.5, lip_g: 13.0 },
+  { nome: 'Bolo de rolo',                     cat: 'carbo', kcal: 334, prot_g: 4.5,  cho_g: 55.0, lip_g: 11.5 },
+  { nome: 'Quindim',                          cat: 'carbo', kcal: 318, prot_g: 5.0,  cho_g: 48.5, lip_g: 12.0 },
+  { nome: 'Pé-de-moleque',                    cat: 'carbo', kcal: 480, prot_g: 11.5, cho_g: 57.0, lip_g: 23.0 },
+  { nome: 'Cuscuz doce de coco',              cat: 'carbo', kcal: 218, prot_g: 2.5,  cho_g: 40.0, lip_g: 5.5  },
+  { nome: 'Paçoca de rapadura',               cat: 'carbo', kcal: 415, prot_g: 10.5, cho_g: 61.0, lip_g: 15.5 },
+];
+
+/* ── Sub-componente: busca em tabela estática ─────────────────── */
+function TabTabela({ dados, rotulo, onAdicionar }) {
+  const [busca, setBusca] = useState('');
+  const [sel, setSel]     = useState(null);
+  const [qtd, setQtd]     = useState('100');
+
+  const filtrado = busca.trim().length < 2
+    ? dados
+    : dados.filter(a => a.nome.toLowerCase().includes(busca.toLowerCase()));
+
+  const g = parseFloat(qtd);
+  const preview = sel && g > 0 ? {
+    kcal:   rd(sel.kcal   * g / 100, 0),
+    prot_g: rd(sel.prot_g * g / 100, 1),
+    cho_g:  rd(sel.cho_g  * g / 100, 1),
+    lip_g:  rd(sel.lip_g  * g / 100, 1),
+  } : null;
+
+  function confirmar() {
+    if (!sel || !g || g <= 0) return;
+    const f = g / 100;
+    onAdicionar({
+      id: uid(), nome: sel.nome, qty: `${g}g`,
+      kcal:   rd(sel.kcal   * f, 0),
+      prot_g: rd(sel.prot_g * f, 1),
+      cho_g:  rd(sel.cho_g  * f, 1),
+      lip_g:  rd(sel.lip_g  * f, 1),
+      subs: [], catKey: sel.cat || '',
+    });
+  }
+
+  return (
+    <>
+      <input
+        value={busca}
+        onChange={e => { setBusca(e.target.value); setSel(null); }}
+        placeholder={`Buscar na tabela ${rotulo}…`}
+        style={{ width: '100%', fontSize: 14, marginBottom: 8 }}
+        autoFocus
+      />
+      <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 8 }}>
+        {filtrado.length} alimentos · valores por 100g ({rotulo})
+      </div>
+      <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', maxHeight: 300, overflowY: 'auto', marginBottom: 12 }}>
+        {filtrado.length === 0 && (
+          <div style={{ padding: 16, fontSize: 13, color: 'var(--text3)', textAlign: 'center' }}>
+            Nenhum alimento encontrado.
+          </div>
+        )}
+        {filtrado.map((al, i) => {
+          const ativo = sel?.nome === al.nome;
+          return (
+            <div key={al.nome}>
+              <button
+                onClick={() => { setSel(ativo ? null : al); setQtd('100'); }}
+                style={{
+                  width: '100%', textAlign: 'left', border: 'none', cursor: 'pointer',
+                  borderTop: i > 0 ? '0.5px solid var(--border)' : 'none',
+                  padding: '8px 12px', background: ativo ? '#fffbf5' : 'transparent',
+                }}
+              >
+                <div style={{ fontSize: 13, fontWeight: ativo ? 600 : 400, color: 'var(--dark)' }}>{al.nome}</div>
+                <div style={{ fontSize: 11, color: 'var(--text3)' }}>
+                  {al.kcal} kcal · {al.prot_g}g prot · {al.cho_g}g carb · {al.lip_g}g gord
+                </div>
+              </button>
+              {ativo && (
+                <div style={{ padding: '10px 12px 14px', background: '#fffbf5', borderTop: '1px solid var(--border)' }}>
+                  {preview && (
+                    <div style={{ display: 'flex', gap: 14, marginBottom: 10 }}>
+                      {[
+                        { l: 'kcal', v: preview.kcal },
+                        { l: 'prot', v: `${preview.prot_g}g` },
+                        { l: 'carb', v: `${preview.cho_g}g` },
+                        { l: 'gord', v: `${preview.lip_g}g` },
+                      ].map(m => (
+                        <div key={m.l} style={{ textAlign: 'center', minWidth: 44 }}>
+                          <div style={{ fontSize: 16, fontWeight: 700, lineHeight: 1, color: 'var(--dark)' }}>{m.v}</div>
+                          <div style={{ fontSize: 9, color: 'var(--text3)', textTransform: 'uppercase', marginTop: 2 }}>{m.l}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <input
+                      type="number" min="1" max="5000" value={qtd}
+                      onChange={e => setQtd(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && confirmar()}
+                      style={{ width: 80, fontSize: 14, textAlign: 'center' }}
+                      autoFocus
+                    />
+                    <span style={{ fontSize: 13, color: 'var(--text3)' }}>g</span>
+                    <button className="btn" style={{ fontSize: 13 }} onClick={confirmar} disabled={!qtd || parseFloat(qtd) <= 0}>
+                      Confirmar
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
 /* ── Lista pronta de substituições ──────────────────────────── */
 const LISTA_PRONTA_DATA = [
   { cat: 'carbo', label: 'Carboidrato', itens: [
@@ -286,48 +497,56 @@ const LISTA_PRONTA_DATA = [
 ];
 
 /* ── Modal: adicionar alimento ou substituto ────────────────── */
-function ModalAlimento({ isSub, onConfirm, onConfirmMulti, onFechar }) {
-  const [tab, setTab]             = useState(isSub ? 'lista' : 'fatsecret');
-  const [listaSel, setListaSel]   = useState(new Set());
-  const [busca, setBusca]         = useState('');
-  const [resultados, setRes]      = useState([]);
-  const [loading, setLoading]     = useState(false);
-  const [erro, setErro]           = useState(null);
-  const [sel, setSel]             = useState(null);
-  const [detalhe, setDetalhe]     = useState(null);
-  const [loadDet, setLoadDet]     = useState(false);
-  const [qtd, setQtd]             = useState('100');
-  const [manual, setManual]       = useState({ nome: '', qty: '', kcal: '', prot_g: '', cho_g: '', lip_g: '' });
-  const [tacoBusca, setTacoBusca] = useState('');
-  const [tacoSel, setTacoSel]     = useState(null);
-  const [tacoQtd, setTacoQtd]     = useState('100');
+function ModalAlimento({ isSub, nutriId, onConfirm, onConfirmMulti, onFechar }) {
+  const [tab, setTab]           = useState(isSub ? 'lista' : 'taco');
+  const [listaSel, setListaSel] = useState(new Set());
+  const [manual, setManual]     = useState({ nome: '', qty: '', kcal: '', prot_g: '', cho_g: '', lip_g: '' });
+  const [salvos, setSalvos]     = useState([]);
+  const [editandoId, setEditandoId] = useState(null);
+  const [editForm, setEditForm] = useState({});
+  const [salvando, setSalvando] = useState(false);
+  const [erroManual, setErroManual] = useState(null);
 
   useEffect(() => {
-    if (!sel) { setDetalhe(null); return; }
-    setLoadDet(true);
-    fetch(`/.netlify/functions/fatsecret?food_id=${sel.food_id}`)
-      .then(r => r.json())
-      .then(d => { if (d && !d.error) setDetalhe(d); })
-      .catch(() => {})
-      .finally(() => setLoadDet(false));
-  }, [sel?.food_id]);
+    if (tab !== 'manual' || !nutriId) return;
+    supabase.from('alimentos_personalizados')
+      .select('*').eq('nutri_id', nutriId)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => setSalvos(data ?? []));
+  }, [tab, nutriId]);
 
-  async function buscar() {
-    if (!busca.trim()) return;
-    setLoading(true); setErro(null); setRes([]); setSel(null);
-    try {
-      const res = await fetch(`/.netlify/functions/fatsecret?q=${encodeURIComponent(busca)}`);
-      const d = await res.json();
-      if (!res.ok || d.error) throw new Error(d.error || 'Erro na busca');
-      setRes(d.foods ?? []);
-    } catch (e) { setErro(e.message); }
-    finally { setLoading(false); }
+  async function salvarManual() {
+    if (!manual.nome.trim()) return;
+    setSalvando(true); setErroManual(null);
+    const n = v => parseFloat(v) || null;
+    const item = {
+      nutri_id: nutriId,
+      nome:     manual.nome.trim(),
+      qty:      manual.qty.trim() || '',
+      kcal:     n(manual.kcal),
+      prot_g:   n(manual.prot_g),
+      cho_g:    n(manual.cho_g),
+      lip_g:    n(manual.lip_g),
+    };
+    const { data, error } = await supabase.from('alimentos_personalizados').insert(item).select().single();
+    setSalvando(false);
+    if (error) { setErroManual(error.message); return; }
+    if (data) setSalvos(prev => [data, ...prev]);
+    onConfirm({ id: uid(), nome: item.nome, qty: item.qty || '—', kcal: item.kcal, prot_g: item.prot_g, cho_g: item.cho_g, lip_g: item.lip_g, subs: [], catKey: '' });
   }
 
-  function confirmarFS() {
-    const g = parseFloat(qtd);
-    if (!g || !sel) return;
-    onConfirm({ id: uid(), ...calcMacros(detalhe ?? sel, g), subs: [], catKey: '' });
+  async function atualizarSalvo() {
+    if (!editandoId) return;
+    const n = v => parseFloat(v) || null;
+    const upd = { nome: editForm.nome?.trim() || '', qty: editForm.qty?.trim() || '', kcal: n(editForm.kcal), prot_g: n(editForm.prot_g), cho_g: n(editForm.cho_g), lip_g: n(editForm.lip_g) };
+    await supabase.from('alimentos_personalizados').update(upd).eq('id', editandoId);
+    setSalvos(prev => prev.map(s => s.id === editandoId ? { ...s, ...upd } : s));
+    setEditandoId(null);
+  }
+
+  async function excluirSalvo(id) {
+    await supabase.from('alimentos_personalizados').delete().eq('id', id);
+    setSalvos(prev => prev.filter(s => s.id !== id));
   }
 
   function toggleLista(key) {
@@ -351,42 +570,6 @@ function ModalAlimento({ isSub, onConfirm, onConfirmMulti, onFechar }) {
     onConfirmMulti(selecionados);
   }
 
-  function confirmarManual() {
-    if (!manual.nome.trim()) return;
-    const n = v => parseFloat(v) || null;
-    onConfirm({ id: uid(), nome: manual.nome.trim(), qty: manual.qty || '—', kcal: n(manual.kcal), prot_g: n(manual.prot_g), cho_g: n(manual.cho_g), lip_g: n(manual.lip_g), subs: [], catKey: '' });
-  }
-
-  function confirmarTaco() {
-    const g = parseFloat(tacoQtd);
-    if (!g || !tacoSel) return;
-    const f = g / 100;
-    onConfirm({
-      id: uid(), nome: tacoSel.nome, qty: `${g}g`,
-      kcal:   rd(tacoSel.kcal   * f, 0),
-      prot_g: rd(tacoSel.prot_g * f, 1),
-      cho_g:  rd(tacoSel.cho_g  * f, 1),
-      lip_g:  rd(tacoSel.lip_g  * f, 1),
-      subs: [], catKey: tacoSel.cat || '',
-    });
-  }
-
-  const tacoFiltrado = tacoBusca.trim().length < 2
-    ? TACO_DATA
-    : TACO_DATA.filter(a => a.nome.toLowerCase().includes(tacoBusca.toLowerCase()));
-
-  const tacoG = parseFloat(tacoQtd);
-  const tacoPreview = tacoSel && tacoG > 0 ? {
-    kcal:   rd(tacoSel.kcal   * tacoG / 100, 0),
-    prot_g: rd(tacoSel.prot_g * tacoG / 100, 1),
-    cho_g:  rd(tacoSel.cho_g  * tacoG / 100, 1),
-    lip_g:  rd(tacoSel.lip_g  * tacoG / 100, 1),
-  } : null;
-
-  const src     = detalhe ?? sel;
-  const g       = parseFloat(qtd);
-  const preview = src && g > 0 ? calcMacros(src, g) : null;
-
   return (
     <div
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
@@ -403,13 +586,13 @@ function ModalAlimento({ isSub, onConfirm, onConfirmMulti, onFechar }) {
         </div>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', padding: '10px 20px 0', borderBottom: '1px solid var(--border)', marginTop: 6 }}>
+        <div style={{ display: 'flex', padding: '10px 20px 0', borderBottom: '1px solid var(--border)', marginTop: 6, overflowX: 'auto' }}>
           {(isSub
-            ? [['lista', 'Lista pronta'], ['fatsecret', 'Buscar no FatSecret'], ['manual', 'Digitar manualmente']]
-            : [['fatsecret', 'Buscar no FatSecret'], ['taco', 'Tabela TACO'], ['manual', 'Digitar manualmente']]
+            ? [['lista', 'Lista pronta'], ['taco', 'TACO'], ['tbca', 'TBCA (USP)'], ['tucunduva', 'Tucunduva'], ['manual', 'Digitar']]
+            : [['taco', 'TACO'], ['tbca', 'TBCA (USP)'], ['tucunduva', 'Tucunduva'], ['manual', 'Digitar']]
           ).map(([id, lbl]) => (
             <button key={id} onClick={() => setTab(id)} style={{
-              padding: '7px 14px', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600,
+              padding: '7px 12px', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap',
               background: 'none', color: tab === id ? 'var(--dark)' : 'var(--text3)',
               borderBottom: tab === id ? '2px solid var(--green)' : '2px solid transparent',
               marginBottom: -1,
@@ -438,12 +621,7 @@ function ModalAlimento({ isSub, onConfirm, onConfirmMulti, onFechar }) {
                         const checked = listaSel.has(key);
                         return (
                           <label key={key} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, cursor: 'pointer', padding: '4px 6px', borderRadius: 6, background: checked ? '#fffbf5' : 'transparent' }}>
-                            <input
-                              type="checkbox"
-                              checked={checked}
-                              onChange={() => toggleLista(key)}
-                              style={{ marginTop: 2, accentColor: 'var(--verde)', flexShrink: 0 }}
-                            />
+                            <input type="checkbox" checked={checked} onChange={() => toggleLista(key)} style={{ marginTop: 2, accentColor: 'var(--verde)', flexShrink: 0 }} />
                             <span style={{ fontSize: 13, color: 'var(--dark)', lineHeight: 1.4 }}>{item}</span>
                           </label>
                         );
@@ -453,206 +631,113 @@ function ModalAlimento({ isSub, onConfirm, onConfirmMulti, onFechar }) {
                 ))}
               </div>
               <div style={{ position: 'sticky', bottom: 0, background: 'var(--white)', paddingTop: 14, marginTop: 14, borderTop: '1px solid var(--border)' }}>
-                <button
-                  className="btn"
-                  style={{ width: '100%', fontSize: 14 }}
-                  onClick={confirmarLista}
-                  disabled={listaSel.size === 0}
-                >
+                <button className="btn" style={{ width: '100%', fontSize: 14 }} onClick={confirmarLista} disabled={listaSel.size === 0}>
                   Adicionar selecionados {listaSel.size > 0 ? `(${listaSel.size})` : ''}
                 </button>
               </div>
             </>
           )}
 
-          {/* ── FatSecret ── */}
-          {tab === 'fatsecret' && (
-            <>
-              <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-                <input
-                  value={busca} onChange={e => setBusca(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && buscar()}
-                  placeholder="Ex: banana, frango, aveia, greek yogurt…"
-                  style={{ flex: 1, fontSize: 14 }}
-                  autoFocus
-                />
-                <button className="btn" style={{ fontSize: 13 }} onClick={buscar} disabled={loading || !busca.trim()}>
-                  {loading ? '…' : 'Buscar'}
-                </button>
-              </div>
-              <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 10 }}>
-                💡 Tente em inglês para mais resultados: chicken, oat, sweet potato…
-              </div>
-
-              {erro && <div style={{ fontSize: 12, color: 'var(--red)', marginBottom: 8 }}>{erro}</div>}
-
-              {resultados.length > 0 && (
-                <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', marginBottom: 10 }}>
-                  {resultados.slice(0, 10).map((food, i) => {
-                    const ativo = sel?.food_id === food.food_id;
-                    return (
-                      <div key={food.food_id}>
-                        <button
-                          onClick={() => { setSel(ativo ? null : food); setQtd('100'); }}
-                          style={{
-                            width: '100%', textAlign: 'left', border: 'none', cursor: 'pointer',
-                            borderTop: i > 0 ? '0.5px solid var(--border)' : 'none',
-                            padding: '9px 12px', background: ativo ? '#fffbf5' : 'transparent',
-                          }}
-                        >
-                          <div style={{ fontSize: 13, fontWeight: ativo ? 600 : 400, color: 'var(--dark)' }}>{food.name}</div>
-                          <div style={{ fontSize: 11, color: 'var(--text3)' }}>
-                            {food.serving && `${food.serving} · `}
-                            {food.kcal != null && `${Math.round(food.kcal)} kcal`}
-                          </div>
-                        </button>
-
-                        {ativo && (
-                          <div style={{ padding: '10px 12px 14px', background: '#fffbf5', borderTop: '1px solid var(--border)' }}>
-                            {preview && (
-                              <div style={{ display: 'flex', gap: 14, marginBottom: 10 }}>
-                                {[
-                                  { l: 'kcal', v: preview.kcal },
-                                  { l: 'prot', v: `${preview.prot_g}g` },
-                                  { l: 'carb', v: `${preview.cho_g}g` },
-                                  { l: 'gord', v: `${preview.lip_g}g` },
-                                ].map(m => (
-                                  <div key={m.l} style={{ textAlign: 'center', minWidth: 44 }}>
-                                    <div style={{ fontSize: 16, fontWeight: 700, lineHeight: 1, color: 'var(--dark)' }}>{m.v}</div>
-                                    <div style={{ fontSize: 9, color: 'var(--text3)', textTransform: 'uppercase', marginTop: 2 }}>{m.l}</div>
-                                  </div>
-                                ))}
-                                {loadDet && <span style={{ fontSize: 11, color: 'var(--text3)', alignSelf: 'center', fontStyle: 'italic' }}>refinando…</span>}
-                              </div>
-                            )}
-                            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                              <input
-                                type="number" min="1" max="5000" value={qtd}
-                                onChange={e => setQtd(e.target.value)}
-                                onKeyDown={e => e.key === 'Enter' && confirmarFS()}
-                                style={{ width: 80, fontSize: 14, textAlign: 'center' }}
-                                autoFocus
-                              />
-                              <span style={{ fontSize: 13, color: 'var(--text3)' }}>g</span>
-                              <button className="btn" style={{ fontSize: 13 }} onClick={confirmarFS} disabled={!qtd || parseFloat(qtd) <= 0}>
-                                Confirmar
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {!loading && resultados.length === 0 && busca && !erro && (
-                <div style={{ fontSize: 12, color: 'var(--text3)', textAlign: 'center', padding: '12px 0' }}>
-                  Sem resultados. Tente em inglês ou use "Digitar manualmente".
-                </div>
-              )}
-            </>
-          )}
-
           {/* ── TACO ── */}
-          {tab === 'taco' && (
-            <>
-              <input
-                value={tacoBusca}
-                onChange={e => { setTacoBusca(e.target.value); setTacoSel(null); }}
-                placeholder="Buscar alimento (ex: frango, banana, arroz…)"
-                style={{ width: '100%', fontSize: 14, marginBottom: 10 }}
-                autoFocus
-              />
-              <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 8 }}>
-                {tacoFiltrado.length} alimentos · valores por 100g (TACO)
-              </div>
-              <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', maxHeight: 340, overflowY: 'auto', marginBottom: 12 }}>
-                {tacoFiltrado.length === 0 && (
-                  <div style={{ padding: 16, fontSize: 13, color: 'var(--text3)', textAlign: 'center' }}>
-                    Nenhum alimento encontrado.
+          {tab === 'taco' && <TabTabela dados={TACO_DATA} rotulo="TACO" onAdicionar={onConfirm} />}
+
+          {/* ── TBCA ── */}
+          {tab === 'tbca' && <TabTabela dados={TBCA_DATA} rotulo="TBCA (USP)" onAdicionar={onConfirm} />}
+
+          {/* ── Tucunduva ── */}
+          {tab === 'tucunduva' && <TabTabela dados={TUCUNDUVA_DATA} rotulo="Tucunduva" onAdicionar={onConfirm} />}
+
+          {/* ── Digitar manualmente ── */}
+          {tab === 'manual' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+              {/* Alimentos já cadastrados */}
+              {salvos.length > 0 && (
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.07em', color: 'var(--terra)', marginBottom: 8 }}>
+                    Alimentos cadastrados — clique para usar
                   </div>
-                )}
-                {tacoFiltrado.map((al, i) => {
-                  const ativo = tacoSel?.nome === al.nome;
-                  return (
-                    <div key={al.nome}>
-                      <button
-                        onClick={() => { setTacoSel(ativo ? null : al); setTacoQtd('100'); }}
-                        style={{
-                          width: '100%', textAlign: 'left', border: 'none', cursor: 'pointer',
-                          borderTop: i > 0 ? '0.5px solid var(--border)' : 'none',
-                          padding: '8px 12px', background: ativo ? '#fffbf5' : 'transparent',
-                        }}
-                      >
-                        <div style={{ fontSize: 13, fontWeight: ativo ? 600 : 400, color: 'var(--dark)' }}>{al.nome}</div>
-                        <div style={{ fontSize: 11, color: 'var(--text3)' }}>
-                          {al.kcal} kcal · {al.prot_g}g prot · {al.cho_g}g carb · {al.lip_g}g gord
-                        </div>
-                      </button>
-                      {ativo && (
-                        <div style={{ padding: '10px 12px 14px', background: '#fffbf5', borderTop: '1px solid var(--border)' }}>
-                          {tacoPreview && (
-                            <div style={{ display: 'flex', gap: 14, marginBottom: 10 }}>
-                              {[
-                                { l: 'kcal', v: tacoPreview.kcal },
-                                { l: 'prot', v: `${tacoPreview.prot_g}g` },
-                                { l: 'carb', v: `${tacoPreview.cho_g}g` },
-                                { l: 'gord', v: `${tacoPreview.lip_g}g` },
-                              ].map(m => (
-                                <div key={m.l} style={{ textAlign: 'center', minWidth: 44 }}>
-                                  <div style={{ fontSize: 16, fontWeight: 700, lineHeight: 1, color: 'var(--dark)' }}>{m.v}</div>
-                                  <div style={{ fontSize: 9, color: 'var(--text3)', textTransform: 'uppercase', marginTop: 2 }}>{m.l}</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 3, maxHeight: 210, overflowY: 'auto', border: '1px solid var(--border)', borderRadius: 8, padding: 8, marginBottom: 4 }}>
+                    {salvos.map(s => (
+                      <div key={s.id}>
+                        {editandoId === s.id ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '8px 10px', background: '#fffbf5', borderRadius: 6, border: '1px solid var(--border)' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                              <div>
+                                <label className="field-label">Nome</label>
+                                <input value={editForm.nome ?? ''} onChange={e => setEditForm(p => ({ ...p, nome: e.target.value }))} autoFocus />
+                              </div>
+                              <div>
+                                <label className="field-label">Quantidade</label>
+                                <input value={editForm.qty ?? ''} onChange={e => setEditForm(p => ({ ...p, qty: e.target.value }))} />
+                              </div>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
+                              {[['kcal','Kcal'],['prot_g','Prot'],['cho_g','Carb'],['lip_g','Gord']].map(([k, lbl]) => (
+                                <div key={k}>
+                                  <label className="field-label">{lbl}</label>
+                                  <input inputMode="decimal" value={editForm[k] ?? ''} onChange={e => setEditForm(p => ({ ...p, [k]: e.target.value }))} />
                                 </div>
                               ))}
                             </div>
-                          )}
-                          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                            <input
-                              type="number" min="1" max="5000" value={tacoQtd}
-                              onChange={e => setTacoQtd(e.target.value)}
-                              onKeyDown={e => e.key === 'Enter' && confirmarTaco()}
-                              style={{ width: 80, fontSize: 14, textAlign: 'center' }}
-                              autoFocus
-                            />
-                            <span style={{ fontSize: 13, color: 'var(--text3)' }}>g</span>
-                            <button className="btn" style={{ fontSize: 13 }} onClick={confirmarTaco} disabled={!tacoQtd || parseFloat(tacoQtd) <= 0}>
-                              Confirmar
+                            <div style={{ display: 'flex', gap: 6 }}>
+                              <button className="btn" style={{ fontSize: 11, padding: '5px 12px' }} onClick={atualizarSalvo}>Salvar</button>
+                              <button className="btn-outline" style={{ fontSize: 11, padding: '5px 10px' }} onClick={() => setEditandoId(null)}>Cancelar</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 6px', borderRadius: 5 }}>
+                            <button
+                              onClick={() => onConfirm({ id: uid(), nome: s.nome, qty: s.qty || '—', kcal: s.kcal, prot_g: s.prot_g, cho_g: s.cho_g, lip_g: s.lip_g, subs: [], catKey: '' })}
+                              style={{ flex: 1, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                            >
+                              <div style={{ fontSize: 13, color: 'var(--dark)', fontWeight: 500 }}>{s.nome}</div>
+                              <div style={{ fontSize: 10, color: 'var(--text3)' }}>
+                                {[s.qty, s.kcal != null && `${s.kcal} kcal`, s.prot_g != null && `P:${s.prot_g}g`, s.cho_g != null && `C:${s.cho_g}g`, s.lip_g != null && `G:${s.lip_g}g`].filter(Boolean).join(' · ')}
+                              </div>
+                            </button>
+                            <button title="Editar" onClick={() => { setEditandoId(s.id); setEditForm({ nome: s.nome, qty: s.qty ?? '', kcal: s.kcal ?? '', prot_g: s.prot_g ?? '', cho_g: s.cho_g ?? '', lip_g: s.lip_g ?? '' }); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--text3)', fontSize: 13 }}>
+                              <i className="ti ti-pencil" aria-hidden="true" />
+                            </button>
+                            <button title="Excluir" onClick={() => excluirSalvo(s.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--text3)', fontSize: 13 }}>
+                              <i className="ti ti-trash" aria-hidden="true" />
                             </button>
                           </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </>
-          )}
-
-          {/* ── Manual ── */}
-          {tab === 'manual' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                <div>
-                  <label className="field-label">Nome *</label>
-                  <input value={manual.nome} onChange={e => setManual(p => ({ ...p, nome: e.target.value }))} placeholder="ex: Banana prata" autoFocus />
-                </div>
-                <div>
-                  <label className="field-label">Quantidade</label>
-                  <input value={manual.qty} onChange={e => setManual(p => ({ ...p, qty: e.target.value }))} placeholder="ex: 1 unidade / 70g" />
-                </div>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
-                {[['kcal','Kcal'],['prot_g','Prot (g)'],['cho_g','Carb (g)'],['lip_g','Gord (g)']].map(([k, lbl]) => (
-                  <div key={k}>
-                    <label className="field-label">{lbl}</label>
-                    <input inputMode="decimal" value={manual[k]} onChange={e => setManual(p => ({ ...p, [k]: e.target.value }))} placeholder="0" />
+                        )}
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
+              )}
+
+              {/* Novo alimento */}
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.07em', color: 'var(--terra)', marginBottom: 8 }}>
+                  {salvos.length > 0 ? 'Novo alimento' : 'Cadastrar alimento'}
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+                  <div>
+                    <label className="field-label">Nome *</label>
+                    <input value={manual.nome} onChange={e => setManual(p => ({ ...p, nome: e.target.value }))} placeholder="ex: Banana prata" autoFocus />
+                  </div>
+                  <div>
+                    <label className="field-label">Quantidade</label>
+                    <input value={manual.qty} onChange={e => setManual(p => ({ ...p, qty: e.target.value }))} placeholder="ex: 1 unidade / 70g" />
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 10 }}>
+                  {[['kcal','Kcal'],['prot_g','Prot (g)'],['cho_g','Carb (g)'],['lip_g','Gord (g)']].map(([k, lbl]) => (
+                    <div key={k}>
+                      <label className="field-label">{lbl}</label>
+                      <input inputMode="decimal" value={manual[k]} onChange={e => setManual(p => ({ ...p, [k]: e.target.value }))} placeholder="0" />
+                    </div>
+                  ))}
+                </div>
+                {erroManual && <div style={{ fontSize: 11, color: 'var(--red)', marginBottom: 8 }}>{erroManual}</div>}
+                <button className="btn" style={{ alignSelf: 'flex-start' }} onClick={salvarManual} disabled={salvando || !manual.nome.trim()}>
+                  <i className="ti ti-plus" aria-hidden="true" /> {salvando ? 'Salvando…' : 'Salvar e adicionar'}
+                </button>
               </div>
-              <button className="btn" style={{ alignSelf: 'flex-start', marginTop: 4 }} onClick={confirmarManual} disabled={!manual.nome.trim()}>
-                Confirmar
-              </button>
             </div>
           )}
         </div>
@@ -1371,6 +1456,7 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
       {modal && (
         <ModalAlimento
           isSub={!!modal.alimentoId}
+          nutriId={nutriId}
           onConfirm={handleConfirm}
           onConfirmMulti={handleConfirmMulti}
           onFechar={() => setModal(null)}
