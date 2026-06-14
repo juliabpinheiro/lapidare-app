@@ -2,7 +2,7 @@ function esc(s) {
   return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-const _CAT_LABELS = { carbo: 'Carboidrato', prot: 'Proteína', leg: 'Leguminosa', fruta: 'Fruta', bebida: 'Bebida' };
+const _CAT_LABELS = { carbo: 'Carboidrato', prot: 'Proteína', gordura: 'Gordura', leg: 'Leguminosa', fruta: 'Fruta', bebida: 'Bebida' };
 const _CAT_ORDER = { cafe_manha: ['carbo','prot','fruta','bebida'], lanche_manha: ['fruta'], almoco: ['prot','carbo','leg'], lanche_tarde: ['prot','fruta'], jantar: ['prot','carbo','leg'], ceia: ['fruta'] };
 const _MEAL_KEYS = ['cafe_manha','lanche_manha','almoco','lanche_tarde','jantar','ceia'];
 

@@ -4,11 +4,12 @@ import { gerarPlanoHtml } from '../../lib/gerarPlanoHtml.js';
 
 /* ── Constantes ─────────────────────────────────────────────── */
 const CATS = [
-  { key: 'carbo',  label: 'Carboidrato' },
-  { key: 'prot',   label: 'Proteína' },
-  { key: 'fruta',  label: 'Fruta' },
-  { key: 'leg',    label: 'Leguminosa' },
-  { key: 'bebida', label: 'Bebida' },
+  { key: 'carbo',   label: 'Carboidrato' },
+  { key: 'prot',    label: 'Proteína' },
+  { key: 'gordura', label: 'Gordura' },
+  { key: 'fruta',   label: 'Fruta' },
+  { key: 'leg',     label: 'Leguminosa' },
+  { key: 'bebida',  label: 'Bebida' },
 ];
 
 const SUGESTOES = [
@@ -951,6 +952,7 @@ function _calcIdade(nascimento) {
 export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, paciente, onLiberar }) {
   const DRAFT_KEY  = `plano_rascunho_${pacienteId}`;
   const ORIENT_KEY = `plano_orientacoes_${pacienteId}`;
+  const DADOS_KEY  = `plano_dados_pdf_${pacienteId}`;
 
   const [refeicoes, setRefeicoes] = useState(() => {
     try { const s = localStorage.getItem(DRAFT_KEY); return s ? JSON.parse(s) : []; }
@@ -968,6 +970,20 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
   const [feedback, setFeedback]   = useState(null);
   const [nutriInfo, setNutriInfo] = useState({ nome: '', crn: '', email: '' });
   const [pesoInfo, setPesoInfo]   = useState({ kg: null, altura_cm: null, pgc: null, cintura_cm: null, quadril_cm: null });
+  const [pacienteDadosPdf, setPacienteDadosPdf] = useState(() => {
+    const idadeAuto = _calcIdade(paciente?.nascimento);
+    const auto = {
+      nome:       paciente?.nome ?? '',
+      idade:      idadeAuto != null ? String(idadeAuto) : '',
+      objetivo:   paciente?.objetivo ?? '',
+      peso_kg: '', altura_cm: '', cintura_cm: '', quadril_cm: '',
+    };
+    try {
+      const saved = localStorage.getItem(`plano_dados_pdf_${pacienteId}`);
+      if (saved) return { ...auto, ...JSON.parse(saved) };
+    } catch {}
+    return auto;
+  });
   const [draft, setDraft]         = useState('salvo'); // 'salvo' | 'salvando'
   const [previaTab, setPreviaTab] = useState('app');
   const draftTimer                = useRef(null);
@@ -984,13 +1000,29 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
       .eq('paciente_id', pacienteId)
       .order('data', { ascending: false })
       .limit(1).maybeSingle()
-      .then(({ data }) => { if (data) setPesoInfo({ kg: data.kg, altura_cm: data.altura_cm, pgc: data.pgc, cintura_cm: data.cintura_cm, quadril_cm: data.quadril_cm }); });
+      .then(({ data }) => {
+        if (data) {
+          setPesoInfo({ kg: data.kg, altura_cm: data.altura_cm, pgc: data.pgc, cintura_cm: data.cintura_cm, quadril_cm: data.quadril_cm });
+          setPacienteDadosPdf(prev => ({
+            ...prev,
+            ...(prev.peso_kg    === '' && data.kg != null         ? { peso_kg:    String(data.kg)         } : {}),
+            ...(prev.altura_cm  === '' && data.altura_cm != null  ? { altura_cm:  String(data.altura_cm)  } : {}),
+            ...(prev.cintura_cm === '' && data.cintura_cm != null ? { cintura_cm: String(data.cintura_cm) } : {}),
+            ...(prev.quadril_cm === '' && data.quadril_cm != null ? { quadril_cm: String(data.quadril_cm) } : {}),
+          }));
+        }
+      });
   }, [pacienteId]);
 
   /* Auto-save orientações no localStorage */
   useEffect(() => {
     try { localStorage.setItem(ORIENT_KEY, JSON.stringify(orientacoes)); } catch {}
   }, [orientacoes, ORIENT_KEY]);
+
+  /* Auto-save dados do PDF no localStorage */
+  useEffect(() => {
+    try { localStorage.setItem(DADOS_KEY, JSON.stringify(pacienteDadosPdf)); } catch {}
+  }, [pacienteDadosPdf, DADOS_KEY]);
 
   /* Carrega orientações do último plano publicado se o localStorage estiver vazio */
   useEffect(() => {
@@ -1105,15 +1137,16 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
 
   const pdfHtml = useMemo(() => {
     if (!temAlimentos) return '';
+    const n = v => parseFloat(v) || null;
     const pacienteDados = {
-      nome:       paciente?.nome,
-      idade:      _calcIdade(paciente?.nascimento),
-      peso_kg:    pesoInfo.kg,
-      altura_cm:  pesoInfo.altura_cm,
-      pgc:        pesoInfo.pgc,
-      cintura_cm: pesoInfo.cintura_cm,
-      quadril_cm: pesoInfo.quadril_cm,
-      objetivo:   paciente?.objetivo,
+      nome:       pacienteDadosPdf.nome.trim() || pacienteNome,
+      idade:      parseInt(pacienteDadosPdf.idade) || null,
+      peso_kg:    n(pacienteDadosPdf.peso_kg),
+      altura_cm:  n(pacienteDadosPdf.altura_cm),
+      pgc:        null,
+      cintura_cm: n(pacienteDadosPdf.cintura_cm),
+      quadril_cm: n(pacienteDadosPdf.quadril_cm),
+      objetivo:   pacienteDadosPdf.objetivo.trim() || null,
     };
     return gerarPlanoHtml({
       pacienteNome,
@@ -1125,7 +1158,7 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
       nutriEmail: nutriInfo.email,
       pacienteDados,
     });
-  }, [temAlimentos, refeicoes, orientacoes, nutriInfo, pesoInfo, paciente, pacienteNome]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [temAlimentos, refeicoes, orientacoes, nutriInfo, pacienteDadosPdf, pacienteNome]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── Constrói objeto plano para salvar/PDF ───────────────── */
   function buildPlano() {
@@ -1153,15 +1186,16 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
   /* ── Gerar PDF ───────────────────────────────────────────── */
   function gerarPdf() {
     if (!temAlimentos) return;
+    const n = v => parseFloat(v) || null;
     const pacienteDados = {
-      nome:       paciente?.nome,
-      idade:      _calcIdade(paciente?.nascimento),
-      peso_kg:    pesoInfo.kg,
-      altura_cm:  pesoInfo.altura_cm,
-      pgc:        pesoInfo.pgc,
-      cintura_cm: pesoInfo.cintura_cm,
-      quadril_cm: pesoInfo.quadril_cm,
-      objetivo:   paciente?.objetivo,
+      nome:       pacienteDadosPdf.nome.trim() || pacienteNome,
+      idade:      parseInt(pacienteDadosPdf.idade) || null,
+      peso_kg:    n(pacienteDadosPdf.peso_kg),
+      altura_cm:  n(pacienteDadosPdf.altura_cm),
+      pgc:        null,
+      cintura_cm: n(pacienteDadosPdf.cintura_cm),
+      quadril_cm: n(pacienteDadosPdf.quadril_cm),
+      objetivo:   pacienteDadosPdf.objetivo.trim() || null,
     };
     const html = gerarPlanoHtml({
       pacienteNome,
@@ -1415,6 +1449,49 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
       {/* ── Orientações do Plano ── */}
       <div className="card" style={{ padding: 20 }}>
         <div className="section-title" style={{ marginBottom: 14 }}>Orientações do Plano</div>
+
+        {/* Dados da paciente — capa do PDF */}
+        <div style={{ marginBottom: 18, padding: '14px 16px', background: '#fafaf8', borderRadius: 8, border: '1px solid var(--border)' }}>
+          <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '.08em', fontWeight: 500 }}>
+            Dados da paciente — capa do PDF
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 10, marginBottom: 10 }}>
+            {[
+              { field: 'nome',      label: 'Nome completo', placeholder: 'Nome da paciente' },
+              { field: 'idade',     label: 'Idade (anos)',  placeholder: 'Ex: 28'  },
+              { field: 'peso_kg',   label: 'Peso (kg)',     placeholder: 'Ex: 65'  },
+              { field: 'altura_cm', label: 'Altura (cm)',   placeholder: 'Ex: 165' },
+            ].map(({ field, label, placeholder }) => (
+              <div key={field}>
+                <div style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.06em', fontWeight: 500 }}>{label}</div>
+                <input
+                  value={pacienteDadosPdf[field]}
+                  onChange={e => setPacienteDadosPdf(prev => ({ ...prev, [field]: e.target.value }))}
+                  placeholder={placeholder}
+                  style={{ width: '100%', fontSize: 13 }}
+                />
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 10 }}>
+            {[
+              { field: 'objetivo',   label: 'Objetivo',     placeholder: 'Ex: Emagrecimento saudável' },
+              { field: 'cintura_cm', label: 'Cintura (cm)', placeholder: 'Ex: 78'  },
+              { field: 'quadril_cm', label: 'Quadril (cm)', placeholder: 'Ex: 100' },
+            ].map(({ field, label, placeholder }) => (
+              <div key={field}>
+                <div style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '.06em', fontWeight: 500 }}>{label}</div>
+                <input
+                  value={pacienteDadosPdf[field]}
+                  onChange={e => setPacienteDadosPdf(prev => ({ ...prev, [field]: e.target.value }))}
+                  placeholder={placeholder}
+                  style={{ width: '100%', fontSize: 13 }}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div style={{ display: 'flex', gap: 14, marginBottom: 16, flexWrap: 'wrap', alignItems: 'flex-end' }}>
           <div>
             <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '.08em', fontWeight: 500 }}>Nº da consulta</div>
