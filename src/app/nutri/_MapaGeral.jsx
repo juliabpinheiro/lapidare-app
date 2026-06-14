@@ -8,19 +8,24 @@ function fmtData(iso) {
   const [y, m, d] = iso.split('-');
   return `${d}/${m}/${y}`;
 }
+function mkPreview(texto, max = 90) {
+  const flat = texto.replace(/\n+/g, ' ').trim();
+  return flat.length > max ? flat.slice(0, max) + '…' : flat;
+}
 
 export default function MapaGeral({ pacienteId, nutriId }) {
-  const [obs, setObs]             = useState([]);
-  const [carregando, setCarregando] = useState(true);
-  const [novoAberto, setNovoAberto] = useState(false);
-  const [novoData, setNovoData]   = useState(hoje());
-  const [novoTexto, setNovoTexto] = useState('');
+  const [obs,          setObs]          = useState([]);
+  const [carregando,   setCarregando]   = useState(true);
+  const [novoAberto,   setNovoAberto]   = useState(false);
+  const [novoData,     setNovoData]     = useState(hoje());
+  const [novoTexto,    setNovoTexto]    = useState('');
   const [salvandoNovo, setSalvandoNovo] = useState(false);
-  const [editandoId, setEditandoId] = useState(null);
-  const [editData, setEditData]   = useState('');
-  const [editTexto, setEditTexto] = useState('');
+  const [editandoId,   setEditandoId]   = useState(null);
+  const [editData,     setEditData]     = useState('');
+  const [editTexto,    setEditTexto]    = useState('');
   const [salvandoEdit, setSalvandoEdit] = useState(false);
-  const [erro, setErro]           = useState(null);
+  const [erro,         setErro]         = useState(null);
+  const [expandidos,   setExpandidos]   = useState(new Set());
 
   useEffect(() => {
     let active = true;
@@ -32,12 +37,19 @@ export default function MapaGeral({ pacienteId, nutriId }) {
       .maybeSingle()
       .then(({ data }) => {
         if (!active) return;
-        // dados pode ser array (novo formato) ou objeto (formato antigo — ignorar)
         setObs(Array.isArray(data?.dados) ? data.dados : []);
         setCarregando(false);
       });
     return () => { active = false; };
   }, [pacienteId, nutriId]);
+
+  function toggleExpandido(id) {
+    setExpandidos(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
 
   async function persistir(novas) {
     const { error } = await supabase.from('mapa_geral').upsert(
@@ -56,8 +68,7 @@ export default function MapaGeral({ pacienteId, nutriId }) {
 
   async function salvarNovo() {
     if (!novoTexto.trim()) return;
-    setSalvandoNovo(true);
-    setErro(null);
+    setSalvandoNovo(true); setErro(null);
     const nova = { id: uid(), data: novoData || hoje(), texto: novoTexto.trim() };
     const novas = [...obs, nova].sort((a, b) => b.data.localeCompare(a.data));
     try {
@@ -85,12 +96,12 @@ export default function MapaGeral({ pacienteId, nutriId }) {
     setEditData(o.data);
     setEditTexto(o.texto);
     setErro(null);
+    setExpandidos(prev => new Set([...prev, o.id]));
   }
 
   async function salvarEdicao() {
     if (!editTexto.trim()) return;
-    setSalvandoEdit(true);
-    setErro(null);
+    setSalvandoEdit(true); setErro(null);
     const novas = obs
       .map(o => o.id === editandoId ? { ...o, data: editData, texto: editTexto.trim() } : o)
       .sort((a, b) => b.data.localeCompare(a.data));
@@ -109,7 +120,7 @@ export default function MapaGeral({ pacienteId, nutriId }) {
   return (
     <div style={{ maxWidth: 680 }}>
 
-      {/* Cabeçalho */}
+      {/* ── Cabeçalho ── */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 18, gap: 12 }}>
         <div>
           <div className="section-title">Observações por consulta</div>
@@ -124,9 +135,9 @@ export default function MapaGeral({ pacienteId, nutriId }) {
         )}
       </div>
 
-      {/* Bloco de nova observação */}
+      {/* ── Formulário nova observação ── */}
       {novoAberto && (
-        <div className="card" style={{ padding: 20, marginBottom: 18, borderColor: 'var(--verde)', borderWidth: 1.5 }}>
+        <div className="card" style={{ padding: 20, marginBottom: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
             <label className="field-label" style={{ margin: 0, whiteSpace: 'nowrap' }}>Data</label>
             <input
@@ -148,28 +159,19 @@ export default function MapaGeral({ pacienteId, nutriId }) {
               marginBottom: 14,
             }}
           />
-          {erro && (
-            <div style={{ fontSize: 12, color: 'var(--red)', marginBottom: 10 }}>{erro}</div>
-          )}
+          {erro && <div style={{ fontSize: 12, color: 'var(--red)', marginBottom: 10 }}>{erro}</div>}
           <div style={{ display: 'flex', gap: 8 }}>
-            <button
-              className="btn"
-              onClick={salvarNovo}
-              disabled={salvandoNovo || !novoTexto.trim()}
-            >
+            <button className="btn" onClick={salvarNovo} disabled={salvandoNovo || !novoTexto.trim()}>
               {salvandoNovo ? 'Salvando…' : 'Salvar'}
             </button>
-            <button
-              className="btn-outline"
-              onClick={() => { setNovoAberto(false); setErro(null); }}
-            >
+            <button className="btn-outline" onClick={() => { setNovoAberto(false); setErro(null); }}>
               Cancelar
             </button>
           </div>
         </div>
       )}
 
-      {/* Estado vazio */}
+      {/* ── Estado vazio ── */}
       {obs.length === 0 && !novoAberto && (
         <div className="card empty-card">
           <div className="empty-sub">
@@ -179,86 +181,116 @@ export default function MapaGeral({ pacienteId, nutriId }) {
         </div>
       )}
 
-      {/* Lista de observações */}
-      {obs.map(o => (
-        <div key={o.id} className="card" style={{ padding: 20, marginBottom: 12 }}>
-          {editandoId === o.id ? (
-            /* Modo edição */
-            <>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-                <label className="field-label" style={{ margin: 0, whiteSpace: 'nowrap' }}>Data</label>
-                <input
-                  type="date"
-                  value={editData}
-                  onChange={e => setEditData(e.target.value)}
-                  style={{ fontSize: 13, width: 160 }}
+      {/* ── Cards colapsáveis ── */}
+      {obs.map(o => {
+        const expandido = expandidos.has(o.id);
+        const emEdicao  = editandoId === o.id;
+
+        return (
+          <div key={o.id} className="card" style={{ padding: 0, marginBottom: 8, overflow: 'hidden' }}>
+
+            {emEdicao ? (
+              /* ── Modo edição ── */
+              <div style={{ padding: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                  <label className="field-label" style={{ margin: 0, whiteSpace: 'nowrap' }}>Data</label>
+                  <input
+                    type="date"
+                    value={editData}
+                    onChange={e => setEditData(e.target.value)}
+                    style={{ fontSize: 13, width: 160 }}
+                  />
+                </div>
+                <textarea
+                  value={editTexto}
+                  onChange={e => setEditTexto(e.target.value)}
+                  rows={6}
+                  autoFocus
+                  style={{
+                    width: '100%', resize: 'vertical',
+                    fontFamily: 'var(--font-sans)', fontSize: 13, lineHeight: 1.65,
+                    marginBottom: 14,
+                  }}
                 />
+                {erro && <div style={{ fontSize: 12, color: 'var(--red)', marginBottom: 10 }}>{erro}</div>}
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button className="btn" onClick={salvarEdicao} disabled={salvandoEdit || !editTexto.trim()}>
+                    {salvandoEdit ? 'Salvando…' : 'Salvar'}
+                  </button>
+                  <button className="btn-outline" onClick={() => { setEditandoId(null); setErro(null); }}>
+                    Cancelar
+                  </button>
+                </div>
               </div>
-              <textarea
-                value={editTexto}
-                onChange={e => setEditTexto(e.target.value)}
-                rows={6}
-                autoFocus
-                style={{
-                  width: '100%', resize: 'vertical',
-                  fontFamily: 'var(--font-sans)', fontSize: 13, lineHeight: 1.65,
-                  marginBottom: 14,
-                }}
-              />
-              {erro && (
-                <div style={{ fontSize: 12, color: 'var(--red)', marginBottom: 10 }}>{erro}</div>
-              )}
-              <div style={{ display: 'flex', gap: 8 }}>
+            ) : (
+              /* ── Modo visualização colapsável ── */
+              <>
+                {/* Header clicável */}
                 <button
-                  className="btn"
-                  onClick={salvarEdicao}
-                  disabled={salvandoEdit || !editTexto.trim()}
+                  onClick={() => toggleExpandido(o.id)}
+                  style={{
+                    width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+                    padding: '13px 16px', background: 'none', border: 'none',
+                    cursor: 'pointer', textAlign: 'left', fontFamily: 'var(--font-sans)',
+                    borderBottom: expandido ? '0.5px solid var(--border)' : 'none',
+                  }}
                 >
-                  {salvandoEdit ? 'Salvando…' : 'Salvar'}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{
+                      fontSize: 12, fontWeight: 700,
+                      color: 'var(--amber)',
+                      marginBottom: expandido ? 0 : 3,
+                    }}>
+                      {fmtData(o.data)}
+                    </div>
+                    {!expandido && (
+                      <div style={{
+                        fontSize: 12, color: 'var(--text3)',
+                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                      }}>
+                        {mkPreview(o.texto)}
+                      </div>
+                    )}
+                  </div>
+                  <i
+                    className={`ti ti-chevron-${expandido ? 'up' : 'down'}`}
+                    style={{ fontSize: 15, color: 'var(--text3)', flexShrink: 0 }}
+                    aria-hidden="true"
+                  />
                 </button>
-                <button
-                  className="btn-outline"
-                  onClick={() => { setEditandoId(null); setErro(null); }}
-                >
-                  Cancelar
-                </button>
-              </div>
-            </>
-          ) : (
-            /* Modo visualização */
-            <>
-              <div style={{
-                fontSize: 13, fontWeight: 700, color: 'var(--verde)',
-                marginBottom: 10, letterSpacing: '.02em',
-              }}>
-                {fmtData(o.data)}
-              </div>
-              <div style={{
-                fontSize: 13, color: 'var(--dark)', lineHeight: 1.7,
-                whiteSpace: 'pre-wrap', marginBottom: 16,
-              }}>
-                {o.texto}
-              </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button
-                  className="btn-outline"
-                  style={{ fontSize: 12 }}
-                  onClick={() => iniciarEdicao(o)}
-                >
-                  <i className="ti ti-pencil" aria-hidden="true" /> Editar
-                </button>
-                <button
-                  className="btn-outline"
-                  style={{ fontSize: 12, color: 'var(--red)', borderColor: 'var(--red)' }}
-                  onClick={() => excluir(o.id)}
-                >
-                  <i className="ti ti-trash" aria-hidden="true" /> Excluir
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-      ))}
+
+                {/* Corpo expandido */}
+                {expandido && (
+                  <div style={{ padding: '14px 16px 16px' }}>
+                    <div style={{
+                      fontSize: 13, color: 'var(--dark)', lineHeight: 1.7,
+                      whiteSpace: 'pre-wrap', marginBottom: 14,
+                    }}>
+                      {o.texto}
+                    </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button
+                        className="btn-outline"
+                        style={{ fontSize: 12 }}
+                        onClick={() => iniciarEdicao(o)}
+                      >
+                        <i className="ti ti-pencil" aria-hidden="true" /> Editar
+                      </button>
+                      <button
+                        className="btn-outline"
+                        style={{ fontSize: 12, color: 'var(--red)', borderColor: 'var(--red)' }}
+                        onClick={() => excluir(o.id)}
+                      >
+                        <i className="ti ti-trash" aria-hidden="true" /> Excluir
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
