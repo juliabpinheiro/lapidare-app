@@ -1140,7 +1140,7 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
           prot_g:    rd(tot.prot_g, 1),
           cho_g:     rd(tot.cho_g, 1),
           lip_g:     rd(tot.lip_g, 1),
-          alimentos: r.alimentos.map(a => ({ nome: a.nome, qty: a.qty, kcal: a.kcal, prot_g: a.prot_g, cho_g: a.cho_g, lip_g: a.lip_g })),
+          alimentos: r.alimentos.map(a => ({ nome: a.nome, qty: a.qty, kcal: a.kcal, prot_g: a.prot_g, cho_g: a.cho_g, lip_g: a.lip_g, catKey: a.catKey || '' })),
         };
       });
     return {

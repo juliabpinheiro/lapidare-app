@@ -71,7 +71,11 @@ function foodTable(alimentos) {
       `<td>${esc(a.kcal ?? '—')}</td><td>${esc(a.prot_g != null ? a.prot_g + 'g' : '—')}</td>` +
       (hasCho ? `<td>${esc(a.cho_g != null ? a.cho_g + 'g' : '—')}</td>` : '') +
       (hasLip ? `<td>${esc(a.lip_g != null ? a.lip_g + 'g' : '—')}</td>` : '');
-    return `<tr><td>${esc(a.nome)}</td><td>${esc(a.qty ?? a.quantidade ?? '—')}</td>${tdExtra}</tr>`;
+    const catLabel = _CAT_LABELS[a.catKey ?? ''];
+    const nomeTd = catLabel
+      ? `<span class="cat-prefix">${esc(catLabel)} — </span>${esc(a.nome)}`
+      : esc(a.nome);
+    return `<tr><td>${nomeTd}</td><td>${esc(a.qty ?? a.quantidade ?? '—')}</td>${tdExtra}</tr>`;
   }).join('');
 
   const totKcal  = alimentos.reduce((s, a) => s + (a.kcal   ?? 0), 0);
@@ -254,6 +258,7 @@ function pagRef(ref, idx, e, subsTexto) {
   <div class="refeicao">
     <div class="ref-titulo">${esc((ref.nome ?? '').toLowerCase())}</div>
     ${horarioLinha ? `<div class="ref-horario">${esc(horarioLinha)}</div>` : ''}
+    <div class="ref-sugestao-label">Sugestão da nutri:</div>
     ${foodTable(ref.alimentos)}
     ${sugestao ? `<div class="ref-sugestao">Sugestão da nutri: ${esc(sugestao)}</div>` : ''}
     ${subs}
@@ -377,7 +382,9 @@ h1,h2,h3{page-break-after:avoid}
 .pms-body li::before{content:'—';position:absolute;left:0;color:var(--terra)}
 .ref-titulo{font-family:'Playfair Display',serif;font-style:italic;font-size:28px;color:var(--verde);line-height:1;margin-bottom:2px}
 .ref-horario{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--txtL);margin-bottom:10px}
+.ref-sugestao-label{font-family:'Lato',sans-serif;font-size:7px;letter-spacing:2.5px;text-transform:uppercase;color:var(--txtL);font-weight:600;margin-bottom:4px}
 .ref-sugestao{font-style:italic;font-size:10px;color:var(--txtL);margin-bottom:10px}
+.cat-prefix{color:var(--txtL);font-size:9.5px}
 .alimento-tabela{width:100%;border-collapse:collapse;margin-bottom:8px;font-size:10px}
 .alimento-tabela th{font-family:'Lato',sans-serif;font-size:7px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txtL);padding:4px 6px;text-align:left;border-bottom:1px solid var(--begeR)}
 .alimento-tabela td{padding:5px 6px;border-bottom:1px solid var(--bege);color:var(--txt)}
