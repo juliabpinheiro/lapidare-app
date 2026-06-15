@@ -264,43 +264,7 @@ export function ThemeProvider({ children }) {
     if (tema.cor_input_text) r.style.setProperty('--input-text-color', tema.cor_input_text);
     else r.style.removeProperty('--input-text-color');
 
-    // ─── Cores exclusivas do app da paciente ───
-    // Aplicadas por cima das cores de marca; só presentes quando role=paciente.
-    const pc = tema.pacConfig;
-
-    // Limpa variáveis opcionais do paciente antes de reaplicar
-    ['--pac-tabbar-bg','--pac-tabbar-txt','--pac-header-ref-bg','--pac-header-ref-txt','--pac-macro','--pac-titulo']
-      .forEach(v => r.style.removeProperty(v));
-
-    if (pc) {
-      if (pc.pac_bg) {
-        r.style.setProperty('--bg',      pc.pac_bg);
-        r.style.setProperty('--bg-soft', mistura(pc.pac_bg, '#ffffff', 0.5));
-        r.style.setProperty('--bg-deep', mistura(pc.pac_bg, '#000000', 0.08));
-      }
-      if (pc.pac_card) {
-        r.style.setProperty('--paper', pc.pac_card);
-      }
-      if (pc.pac_btn) {
-        r.style.setProperty('--dark',       pc.pac_btn);
-        r.style.setProperty('--dark-shade', mistura(pc.pac_btn, '#000000', 0.15));
-        r.style.setProperty('--dark-line',  mistura(pc.pac_btn, '#000000', 0.25));
-        r.style.setProperty('--gold-deep',  pc.pac_btn);
-        r.style.setProperty('--gold',       mistura(pc.pac_btn, '#ffffff', 0.2));
-        r.style.setProperty('--amber',      mistura(pc.pac_btn, '#ffffff', 0.2));
-      }
-      if (pc.pac_text) {
-        r.style.setProperty('--ink',      pc.pac_text);
-        r.style.setProperty('--ink-soft', mistura(pc.pac_text, '#ffffff', 0.25));
-      }
-      if (pc.pac_tabbar)         r.style.setProperty('--pac-tabbar-bg',       pc.pac_tabbar);
-      if (pc.pac_tabbar_txt)     r.style.setProperty('--pac-tabbar-txt',      pc.pac_tabbar_txt);
-      if (pc.pac_header_ref)     r.style.setProperty('--pac-header-ref-bg',   pc.pac_header_ref);
-      if (pc.pac_header_ref_txt) r.style.setProperty('--pac-header-ref-txt',  pc.pac_header_ref_txt);
-      if (pc.pac_macro)          r.style.setProperty('--pac-macro',            pc.pac_macro);
-      if (pc.pac_titulo)         r.style.setProperty('--pac-titulo',           pc.pac_titulo);
-    }
-  }, [tema.cor_primaria, tema.cor_secundaria, tema.cor_sidebar, tema.cor_fundo_nutri, tema.cor_abas, tema.cor_card_nutri, tema.cor_texto, tema.tipografia, tema.cor_texto_sidebar, tema.cor_nav_item, tema.cor_nav_grupo, tema.cor_sidebar_nome, tema.cor_nav_divider, tema.cor_nav_active, tema.cor_sidebar_detail, tema.cor_topbar, tema.cor_topbar_texto, tema.cor_aba, tema.cor_btn_sec, tema.cor_btn_txt, tema.cor_input_text, tema.pacConfig]);
+  }, [tema.cor_primaria, tema.cor_secundaria, tema.cor_sidebar, tema.cor_fundo_nutri, tema.cor_abas, tema.cor_card_nutri, tema.cor_texto, tema.tipografia, tema.cor_texto_sidebar, tema.cor_nav_item, tema.cor_nav_grupo, tema.cor_sidebar_nome, tema.cor_nav_divider, tema.cor_nav_active, tema.cor_sidebar_detail, tema.cor_topbar, tema.cor_topbar_texto, tema.cor_aba, tema.cor_btn_sec, tema.cor_btn_txt, tema.cor_input_text]);
 
   return (
     <ThemeContext.Provider value={tema}>
@@ -318,7 +282,7 @@ export function useTheme() {
  * Mistura linear entre duas cores hex. peso = quanto da segunda cor (0..1).
  * mistura('#a08456', '#ffffff', 0.8) → cor primária com 80% de branco = soft.
  */
-function mistura(hex1, hex2, peso) {
+export function mistura(hex1, hex2, peso) {
   const a = parseHex(hex1);
   const b = parseHex(hex2);
   if (!a || !b) return hex1;

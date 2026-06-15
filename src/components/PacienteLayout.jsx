@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import BrandFooter from './BrandFooter.jsx';
 import { useSession, signOut } from '../lib/session.jsx';
-import { useTheme } from '../lib/theme.jsx';
+import { useTheme, mistura } from '../lib/theme.jsx';
 import { supabase } from '../lib/supabase.js';
 import { iniciais } from '../lib/utils.js';
 import '../styles/paciente.css';
@@ -56,6 +56,29 @@ export default function PacienteLayout() {
 
   const isChat = location.pathname === '/paciente/chat';
   const primeiroNome = profile?.nome?.split(' ')[0] ?? '';
+
+  // Cores personalizadas da paciente: aplicadas APENAS neste elemento raiz,
+  // nunca no document.documentElement, para não vazar pro app da nutri.
+  const pc = tema.pacConfig ?? {};
+  const pacStyle = {
+    ...(pc.pac_bg  && { '--bg': pc.pac_bg, '--bg-soft': mistura(pc.pac_bg, '#ffffff', 0.5), '--bg-deep': mistura(pc.pac_bg, '#000000', 0.08) }),
+    ...(pc.pac_card && { '--paper': pc.pac_card }),
+    ...(pc.pac_btn  && {
+      '--dark':       pc.pac_btn,
+      '--dark-shade': mistura(pc.pac_btn, '#000000', 0.15),
+      '--dark-line':  mistura(pc.pac_btn, '#000000', 0.25),
+      '--gold-deep':  pc.pac_btn,
+      '--gold':       mistura(pc.pac_btn, '#ffffff', 0.2),
+      '--amber':      mistura(pc.pac_btn, '#ffffff', 0.2),
+    }),
+    ...(pc.pac_text && { '--ink': pc.pac_text, '--ink-soft': mistura(pc.pac_text, '#ffffff', 0.25) }),
+    ...(pc.pac_tabbar         && { '--pac-tabbar-bg':      pc.pac_tabbar }),
+    ...(pc.pac_tabbar_txt     && { '--pac-tabbar-txt':     pc.pac_tabbar_txt }),
+    ...(pc.pac_header_ref     && { '--pac-header-ref-bg':  pc.pac_header_ref }),
+    ...(pc.pac_header_ref_txt && { '--pac-header-ref-txt': pc.pac_header_ref_txt }),
+    ...(pc.pac_macro          && { '--pac-macro':          pc.pac_macro }),
+    ...(pc.pac_titulo         && { '--pac-titulo':         pc.pac_titulo }),
+  };
 
   // Conta mensagens não lidas vindas da nutri
   useEffect(() => {
@@ -127,7 +150,7 @@ export default function PacienteLayout() {
   }
 
   return (
-    <div className="paciente-app">
+    <div className="paciente-app" style={pacStyle}>
       <header className="app-header">
         {isChat && (
           <button
