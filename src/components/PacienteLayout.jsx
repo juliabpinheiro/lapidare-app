@@ -78,7 +78,7 @@ export default function PacienteLayout() {
     ...(pc.pac_header_ref_txt && { '--pac-header-ref-txt': pc.pac_header_ref_txt }),
     ...(pc.pac_macro          && { '--pac-macro':          pc.pac_macro }),
     ...(pc.pac_titulo         && { '--pac-titulo':         pc.pac_titulo }),
-    ...(pc.pac_card_dark      && { '--pac-card-dark':      pc.pac_card_dark }),
+    ...(pc.pac_hero      && { '--pac-hero':      pc.pac_hero }),
     ...(pc.pac_btn_plano      && { '--pac-btn-plano':      pc.pac_btn_plano }),
     ...(pc.pac_avatar         && { '--pac-avatar':         pc.pac_avatar }),
   };

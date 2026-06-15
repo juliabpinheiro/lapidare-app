@@ -488,8 +488,8 @@ export default function Inicio() {
       {todasPassaram ? (
         <div className="card dark" style={{
           padding: '20px 18px', textAlign: 'center',
-          background: 'var(--pac-card-dark, linear-gradient(135deg, var(--ink) 0%, #1a1612 100%))',
-          borderColor: 'var(--pac-card-dark, var(--ink))',
+          background: 'var(--pac-hero, linear-gradient(135deg, var(--ink) 0%, #1a1612 100%))',
+          borderColor: 'var(--pac-hero, var(--ink))',
         }}>
           <div style={{ fontSize: 30, marginBottom: 10 }}>🎉</div>
           <div className="serif" style={{ fontSize: 20, color: 'var(--bg-soft)', lineHeight: 1.2, marginBottom: 6 }}>
@@ -507,8 +507,8 @@ export default function Inicio() {
       ) : proximaRef ? (
         <div className="card dark" style={{
           padding: '16px 18px',
-          background: 'var(--pac-card-dark, linear-gradient(135deg, var(--ink) 0%, #1a1612 100%))',
-          borderColor: 'var(--pac-card-dark, var(--ink))',
+          background: 'var(--pac-hero, linear-gradient(135deg, var(--ink) 0%, #1a1612 100%))',
+          borderColor: 'var(--pac-hero, var(--ink))',
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
             <span style={{ fontSize: 10, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--bg-soft)', opacity: .6 }}>

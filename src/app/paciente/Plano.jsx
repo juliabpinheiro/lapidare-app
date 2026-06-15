@@ -35,6 +35,7 @@ export default function Plano() {
   const [relatorio, setRelatorio] = useState(undefined); // undefined=loading, null=sem resp
   const [respostaRelatorio, setRespostaRelatorio] = useState('');
   const [enviandoRelatorio, setEnviandoRelatorio] = useState(false);
+  const [erroRelatorio, setErroRelatorio] = useState(null);
   const [recibos, setRecibos] = useState([]);
 
   useEffect(() => {
@@ -76,6 +77,7 @@ export default function Plano() {
   async function submitRelatorio() {
     if (!respostaRelatorio.trim() || enviandoRelatorio) return;
     setEnviandoRelatorio(true);
+    setErroRelatorio(null);
     const { error } = await supabase.from('relatorio_semanal').insert({
       paciente_id: user.id,
       nutri_id: profile?.nutri_id ?? null,
@@ -85,7 +87,9 @@ export default function Plano() {
       respondido_em: new Date().toISOString(),
     });
     setEnviandoRelatorio(false);
-    if (!error) {
+    if (error) {
+      setErroRelatorio('Erro ao enviar. Tente novamente.');
+    } else {
       setRelatorio({ respondido_em: new Date().toISOString() });
       setRespostaRelatorio('');
     }
@@ -158,6 +162,13 @@ export default function Plano() {
               outline: 'none', marginBottom: 10, boxSizing: 'border-box',
             }}
           />
+          {erroRelatorio && (
+            <div style={{
+              fontSize: 12, color: '#b91c1c', background: '#fef2f2',
+              border: '0.5px solid #fecaca', borderRadius: 8,
+              padding: '8px 12px', marginBottom: 8,
+            }}>{erroRelatorio}</div>
+          )}
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <button
               onClick={submitRelatorio}

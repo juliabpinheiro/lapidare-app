@@ -337,7 +337,7 @@ const CSS = `
 }
 :root{--verde:#173103;--terra:#95380A;--bege:#E9E5DD;--begeR:#DED3C6;--branco:#FFF;--txt:#173103;--txtL:#5a5a5a;--ok:#173103;--warn:#b97d00;--err:#c0392b}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Poppins',sans-serif;font-weight:300;background:#E9E5DD;color:var(--txt);font-size:10.5px;line-height:1.6;-webkit-font-smoothing:antialiased}
+body{font-family:'Poppins',sans-serif;font-weight:300;background:#E9E5DD;color:var(--txt);font-size:11px;line-height:1.6;-webkit-font-smoothing:antialiased}
 .pagina{width:210mm;min-height:297mm;margin:0 auto 16px auto;background:#FFF;padding:16mm 16mm 16mm 20mm;position:relative;box-shadow:0 2px 16px rgba(0,0,0,.10);overflow:hidden}
 .pagina::before{content:'';position:absolute;left:0;top:0;width:5px;height:100%;background:linear-gradient(180deg,#95380A 0%,#173103 100%)}
 .refeicao{page-break-inside:avoid;margin-bottom:14px}
@@ -385,14 +385,14 @@ h1,h2,h3{page-break-after:avoid}
 .pms-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .pms-box{background:var(--bege);border-radius:6px;padding:14px;margin-bottom:0}
 .pms-titulo{font-family:'Playfair Display',serif;font-style:italic;font-size:20px;color:var(--verde);margin-bottom:10px;line-height:1}
-.pms-body{font-size:10px;color:var(--txt);line-height:1.8}
+.pms-body{font-size:11px;color:var(--txt);line-height:1.8}
 .pms-body li{list-style:none;padding-left:12px;position:relative;margin-bottom:1px}
 .pms-body li::before{content:'—';position:absolute;left:0;color:var(--terra)}
 .ref-titulo{font-family:'Playfair Display',serif;font-style:italic;font-size:28px;color:var(--verde);line-height:1;margin-bottom:2px}
-.ref-horario{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--txtL);margin-bottom:10px}
+.ref-horario{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--txtL);margin-bottom:10px}
 .ref-sugestao-label{font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--terra);font-weight:600;margin-bottom:4px}
-.ref-sugestao{font-style:italic;font-size:10px;color:var(--txtL);margin-bottom:10px}
-.cat-prefix{color:var(--txtL);font-size:10.5px}
+.ref-sugestao{font-style:italic;font-size:11px;color:var(--txtL);margin-bottom:10px}
+.cat-prefix{color:var(--txtL);font-size:11px}
 .alimento-tabela{width:100%;border-collapse:collapse;margin-bottom:8px;font-size:11px}
 .alimento-tabela th{font-family:'Lato',sans-serif;font-size:7px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txtL);padding:4px 6px;text-align:left;border-bottom:1px solid var(--begeR)}
 .alimento-tabela td{padding:5px 6px;border-bottom:1px solid var(--bege);color:var(--txt)}
@@ -400,25 +400,25 @@ h1,h2,h3{page-break-after:avoid}
 .alimento-tabela .subtotal td{font-weight:600;color:var(--verde);background:var(--bege);font-size:9px}
 .grupo-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--terra);font-weight:700;text-align:center;margin-bottom:4px}
 .grupo-caixa{background:var(--bege);border-radius:6px;padding:10px 16px;text-align:center;font-size:11px;color:var(--txt);line-height:1.9}
-.ref-nota{font-size:9px;font-style:italic;color:var(--terra);margin-top:6px;padding:6px 10px;background:#fdf3ee;border-radius:4px;border-left:3px solid var(--terra)}
+.ref-nota{font-size:11px;font-style:italic;color:var(--terra);margin-top:6px;padding:6px 10px;background:#fdf3ee;border-radius:4px;border-left:3px solid var(--terra)}
 .liberados-titulo-it{font-family:'Playfair Display',serif;font-style:italic;font-size:18px;color:var(--txtL);line-height:1}
 .liberados-titulo-bold{font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:var(--verde);line-height:1;margin-bottom:16px}
 .liberados-caixa{background:var(--bege);border-radius:6px;padding:18px 24px;font-size:11px;color:var(--txt);line-height:2;text-align:center;margin-bottom:8px}
-.liberados-nota{font-size:9px;color:var(--txtL);font-style:italic;text-align:center}
+.liberados-nota{font-size:11px;color:var(--txtL);font-style:italic;text-align:center}
 .orient-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .orient-card{background:var(--bege);border-radius:6px;padding:12px}
-.orient-card-titulo{font-family:'Lato',sans-serif;font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--terra);font-weight:700;margin-bottom:8px}
-.orient-card-body{font-size:9.5px;color:var(--txt);line-height:1.8}
+.orient-card-titulo{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--terra);font-weight:700;margin-bottom:8px}
+.orient-card-body{font-size:11px;color:var(--txt);line-height:1.8}
 .orient-card-body li{list-style:none;padding-left:12px;position:relative;margin-bottom:2px}
 .orient-card-body li::before{content:'—';position:absolute;left:0;color:var(--terra)}
 .atencao-box{border:1.5px solid var(--begeR);border-radius:6px;padding:16px 20px;margin-top:12px}
 .atencao-titulo{font-family:'Playfair Display',serif;font-size:15px;letter-spacing:2px;color:var(--verde);text-align:center;margin-bottom:12px}
-.atencao-body{font-size:9.5px;color:var(--txt);line-height:1.9}
+.atencao-body{font-size:11px;color:var(--txt);line-height:1.9}
 .atencao-body li{list-style:none;padding-left:12px;position:relative;margin-bottom:2px}
 .atencao-body li::before{content:'—';position:absolute;left:0;color:var(--terra)}
 .enc-frase{font-family:'Playfair Display',serif;font-style:italic;font-size:26px;color:var(--verde);line-height:1.4;margin-bottom:28px;max-width:480px;text-align:center}
-.enc-nome{font-family:'Lato',sans-serif;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--txtL);line-height:2;text-align:center}
-.enc-validade{font-size:9px;color:var(--txtL);margin-top:14px;text-align:center}
+.enc-nome{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--txtL);line-height:2;text-align:center}
+.enc-validade{font-size:11px;color:var(--txtL);margin-top:14px;text-align:center}
 `;
 
 export function gerarPlanoHtml({ pacienteNome, plano, extras, subsTexto, nutriNome, nutriCrn, nutriEmail, pacienteDados }) {
