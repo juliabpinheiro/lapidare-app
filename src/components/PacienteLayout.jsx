@@ -11,6 +11,7 @@ const TABS = [
   { id: 'inicio',    path: '/paciente/inicio',    label: 'Início',    icon: 'home' },
   { id: 'plano',     path: '/paciente/plano',     label: 'Plano',     icon: 'salad' },
   { id: 'feed',      path: '/paciente/feed',      label: 'Pratos',    icon: 'camera' },
+  { id: 'evolucao',  path: '/paciente/evolucao',  label: 'Evolução',  icon: 'camera-selfie' },
   { id: 'progresso', path: '/paciente/progresso', label: 'Progresso', icon: 'trending-up' },
   { id: 'mais',                                    label: 'Mais',      icon: 'menu-2' },
 ];
@@ -28,6 +29,7 @@ const HEADERS = {
   '/paciente/inicio':       (nome) =>           ({ eyebrow: 'Meu plano',         title: `Bom dia, ${nome}` }),
   '/paciente/plano':        () =>                ({ eyebrow: 'Plano alimentar',  title: 'Meu plano',         subtitle: '' }),
   '/paciente/feed':         () =>                ({ eyebrow: 'Diário alimentar', title: 'Pratos',            subtitle: 'Registre o que você comeu' }),
+  '/paciente/evolucao':     () =>                ({ eyebrow: 'Progresso visual', title: 'Evolução',   subtitle: 'Fotos de antes e depois' }),
   '/paciente/progresso':    () =>                ({ eyebrow: 'Minha evolução',   title: 'Progresso' }),
   '/paciente/compras':      () =>                ({ eyebrow: 'Lista',            title: 'Compras',           subtitle: 'Para a semana' }),
   '/paciente/prescricoes':  () =>                ({ eyebrow: 'Documentos',       title: 'Prescrições' }),
@@ -44,6 +46,7 @@ export default function PacienteLayout() {
   const location = useLocation();
   const [moreOpen, setMoreOpen] = useState(false);
   const [unreadChat, setUnreadChat] = useState(0);
+  const [evolucaoBadge, setEvolucaoBadge] = useState(false);
   const [alterarSenhaOpen, setAlterarSenhaOpen] = useState(false);
   const [novaSenha, setNovaSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
@@ -79,6 +82,19 @@ export default function PacienteLayout() {
       .subscribe();
 
     return () => { active = false; supabase.removeChannel(channel); };
+  }, [user]);
+
+  // Badge de evolução: mostra ⚠️ se menos de 3 fotos enviadas no mês atual
+  useEffect(() => {
+    if (!user) return;
+    const mes = new Date().toISOString().slice(0, 7);
+    supabase
+      .from('fotos_evolucao')
+      .select('tipo', { count: 'exact', head: true })
+      .eq('paciente_id', user.id)
+      .gte('data_foto', `${mes}-01`)
+      .lte('data_foto', `${mes}-31`)
+      .then(({ count }) => setEvolucaoBadge((count ?? 0) < 3));
   }, [user]);
 
   const header = useMemo(() => {
@@ -180,9 +196,20 @@ export default function PacienteLayout() {
                 to={t.path}
                 className={({ isActive }) => 'tab' + (isActive ? ' active' : '')}
                 role="tab"
+                style={{ position: 'relative' }}
               >
                 <i className={`ti ti-${t.icon}`} aria-hidden="true"></i>
                 <span>{t.label}</span>
+                {t.id === 'evolucao' && evolucaoBadge && (
+                  <span style={{
+                    position: 'absolute', top: 2, right: 'calc(50% - 18px)',
+                    background: '#95380A', color: '#fff',
+                    fontSize: 9, fontWeight: 700,
+                    width: 14, height: 14, borderRadius: 7,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    border: '1.5px solid var(--paper)',
+                  }}>!</span>
+                )}
               </NavLink>
             );
           })}

@@ -5,6 +5,7 @@ import { formatarResposta } from '../../lib/checkinDefault.js';
 
 const TIPOS_FOTO = [
   { id: 'frente',          label: 'Frente' },
+  { id: 'lado',            label: 'Lado' },
   { id: 'perfil_direito',  label: 'Perfil direito' },
   { id: 'perfil_esquerdo', label: 'Perfil esquerdo' },
   { id: 'costas',          label: 'Costas' },
