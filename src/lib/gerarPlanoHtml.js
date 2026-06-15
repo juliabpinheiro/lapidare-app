@@ -27,7 +27,13 @@ function subsHtml(mealKey, subsTexto) {
   if ((subsTexto._meta?.removed ?? []).includes(mealKey)) return '';
   const cats = subsTexto[mealKey];
   if (!cats) return '';
-  const order = _CAT_ORDER[mealKey] ?? Object.keys(cats);
+  // Usa _CAT_ORDER como ordem preferida, mas inclui todas as cats com conteúdo
+  const baseOrder = _CAT_ORDER[mealKey] ?? [];
+  const order = [
+    ...baseOrder.filter(k => cats[k]?.trim()),
+    ...Object.keys(cats).filter(k => !baseOrder.includes(k) && cats[k]?.trim()),
+  ];
+  if (!order.length) return '';
   return order.map(catKey => {
     const texto = cats[catKey];
     if (!texto?.trim()) return '';
@@ -316,9 +322,11 @@ function pagEncerramento(pacienteNome, e, nutriNome, nutriCrn, nutriEmail) {
 const CSS = `
 .btn-container{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:10px;z-index:999}
 .btn-pdf{background:#95380A;color:#FFF;border:none;border-radius:6px;padding:12px 24px;font-family:'Lato',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;text-transform:uppercase}
-.btn-word{background:#1a1a1a;color:#FFF;border:none;border-radius:6px;padding:12px 24px;font-family:'Lato',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;text-transform:uppercase}
+.btn-word{background:#173103;color:#FFF;border:none;border-radius:6px;padding:12px 24px;font-family:'Lato',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;text-transform:uppercase}
+.btn-voltar{background:transparent;color:#173103;border:1.5px solid #173103;border-radius:6px;padding:10px 20px;font-family:'Lato',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;text-transform:uppercase}
 .btn-pdf:hover{background:#7a2d08}
-.btn-word:hover{background:#333}
+.btn-word:hover{background:#0d1d02}
+.btn-voltar:hover{background:#173103;color:#FFF}
 @media print{
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
   html,body{width:210mm;background:white!important;margin:0;padding:0}
@@ -327,7 +335,7 @@ const CSS = `
   .pagina:last-child{page-break-after:avoid}
   @page{size:A4;margin:0}
 }
-:root{--verde:#173103;--terra:#95380A;--bege:#E9E5DD;--begeR:#DED3C6;--branco:#FFF;--txt:#1a1a1a;--txtL:#5a5a5a;--ok:#173103;--warn:#b97d00;--err:#c0392b}
+:root{--verde:#173103;--terra:#95380A;--bege:#E9E5DD;--begeR:#DED3C6;--branco:#FFF;--txt:#173103;--txtL:#5a5a5a;--ok:#173103;--warn:#b97d00;--err:#c0392b}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Poppins',sans-serif;font-weight:300;background:#E9E5DD;color:var(--txt);font-size:10.5px;line-height:1.6;-webkit-font-smoothing:antialiased}
 .pagina{width:210mm;min-height:297mm;margin:0 auto 16px auto;background:#FFF;padding:16mm 16mm 16mm 20mm;position:relative;box-shadow:0 2px 16px rgba(0,0,0,.10);overflow:hidden}
@@ -436,17 +444,42 @@ export function gerarPlanoHtml({ pacienteNome, plano, extras, subsTexto, nutriNo
 <meta charset="UTF-8">
 <title>Plano Alimentar — ${esc(pacienteNome)}</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Poppins:wght@300;400;500&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>${CSS}</style>
 </head>
 <body>
 <div class="btn-container">
+  <button class="btn-voltar" onclick="window.close()">&#8592; Voltar ao app</button>
   <button class="btn-word" onclick="baixarWord()">&#8659; Baixar Word</button>
-  <button class="btn-pdf" onclick="window.print()">&#8659; Baixar PDF</button>
+  <button class="btn-pdf" onclick="baixarPdf()">&#8659; Baixar PDF</button>
 </div>
 <div id="plano-content">
 ${paginas.join('\n')}
 </div>
 <script>
+function baixarPdf() {
+  var btn = document.querySelector('.btn-container');
+  if (btn) btn.style.display = 'none';
+  var nomeTitulo = document.title.replace('Plano Alimentar — ', '').replace('Plano Alimentar - ', '').trim();
+  var s = nomeTitulo;
+  if (s.normalize) s = s.normalize('NFD');
+  s = s.replace(/[^A-Za-z0-9 ]/g, '').toLowerCase().trim().replace(/ +/g, '_');
+  var nomeArq = s || 'plano';
+  document.fonts.ready.then(function() {
+    html2pdf().from(document.getElementById('plano-content')).set({
+      margin: 0,
+      filename: 'plano_' + nomeArq + '.pdf',
+      html2canvas: { scale: 2, useCORS: true, logging: false },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css'] }
+    }).save().then(function() {
+      if (btn) btn.style.display = 'flex';
+    }).catch(function() {
+      if (btn) btn.style.display = 'flex';
+      window.print();
+    });
+  });
+}
 function baixarWord() {
   var nome = document.title.replace(/[<>:"/\\|?*]/g, '').trim();
   var estilos = Array.from(document.styleSheets).map(function(s) {

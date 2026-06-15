@@ -104,13 +104,14 @@ export default function Plano() {
   function abrirPlanoCompleto() {
     if (!planoVisual) return;
     const html = gerarPlanoHtml({
-      pacienteNome: user?.user_metadata?.nome ?? user?.email ?? '',
+      pacienteNome: planoVisual.paciente_dados?.nome ?? user?.user_metadata?.nome ?? user?.email ?? '',
       plano,
       extras: planoVisual,
       subsTexto: planoVisual.subs_texto ?? null,
-      nutriNome: '',
-      nutriCrn: '',
-      nutriEmail: '',
+      nutriNome:  planoVisual.nutri_nome  ?? '',
+      nutriCrn:   planoVisual.nutri_crn   ?? '',
+      nutriEmail: planoVisual.nutri_email ?? '',
+      pacienteDados: planoVisual.paciente_dados ?? null,
     });
     const win = window.open('', '_blank');
     if (!win) { alert('Permita pop-ups para abrir o PDF.'); return; }

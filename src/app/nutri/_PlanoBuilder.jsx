@@ -1235,11 +1235,27 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
       return setFeedback({ tipo: 'erro', msg: error.message });
     }
 
-    // Salva extras visuais para o PDF da paciente (prioridades, metas, suplementos, subs)
+    // Salva todos os dados necessários para o PDF da paciente
+    const _n = v => parseFloat(v) || null;
     const visualDados = {
-      prioridades: orientacoes.prioridades,
-      metas: orientacoes.metas,
-      suplementos: orientacoes.suplementacao,
+      prioridades:    orientacoes.prioridades,
+      metas:          orientacoes.metas,
+      suplementos:    orientacoes.suplementacao,
+      consulta_n:     orientacoes.consulta_n,
+      agua_diaria:    orientacoes.agua_diaria,
+      paciente_dados: {
+        nome:       pacienteDadosPdf.nome.trim() || pacienteNome,
+        idade:      parseInt(pacienteDadosPdf.idade) || null,
+        peso_kg:    _n(pacienteDadosPdf.peso_kg),
+        altura_cm:  _n(pacienteDadosPdf.altura_cm),
+        pgc:        null,
+        cintura_cm: _n(pacienteDadosPdf.cintura_cm),
+        quadril_cm: _n(pacienteDadosPdf.quadril_cm),
+        objetivo:   pacienteDadosPdf.objetivo.trim() || null,
+      },
+      nutri_nome:  nutriInfo.nome,
+      nutri_crn:   nutriInfo.crn,
+      nutri_email: nutriInfo.email,
       ...(subsTexto ? { subs_texto: subsTexto } : {}),
     };
     await supabase.from('planos_visuais').insert({
