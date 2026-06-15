@@ -177,11 +177,13 @@ export default function Plano() {
         <div style={{
           display: 'flex', alignItems: 'center', gap: 8,
           background: '#f0fdf4', border: '0.5px solid #bbf7d0',
-          borderRadius: 10, padding: '10px 14px', marginBottom: 10,
-          fontSize: 13, color: '#16a34a',
+          borderRadius: 10, padding: '12px 16px', marginBottom: 10,
         }}>
-          <i className="ti ti-check" style={{ fontSize: 16 }} aria-hidden="true"></i>
-          Relatório da semana enviado — obrigada!
+          <i className="ti ti-circle-check-filled" style={{ fontSize: 20, color: '#16a34a', flexShrink: 0 }} aria-hidden="true"></i>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#15803d' }}>Enviado!</div>
+            <div style={{ fontSize: 11, color: '#16a34a' }}>Sua nutricionista vai ver em breve.</div>
+          </div>
         </div>
       )}
 

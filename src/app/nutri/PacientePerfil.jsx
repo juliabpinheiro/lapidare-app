@@ -1966,15 +1966,29 @@ function ModalUploadEbookPaciente({ nutriId, pacienteId, onClose, onSaved }) {
    ============================================================ */
 function MinhaSemana({ pacienteId }) {
   const [relatorios, setRelatorios] = useState(null);
+  const [abertos, setAbertos] = useState(new Set());
 
   useEffect(() => {
     supabase
       .from('relatorio_semanal')
-      .select('id, semana_inicio, resposta, respondido_em')
+      .select('id, resposta, respondido_em')
       .eq('paciente_id', pacienteId)
-      .order('semana_inicio', { ascending: false })
+      .order('respondido_em', { ascending: false })
       .then(({ data }) => setRelatorios(data ?? []));
   }, [pacienteId]);
+
+  function toggle(id) {
+    setAbertos(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  function fmtData(ts) {
+    if (!ts) return '—';
+    return new Date(ts).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
 
   if (relatorios === null) {
     return (
@@ -1993,41 +2007,50 @@ function MinhaSemana({ pacienteId }) {
     );
   }
 
-  function fmtSemana(iso) {
-    if (!iso) return '—';
-    const [ano, mes, dia] = iso.split('-');
-    return `Semana de ${dia}/${mes}/${ano}`;
-  }
-
-  function fmtEnvio(ts) {
-    if (!ts) return '';
-    const d = new Date(ts);
-    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-      + ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-  }
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      {relatorios.map(r => (
-        <div key={r.id} className="card" style={{ padding: '16px 20px' }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--dark)' }}>
-              {fmtSemana(r.semana_inicio)}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {relatorios.map(r => {
+        const aberto = abertos.has(r.id);
+        return (
+          <div
+            key={r.id}
+            className="card"
+            style={{ padding: 0, overflow: 'hidden', cursor: 'pointer', userSelect: 'none' }}
+            onClick={() => toggle(r.id)}
+          >
+            {/* Cabeçalho — sempre visível */}
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '14px 18px',
+            }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--dark)' }}>
+                {fmtData(r.respondido_em)}
+              </div>
+              <i
+                className={`ti ti-chevron-${aberto ? 'up' : 'down'}`}
+                style={{ fontSize: 14, color: 'var(--text3)' }}
+                aria-hidden="true"
+              />
             </div>
-            <div style={{ fontSize: 11, color: 'var(--text3)' }}>
-              Enviado em {fmtEnvio(r.respondido_em)}
-            </div>
+
+            {/* Conteúdo expansível */}
+            {aberto && (
+              <div style={{
+                padding: '0 18px 16px',
+                borderTop: '0.5px solid var(--border)',
+              }}>
+                <div style={{
+                  marginTop: 12,
+                  fontSize: 13, color: 'var(--dark)', lineHeight: 1.75,
+                  whiteSpace: 'pre-wrap',
+                }}>
+                  {r.resposta || <span style={{ color: 'var(--text3)', fontStyle: 'italic' }}>Sem texto</span>}
+                </div>
+              </div>
+            )}
           </div>
-          <div style={{
-            fontSize: 13, color: 'var(--dark)', lineHeight: 1.7,
-            background: 'var(--bg2)', borderRadius: 8, padding: '10px 14px',
-            borderLeft: '3px solid var(--border)',
-            whiteSpace: 'pre-wrap',
-          }}>
-            {r.resposta || <span style={{ color: 'var(--text3)', fontStyle: 'italic' }}>Sem texto</span>}
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
