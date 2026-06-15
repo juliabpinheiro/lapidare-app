@@ -79,7 +79,7 @@
 .paciente-app .header-avatar {
   width: 36px; height: 36px;
   border-radius: 50%;
-  background: var(--gold);
+  background: var(--pac-avatar, var(--gold));
   display: flex; align-items: center; justify-content: center;
   font-size: 12px; font-weight: 600; color: var(--ink);
 }

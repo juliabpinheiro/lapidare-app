@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase.js';
 import { useSession } from '../../lib/session.jsx';
@@ -18,6 +18,13 @@ export default function Inicio() {
   const [habitos, setHabitos] = useState([]);
   const [habitosLogs, setHabitosLogs] = useState({});  // { habito_id: valor }
   const [habitosStreak, setHabitosStreak] = useState(0);
+  const [agora, setAgora] = useState(() => new Date());
+
+  // Atualiza o relógio a cada minuto para recalcular a próxima refeição
+  useEffect(() => {
+    const t = setInterval(() => setAgora(new Date()), 60_000);
+    return () => clearInterval(t);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -81,7 +88,23 @@ export default function Inicio() {
     return () => { active = false; };
   }, [user]);
 
-  const proximaRef = plano?.refeicoes?.find(r => !r.feita) ?? plano?.refeicoes?.[0] ?? null;
+  // Próxima refeição por horário atual
+  const { proximaRef, todasPassaram } = useMemo(() => {
+    const refeicoes = plano?.refeicoes ?? [];
+    const hh = String(agora.getHours()).padStart(2, '0');
+    const mm = String(agora.getMinutes()).padStart(2, '0');
+    const horaAtual = `${hh}:${mm}`;
+
+    const comHorario = refeicoes.filter(r => r.horario);
+    if (comHorario.length > 0) {
+      const sorted = [...comHorario].sort((a, b) => a.horario.localeCompare(b.horario));
+      const proxima = sorted.find(r => r.horario > horaAtual) ?? null;
+      return { proximaRef: proxima, todasPassaram: !proxima };
+    }
+    // Sem horários: mostra a primeira do plano
+    return { proximaRef: refeicoes[0] ?? null, todasPassaram: false };
+  }, [plano, agora]);
+
   const totalCompras = compras?.lista?.reduce((a, c) => a + (c.itens?.length ?? 0), 0) ?? 0;
 
   const dias = proximaConsulta ? diasAte(proximaConsulta.data_hora) : null;
@@ -461,9 +484,32 @@ export default function Inicio() {
         </div>
       )}
 
-      {/* Hero — próxima refeição */}
-      {proximaRef ? (
-        <div className="card dark" style={{ padding: '16px 18px' }}>
+      {/* Hero — próxima refeição / parabéns / boas-vindas */}
+      {todasPassaram ? (
+        <div className="card dark" style={{
+          padding: '20px 18px', textAlign: 'center',
+          background: 'var(--pac-card-dark, linear-gradient(135deg, var(--ink) 0%, #1a1612 100%))',
+          borderColor: 'var(--pac-card-dark, var(--ink))',
+        }}>
+          <div style={{ fontSize: 30, marginBottom: 10 }}>🎉</div>
+          <div className="serif" style={{ fontSize: 20, color: 'var(--bg-soft)', lineHeight: 1.2, marginBottom: 6 }}>
+            Parabéns! Você completou todas as refeições de hoje!
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--muted-2)', marginBottom: 14, lineHeight: 1.5 }}>
+            Seu compromisso com a saúde é inspirador. Até amanhã!
+          </div>
+          <button className="btn gold sm"
+            style={{ background: 'var(--pac-btn-plano, var(--gold))' }}
+            onClick={() => navigate('/paciente/plano')}>
+            Ver plano completo
+          </button>
+        </div>
+      ) : proximaRef ? (
+        <div className="card dark" style={{
+          padding: '16px 18px',
+          background: 'var(--pac-card-dark, linear-gradient(135deg, var(--ink) 0%, #1a1612 100%))',
+          borderColor: 'var(--pac-card-dark, var(--ink))',
+        }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
             <span style={{ fontSize: 10, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--bg-soft)', opacity: .6 }}>
               Próxima refeição{proximaRef.horario ? ` · ${proximaRef.horario}` : ''}
@@ -478,7 +524,11 @@ export default function Inicio() {
           <div style={{ fontSize: 11, color: 'var(--muted-2)', marginBottom: 10 }}>
             {proximaRef.alimentos?.slice(0, 2).map(a => a.nome).join(' · ')}
           </div>
-          <button className="btn gold sm" onClick={() => navigate('/paciente/plano')}>Ver plano completo</button>
+          <button className="btn gold sm"
+            style={{ background: 'var(--pac-btn-plano, var(--gold))' }}
+            onClick={() => navigate('/paciente/plano')}>
+            Ver plano completo
+          </button>
         </div>
       ) : (
         <div className="card" style={{ padding: '20px 18px', textAlign: 'center' }}>

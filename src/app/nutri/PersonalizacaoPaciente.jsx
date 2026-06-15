@@ -13,6 +13,9 @@ const DEFAULTS = {
   pac_header_ref_txt:  '#f0ebe3',
   pac_macro:           '#a08456',
   pac_titulo:          '#8a7a6e',
+  pac_card_dark:       '#1c1712',
+  pac_btn_plano:       '#c9a96e',
+  pac_avatar:          '#c9a96e',
 };
 
 const PRESETS = [
@@ -21,36 +24,42 @@ const PRESETS = [
     pac_tabbar: '#ffffff', pac_tabbar_txt: '#2c2420',
     pac_header_ref: '#1c1712', pac_header_ref_txt: '#f0ebe3',
     pac_macro: '#a08456', pac_titulo: '#8a7a6e',
+    pac_card_dark: '#1c1712', pac_btn_plano: '#c9a96e', pac_avatar: '#c9a96e',
   },
   { label: 'Rosa nude',
     pac_bg: '#f9f0ee', pac_card: '#ffffff', pac_btn: '#8b3a52', pac_text: '#2a1a1f',
     pac_tabbar: '#ffffff', pac_tabbar_txt: '#8b3a52',
     pac_header_ref: '#8b3a52', pac_header_ref_txt: '#f9f0ee',
     pac_macro: '#8b3a52', pac_titulo: '#8b3a52',
+    pac_card_dark: '#8b3a52', pac_btn_plano: '#8b3a52', pac_avatar: '#8b3a52',
   },
   { label: 'Verde sage',
     pac_bg: '#eef2ec', pac_card: '#ffffff', pac_btn: '#2d5a27', pac_text: '#1a2e18',
     pac_tabbar: '#eef2ec', pac_tabbar_txt: '#2d5a27',
     pac_header_ref: '#2d5a27', pac_header_ref_txt: '#eef2ec',
     pac_macro: '#2d5a27', pac_titulo: '#2d5a27',
+    pac_card_dark: '#2d5a27', pac_btn_plano: '#2d5a27', pac_avatar: '#2d5a27',
   },
   { label: 'Lavanda',
     pac_bg: '#f0edf8', pac_card: '#ffffff', pac_btn: '#5b3d9e', pac_text: '#1e1630',
     pac_tabbar: '#f0edf8', pac_tabbar_txt: '#5b3d9e',
     pac_header_ref: '#5b3d9e', pac_header_ref_txt: '#f0edf8',
     pac_macro: '#5b3d9e', pac_titulo: '#5b3d9e',
+    pac_card_dark: '#5b3d9e', pac_btn_plano: '#5b3d9e', pac_avatar: '#5b3d9e',
   },
   { label: 'Dark mode',
     pac_bg: '#1a1a1a', pac_card: '#2a2a2a', pac_btn: '#c9a96e', pac_text: '#f0ebe3',
     pac_tabbar: '#1a1a1a', pac_tabbar_txt: '#f0ebe3',
     pac_header_ref: '#2a2a2a', pac_header_ref_txt: '#f0ebe3',
     pac_macro: '#c9a96e', pac_titulo: '#c9a96e',
+    pac_card_dark: '#2a2a2a', pac_btn_plano: '#c9a96e', pac_avatar: '#c9a96e',
   },
   { label: 'Azul polar',
     pac_bg: '#eef4fb', pac_card: '#ffffff', pac_btn: '#1a4a80', pac_text: '#0d2040',
     pac_tabbar: '#ffffff', pac_tabbar_txt: '#1a4a80',
     pac_header_ref: '#1a4a80', pac_header_ref_txt: '#eef4fb',
     pac_macro: '#1a4a80', pac_titulo: '#1a4a80',
+    pac_card_dark: '#1a4a80', pac_btn_plano: '#1a4a80', pac_avatar: '#1a4a80',
   },
 ];
 
@@ -115,6 +124,9 @@ export default function PersonalizacaoPaciente() {
     { key: 'pac_header_ref_txt', label: 'Texto do header',          hint: 'Cor do texto dentro do header de refeição' },
     { key: 'pac_macro',          label: 'Barras de macros',         hint: 'Cor das barras de proteína, carbo e gordura' },
     { key: 'pac_titulo',         label: 'Rótulos / categorias',     hint: 'Cor dos pequenos textos de categoria (eyebrow)' },
+    { key: 'pac_card_dark',      label: 'Card Próxima Refeição',    hint: 'Fundo do card hero da tela inicial' },
+    { key: 'pac_btn_plano',      label: 'Botão Ver plano completo', hint: 'Cor do botão na tela inicial' },
+    { key: 'pac_avatar',         label: 'Avatar da paciente',       hint: 'Círculo com iniciais no canto superior direito' },
   ];
 
   return (
@@ -229,9 +241,17 @@ export default function PersonalizacaoPaciente() {
             overflow: 'hidden',
           }}>
             {/* Fake page header */}
-            <div style={{ padding: '12px 14px 10px', background: tema.pac_bg }}>
-              <div style={{ fontSize: 8, letterSpacing: '.18em', textTransform: 'uppercase', color: tema.pac_titulo, marginBottom: 2 }}>Plano alimentar</div>
-              <div style={{ fontSize: 16, fontWeight: 600, color: tema.pac_text }}>Meu plano</div>
+            <div style={{ padding: '12px 14px 10px', background: tema.pac_bg, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ fontSize: 8, letterSpacing: '.18em', textTransform: 'uppercase', color: tema.pac_titulo, marginBottom: 2 }}>Plano alimentar</div>
+                <div style={{ fontSize: 16, fontWeight: 600, color: tema.pac_text }}>Meu plano</div>
+              </div>
+              <div style={{
+                width: 28, height: 28, borderRadius: '50%',
+                background: tema.pac_avatar,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 9, fontWeight: 600, color: tema.pac_text,
+              }}>JP</div>
             </div>
 
             <div style={{ padding: '0 12px 12px' }}>
@@ -251,6 +271,25 @@ export default function PersonalizacaoPaciente() {
                     </div>
                   </div>
                 ))}
+              </div>
+
+              {/* Fake card próxima refeição */}
+              <div style={{
+                background: tema.pac_card_dark, borderRadius: 10,
+                marginBottom: 8, padding: '10px',
+                boxShadow: '0 2px 8px rgba(0,0,0,.18)',
+              }}>
+                <div style={{ fontSize: 8, letterSpacing: '.14em', textTransform: 'uppercase', color: '#fff', opacity: .6, marginBottom: 4 }}>
+                  Próxima refeição · 12:00
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#fff', marginBottom: 6 }}>Almoço</div>
+                <div style={{
+                  display: 'inline-block', background: tema.pac_btn_plano,
+                  color: tema.pac_text, borderRadius: 6,
+                  padding: '4px 10px', fontSize: 9, fontWeight: 600, cursor: 'default',
+                }}>
+                  Ver plano completo
+                </div>
               </div>
 
               {/* Fake refeição card */}
