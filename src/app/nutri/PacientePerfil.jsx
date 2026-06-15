@@ -305,6 +305,7 @@ export default function PacientePerfil() {
           { id: 'checkin',     label: 'Check-in',     icon: 'clipboard-check' },
           { id: 'exames',      label: 'Exames',       icon: 'test-pipe' },
           { id: 'followup',    label: 'Follow-up',    icon: 'notebook' },
+          { id: 'minha-semana', label: 'Minha semana', icon: 'calendar-week' },
           { id: 'recibo',      label: 'Recibo',       icon: 'receipt' },
         ].map(t => (
           <button
@@ -335,6 +336,7 @@ export default function PacientePerfil() {
       {tab === 'calculo'  && <CalculoEnergetico paciente={paciente} />}
       {tab === 'exames'   && <Exames   pacienteId={paciente.id} nutriId={user.id} />}
       {tab === 'followup' && <FollowUp pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
+      {tab === 'minha-semana' && <MinhaSemana pacienteId={paciente.id} />}
       {tab === 'suplementacao' && <Suplementacao pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'habitos' && <Habitos pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'plano' && <PlanoBuilder pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} paciente={paciente} onLiberar={(lista) => { setListaDraft(lista); setTab('compras'); }} />}
@@ -1955,6 +1957,77 @@ function ModalUploadEbookPaciente({ nutriId, pacienteId, onClose, onSaved }) {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   MINHA SEMANA — relatórios semanais enviados pela paciente
+   ============================================================ */
+function MinhaSemana({ pacienteId }) {
+  const [relatorios, setRelatorios] = useState(null);
+
+  useEffect(() => {
+    supabase
+      .from('relatorio_semanal')
+      .select('id, semana_inicio, resposta, respondido_em')
+      .eq('paciente_id', pacienteId)
+      .order('semana_inicio', { ascending: false })
+      .then(({ data }) => setRelatorios(data ?? []));
+  }, [pacienteId]);
+
+  if (relatorios === null) {
+    return (
+      <div className="card empty-card">
+        <div className="empty-sub">Carregando relatórios…</div>
+      </div>
+    );
+  }
+
+  if (relatorios.length === 0) {
+    return (
+      <div className="card empty-card">
+        <i className="ti ti-calendar-week" style={{ fontSize: 32, color: 'var(--text3)', display: 'block', marginBottom: 12 }} aria-hidden="true" />
+        <div className="empty-sub">Nenhum relatório enviado ainda.</div>
+      </div>
+    );
+  }
+
+  function fmtSemana(iso) {
+    if (!iso) return '—';
+    const [ano, mes, dia] = iso.split('-');
+    return `Semana de ${dia}/${mes}/${ano}`;
+  }
+
+  function fmtEnvio(ts) {
+    if (!ts) return '';
+    const d = new Date(ts);
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+      + ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {relatorios.map(r => (
+        <div key={r.id} className="card" style={{ padding: '16px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--dark)' }}>
+              {fmtSemana(r.semana_inicio)}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--text3)' }}>
+              Enviado em {fmtEnvio(r.respondido_em)}
+            </div>
+          </div>
+          <div style={{
+            fontSize: 13, color: 'var(--dark)', lineHeight: 1.7,
+            background: 'var(--bg2)', borderRadius: 8, padding: '10px 14px',
+            borderLeft: '3px solid var(--border)',
+            whiteSpace: 'pre-wrap',
+          }}>
+            {r.resposta || <span style={{ color: 'var(--text3)', fontStyle: 'italic' }}>Sem texto</span>}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
