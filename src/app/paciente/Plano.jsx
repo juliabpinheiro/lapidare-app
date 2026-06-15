@@ -7,6 +7,18 @@ import HidratacaoCard from '../../components/HidratacaoCard.jsx';
 
 const PERGUNTA_SEMANAL = 'Me conta como foi sua alimentação e treino essa semana. Está conseguindo ver evolução no espelho e nas roupas? Me conte como está se sentindo.';
 
+const CAT_LABELS = { carbo: 'Carboidrato', prot: 'Proteína', gordura: 'Gordura', leg: 'Leguminosa', fruta: 'Fruta', bebida: 'Bebida' };
+
+function normMealKey(nome) {
+  const n = (nome ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]/g, '').trim();
+  if (n.includes('ceia')) return 'ceia';
+  if (n.includes('jantar')) return 'jantar';
+  if (n.includes('lanche') && (n.includes('tarde') || n.includes('16') || n.includes('15'))) return 'lanche_tarde';
+  if (n.includes('almoco')) return 'almoco';
+  if (n.includes('lanche')) return 'lanche_manha';
+  return 'cafe_manha';
+}
+
 function getMondayISO() {
   const d = new Date();
   const day = d.getDay();
@@ -19,7 +31,6 @@ export default function Plano() {
   const { user, profile } = useSession();
   const [plano, setPlano] = useState(undefined); // undefined=loading, null=vazio
   const [validade, setValidade] = useState(null);
-  const [openSubs, setOpenSubs] = useState({});
   const [planoVisual, setPlanoVisual] = useState(null);
   const [relatorio, setRelatorio] = useState(undefined); // undefined=loading, null=sem resp
   const [respostaRelatorio, setRespostaRelatorio] = useState('');
@@ -76,8 +87,6 @@ export default function Plano() {
     setEnviandoRelatorio(false);
     if (data) { setRelatorio(data); setRespostaRelatorio(''); }
   }
-
-  const toggleSubs = (key) => setOpenSubs(s => ({ ...s, [key]: !s[key] }));
 
   if (plano === undefined) {
     return <div className="empty-state"><div className="empty-sub">Carregando…</div></div>;
@@ -248,34 +257,40 @@ export default function Plano() {
           </div>
 
           {ref.alimentos?.map((al, ai) => (
-            <div key={ai}>
-              <div className="alimento-row" style={{ background: ai % 2 === 0 ? 'var(--paper)' : 'var(--bg-soft)' }}>
-                <div>
-                  <div className="alimento-nome">{al.nome}</div>
-                  {al.qty && <div className="alimento-qty">{al.qty}{al.prot_g ? ` · ${al.prot_g}g prot` : ''}</div>}
-                </div>
-                {al.kcal && <span className="alimento-kcal">{al.kcal} kcal</span>}
-              </div>
-
-              {al.subs?.length > 0 && (
-                <>
-                  <button className="subs-toggle" onClick={() => toggleSubs(`${ri}-${ai}`)}>
-                    <i className={`ti ti-${openSubs[`${ri}-${ai}`] ? 'chevron-up' : 'chevron-down'}`} style={{ fontSize: 12 }} aria-hidden="true"></i>
-                    {openSubs[`${ri}-${ai}`] ? 'Fechar substituições' : `Ver ${al.subs.length} substituições`}
-                  </button>
-                  {openSubs[`${ri}-${ai}`] && (
-                    <div className="subs-list">
-                      {al.subs.map((s, si) => (
-                        <div key={si} className="sub-item">
-                          → {typeof s === 'string' ? s : `${s.nome}${s.qty ? ` — ${s.qty}` : ''}`}
-                        </div>
-                      ))}
-                    </div>
+            <div key={ai} className="alimento-row" style={{ background: ai % 2 === 0 ? 'var(--paper)' : 'var(--bg-soft)' }}>
+              <div>
+                <div className="alimento-nome">
+                  {al.catKey && CAT_LABELS[al.catKey] && (
+                    <span className="alimento-cat">{CAT_LABELS[al.catKey]} – </span>
                   )}
-                </>
-              )}
+                  {al.nome}
+                </div>
+                {al.qty && <div className="alimento-qty">{al.qty}{al.prot_g ? ` · ${al.prot_g}g prot` : ''}</div>}
+              </div>
+              {al.kcal && <span className="alimento-kcal">{al.kcal} kcal</span>}
             </div>
           ))}
+
+          {/* Substituições por refeição (agrupadas por categoria, vindas de planoVisual) */}
+          {(() => {
+            const mealSubs = planoVisual?.subs_texto?.[normMealKey(ref.nome)];
+            if (!mealSubs) return null;
+            const entries = Object.entries(mealSubs).filter(([, t]) => t?.trim());
+            if (!entries.length) return null;
+            return (
+              <div className="meal-subs-section">
+                <div className="meal-subs-titulo">Escolha 1 opção para substituir:</div>
+                {entries.map(([catKey, texto]) => (
+                  <div key={catKey} className="meal-subs-grupo">
+                    <div className="meal-subs-cat">{CAT_LABELS[catKey] ?? catKey}</div>
+                    {texto.split(' · ').map((item, i) => (
+                      <div key={i} className="meal-subs-item">• {item}</div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
 
           {ref.obs && (
             <div className="refeicao-obs">
