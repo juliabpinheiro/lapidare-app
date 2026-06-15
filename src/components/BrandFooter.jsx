@@ -16,7 +16,7 @@ export default function BrandFooter({ compact = false }) {
       fontFamily: 'var(--font-sans)',
       userSelect: 'none',
     }}>
-      Desenvolvido por <strong style={{ fontWeight: 600 }}>DS EMPREENDEDORISMO DIGITAL</strong>
+      Desenvolvido por <strong style={{ fontWeight: 600 }}>MÉTODO PINHEIRO</strong>
     </div>
   );
 }

@@ -265,7 +265,11 @@ export default function Plano() {
                   </button>
                   {openSubs[`${ri}-${ai}`] && (
                     <div className="subs-list">
-                      {al.subs.map((s, si) => <div key={si} className="sub-item">→ {s}</div>)}
+                      {al.subs.map((s, si) => (
+                        <div key={si} className="sub-item">
+                          → {typeof s === 'string' ? s : `${s.nome}${s.qty ? ` — ${s.qty}` : ''}`}
+                        </div>
+                      ))}
                     </div>
                   )}
                 </>

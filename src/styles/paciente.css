@@ -226,7 +226,7 @@
   overflow: hidden;
 }
 .paciente-app .refeicao-header {
-  background: var(--ink);
+  background: #173103;
   padding: 10px 16px;
   display: flex; align-items: center; justify-content: space-between;
 }
