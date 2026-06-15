@@ -44,6 +44,12 @@ export default function PacienteLayout() {
   const location = useLocation();
   const [moreOpen, setMoreOpen] = useState(false);
   const [unreadChat, setUnreadChat] = useState(0);
+  const [alterarSenhaOpen, setAlterarSenhaOpen] = useState(false);
+  const [novaSenha, setNovaSenha] = useState('');
+  const [confirmarSenha, setConfirmarSenha] = useState('');
+  const [senhaErro, setSenhaErro] = useState(null);
+  const [senhaBusy, setSenhaBusy] = useState(false);
+  const [senhaSucesso, setSenhaSucesso] = useState(false);
 
   const isChat = location.pathname === '/paciente/chat';
   const primeiroNome = profile?.nome?.split(' ')[0] ?? '';
@@ -84,6 +90,25 @@ export default function PacienteLayout() {
     await signOut();
     navigate('/login', { replace: true });
   };
+
+  async function handleAlterarSenha(e) {
+    e.preventDefault();
+    setSenhaErro(null);
+    if (novaSenha.length < 6) return setSenhaErro('A senha precisa ter pelo menos 6 caracteres.');
+    if (novaSenha !== confirmarSenha) return setSenhaErro('As senhas não conferem.');
+    setSenhaBusy(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: novaSenha });
+      if (error) { setSenhaErro(error.message); return; }
+      setSenhaSucesso(true);
+      setNovaSenha(''); setConfirmarSenha('');
+      setTimeout(() => { setAlterarSenhaOpen(false); setSenhaSucesso(false); }, 2000);
+    } catch (err) {
+      setSenhaErro(err?.message || 'Erro inesperado.');
+    } finally {
+      setSenhaBusy(false);
+    }
+  }
 
   return (
     <div className="paciente-app">
@@ -164,6 +189,85 @@ export default function PacienteLayout() {
         </nav>
       )}
 
+      {alterarSenhaOpen && (
+        <div className="sheet-backdrop" onClick={() => setAlterarSenhaOpen(false)}>
+          <div className="sheet" onClick={e => e.stopPropagation()}>
+            <div className="grabber"></div>
+            <div className="serif" style={{ fontSize: 22, marginBottom: 6 }}>Alterar senha</div>
+            <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 20 }}>
+              Mínimo de 6 caracteres.
+            </div>
+            {senhaSucesso ? (
+              <div style={{
+                fontSize: 13, color: 'var(--green)', background: 'var(--green-soft)',
+                padding: '12px 14px', borderRadius: 10, textAlign: 'center', lineHeight: 1.5,
+              }}>
+                Senha atualizada com sucesso!
+              </div>
+            ) : (
+              <form onSubmit={handleAlterarSenha}>
+                <label style={{ display: 'block', marginBottom: 12 }}>
+                  <span style={{ display: 'block', fontSize: 11, color: 'var(--ink-soft)', marginBottom: 5, fontWeight: 500 }}>
+                    Nova senha
+                  </span>
+                  <input
+                    type="password"
+                    value={novaSenha}
+                    onChange={e => setNovaSenha(e.target.value)}
+                    required minLength={6} autoFocus
+                    style={{
+                      width: '100%', padding: '10px 12px', fontSize: 13,
+                      background: 'var(--bg-soft)', border: '0.5px solid var(--hair)',
+                      borderRadius: 10, outline: 'none', color: 'var(--ink)',
+                      fontFamily: 'var(--font-sans)', boxSizing: 'border-box',
+                    }}
+                  />
+                </label>
+                <label style={{ display: 'block', marginBottom: 12 }}>
+                  <span style={{ display: 'block', fontSize: 11, color: 'var(--ink-soft)', marginBottom: 5, fontWeight: 500 }}>
+                    Confirmar nova senha
+                  </span>
+                  <input
+                    type="password"
+                    value={confirmarSenha}
+                    onChange={e => setConfirmarSenha(e.target.value)}
+                    required minLength={6}
+                    style={{
+                      width: '100%', padding: '10px 12px', fontSize: 13,
+                      background: 'var(--bg-soft)', border: '0.5px solid var(--hair)',
+                      borderRadius: 10, outline: 'none', color: 'var(--ink)',
+                      fontFamily: 'var(--font-sans)', boxSizing: 'border-box',
+                    }}
+                  />
+                </label>
+                {senhaErro && (
+                  <div style={{
+                    fontSize: 12, color: 'var(--red)', background: 'var(--red-soft)',
+                    padding: '8px 12px', borderRadius: 8, marginBottom: 12,
+                  }}>{senhaErro}</div>
+                )}
+                <button type="submit" disabled={senhaBusy} style={{
+                  width: '100%', padding: '11px 18px',
+                  background: 'var(--ink)', color: 'var(--bg-soft)',
+                  borderRadius: 12, fontSize: 13, fontWeight: 500, border: 'none',
+                  opacity: senhaBusy ? .6 : 1, cursor: senhaBusy ? 'not-allowed' : 'pointer',
+                  fontFamily: 'var(--font-sans)', marginBottom: 8,
+                }}>
+                  {senhaBusy ? 'Salvando...' : 'Atualizar senha'}
+                </button>
+                <button type="button" onClick={() => setAlterarSenhaOpen(false)} style={{
+                  width: '100%', padding: '10px', background: 'none', border: 'none',
+                  fontSize: 13, color: 'var(--muted)', cursor: 'pointer',
+                  fontFamily: 'var(--font-sans)',
+                }}>
+                  Cancelar
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+
       {moreOpen && (
         <div className="sheet-backdrop" onClick={() => setMoreOpen(false)}>
           <div className="sheet" onClick={e => e.stopPropagation()}>
@@ -193,6 +297,22 @@ export default function PacienteLayout() {
                 </button>
               );
             })}
+
+            <button key="alterar-senha"
+              className="sheet-item"
+              onClick={() => {
+                setMoreOpen(false);
+                setNovaSenha(''); setConfirmarSenha('');
+                setSenhaErro(null); setSenhaSucesso(false);
+                setAlterarSenhaOpen(true);
+              }}>
+              <div className="icon-wrap"><i className="ti ti-lock" aria-hidden="true"></i></div>
+              <div style={{ flex: 1 }}>
+                <div className="label">Alterar senha</div>
+                <div className="sub">Trocar a senha de acesso</div>
+              </div>
+              <i className="ti ti-chevron-right" style={{ color: 'var(--muted)' }} aria-hidden="true"></i>
+            </button>
 
             <div style={{ height: 1, background: 'var(--hair)', margin: '12px 0 8px' }}></div>
 

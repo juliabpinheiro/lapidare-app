@@ -79,9 +79,19 @@ export default function Login() {
     setErro(null);
     setBusy(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password: senha });
+      if (error) { setBusy(false); return setErro(mensagemAmigavel(error)); }
+      // Bloqueia paciente inativa imediatamente, antes de deixar entrar
+      if (data.user) {
+        const { data: pac } = await supabase
+          .from('pacientes').select('ativo').eq('id', data.user.id).maybeSingle();
+        if (pac && pac.ativo === false) {
+          await supabase.auth.signOut();
+          setBusy(false);
+          return setErro('Seu acesso está suspenso. Entre em contato com sua nutricionista.');
+        }
+      }
       setBusy(false);
-      if (error) setErro(mensagemAmigavel(error));
     } catch (err) {
       setBusy(false);
       setErro(mensagemAmigavel(err));

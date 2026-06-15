@@ -92,15 +92,20 @@ export default function Cadastrar() {
 
   function mensagemWhats(nome, email) {
     const primeiroNome = nome.split(' ')[0];
+    const url = window.location.origin;
     return encodeURIComponent(
-      `Oi ${primeiroNome}! 😊\n\nSeu perfil no app de acompanhamento nutricional já está pronto.\n\nPara criar sua senha e acessar, clique em "Entrar" no app e depois em "Esqueci minha senha". Use o email: ${email}\n\nQualquer dúvida, me chama!`
+      `Oi ${primeiroNome}! 😊\n\nSeu perfil no app de acompanhamento nutricional já está pronto!\n\n` +
+      `📱 Acesse: ${url}\n` +
+      `📧 Email: ${email}\n` +
+      `🔑 Senha inicial: 12345\n\n` +
+      `Assim que entrar, recomendo trocar a senha em Mais → Alterar senha 🔒\n\nQualquer dúvida, me chama!`
     );
   }
 
   return (
     <>
       <div className="page-title">Cadastrar paciente</div>
-      <div className="page-sub">Preencha os dados — a conta é criada na hora. A paciente cria a senha quando quiser acessar o app.</div>
+      <div className="page-sub">Preencha os dados — a conta é criada com a senha inicial <strong>12345</strong>. A paciente acessa direto e pode trocar a senha quando quiser.</div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 16 }}>
 
@@ -163,9 +168,8 @@ export default function Cadastrar() {
               <div>
                 <div className="al-t" style={{ color: 'var(--blue)' }}>Como funciona</div>
                 <div className="al-d">
-                  Você preenche todos os dados e a conta da paciente é criada imediatamente.
-                  Quando ela quiser acessar o app, basta clicar em "Esqueci minha senha" na tela de login
-                  e criar a própria senha — sem precisar de convite.
+                  Você preenche os dados e a conta é criada na hora com a senha padrão <strong>12345</strong>.
+                  A paciente acessa direto com o email dela + essa senha. Depois do primeiro acesso, ela pode trocar em <em>Mais → Alterar senha</em>.
                 </div>
               </div>
             </div>
@@ -214,7 +218,7 @@ function CartaoSucesso({ nome, email, mensagemWhats, onDispensar }) {
             ✓ {nome.split(' ')[0]} cadastrada!
           </div>
           <div style={{ fontSize: 12, color: 'var(--text2)', lineHeight: 1.5 }}>
-            Conta criada. Para acessar o app, ela usa <strong>"Esqueci minha senha"</strong> na tela de login com o email:
+            Conta criada com senha inicial <strong>12345</strong>. Para acessar, ela usa o email abaixo + essa senha (pode trocar depois em Mais → Alterar senha):
           </div>
         </div>
         <button onClick={onDispensar}
