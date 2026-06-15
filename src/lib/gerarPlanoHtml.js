@@ -390,7 +390,7 @@ h1,h2,h3{page-break-after:avoid}
 .pms-body li::before{content:'—';position:absolute;left:0;color:var(--terra)}
 .ref-titulo{font-family:'Playfair Display',serif;font-style:italic;font-size:28px;color:var(--verde);line-height:1;margin-bottom:2px}
 .ref-horario{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--txtL);margin-bottom:10px}
-.ref-sugestao-label{font-family:'Lato',sans-serif;font-size:7px;letter-spacing:2.5px;text-transform:uppercase;color:var(--terra);font-weight:600;margin-bottom:4px}
+.ref-sugestao-label{font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--terra);font-weight:600;margin-bottom:4px}
 .ref-sugestao{font-style:italic;font-size:10px;color:var(--txtL);margin-bottom:10px}
 .cat-prefix{color:var(--txtL);font-size:10.5px}
 .alimento-tabela{width:100%;border-collapse:collapse;margin-bottom:8px;font-size:11px}
@@ -398,8 +398,8 @@ h1,h2,h3{page-break-after:avoid}
 .alimento-tabela td{padding:5px 6px;border-bottom:1px solid var(--bege);color:var(--txt)}
 .alimento-tabela tr:last-child td{border-bottom:none}
 .alimento-tabela .subtotal td{font-weight:600;color:var(--verde);background:var(--bege);font-size:9px}
-.grupo-label{font-family:'Lato',sans-serif;font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--terra);font-weight:700;text-align:center;margin-bottom:4px}
-.grupo-caixa{background:var(--bege);border-radius:6px;padding:10px 16px;text-align:center;font-size:9px;color:var(--txt);line-height:1.9}
+.grupo-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--terra);font-weight:700;text-align:center;margin-bottom:4px}
+.grupo-caixa{background:var(--bege);border-radius:6px;padding:10px 16px;text-align:center;font-size:11px;color:var(--txt);line-height:1.9}
 .ref-nota{font-size:9px;font-style:italic;color:var(--terra);margin-top:6px;padding:6px 10px;background:#fdf3ee;border-radius:4px;border-left:3px solid var(--terra)}
 .liberados-titulo-it{font-family:'Playfair Display',serif;font-style:italic;font-size:18px;color:var(--txtL);line-height:1}
 .liberados-titulo-bold{font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:var(--verde);line-height:1;margin-bottom:16px}
