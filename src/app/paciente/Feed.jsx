@@ -216,24 +216,22 @@ export default function FeedPaciente() {
               <div className="feed-comment">
                 {p.reacao_nutri === 'coracao' && (
                   <div style={{
-                    display: 'flex', alignItems: 'center', gap: 4, width: 'fit-content',
-                    fontSize: 11, fontWeight: 600, color: '#e05555',
-                    background: '#fdf0f0', borderRadius: 20, padding: '2px 8px',
+                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                    fontSize: 11, fontWeight: 700, color: '#fff',
+                    background: '#2d6a2d', borderRadius: 20, padding: '4px 10px',
                     marginBottom: p.comentario_nutri ? 8 : 0,
                   }}>
-                    <i className="ti ti-heart-filled" style={{ fontSize: 12 }} aria-hidden="true"></i>
-                    Aprovado
+                    ⭐ Aprovado
                   </div>
                 )}
                 {p.reacao_nutri === 'atencao' && (
                   <div style={{
-                    display: 'flex', alignItems: 'center', gap: 4, width: 'fit-content',
-                    fontSize: 11, fontWeight: 600, color: '#c97c2e',
-                    background: '#fef5eb', borderRadius: 20, padding: '2px 8px',
+                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                    fontSize: 11, fontWeight: 700, color: '#fff',
+                    background: '#95380A', borderRadius: 20, padding: '4px 10px',
                     marginBottom: p.comentario_nutri ? 8 : 0,
                   }}>
-                    <i className="ti ti-alert-circle-filled" style={{ fontSize: 12 }} aria-hidden="true"></i>
-                    Atenção
+                    ⚠️ Atenção
                   </div>
                 )}
                 {p.comentario_nutri && (
