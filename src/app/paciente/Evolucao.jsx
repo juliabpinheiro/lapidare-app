@@ -146,6 +146,7 @@ export default function EvolucaoPaciente() {
   }
   const fotosAtual = byMes[mesAtual] ?? {};
   const mesesPassados = Object.keys(byMes).filter(m => m !== mesAtual).sort().reverse();
+  const todasEnviadas = POSICOES.every(p => fotosAtual[p.id] && urls[fotosAtual[p.id]?.id]);
 
   return (
     <>
@@ -189,14 +190,31 @@ export default function EvolucaoPaciente() {
           {mesLabel(mesAtual)} — mês atual
         </div>
 
-        {erro && (
+        {todasEnviadas ? (
           <div style={{
-            fontSize: 12, color: 'var(--red)', background: 'var(--red-soft)',
-            padding: '8px 12px', borderRadius: 8, marginBottom: 12,
-          }}>{erro}</div>
-        )}
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+            display: 'flex', alignItems: 'center', gap: 10,
+            background: '#f0fdf4', border: '0.5px solid #bbf7d0',
+            borderRadius: 10, padding: '14px 16px',
+          }}>
+            <i className="ti ti-circle-check-filled" style={{ fontSize: 22, color: '#16a34a', flexShrink: 0 }} />
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#15803d', marginBottom: 2 }}>
+                Fotos enviadas com sucesso!
+              </div>
+              <div style={{ fontSize: 11, color: '#16a34a' }}>
+                Sua nutricionista vai ver em breve.
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            {erro && (
+              <div style={{
+                fontSize: 12, color: 'var(--red)', background: 'var(--red-soft)',
+                padding: '8px 12px', borderRadius: 8, marginBottom: 12,
+              }}>{erro}</div>
+            )}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
           {POSICOES.map(pos => {
             const existente = fotosAtual[pos.id];
             const emUpload = uploading === pos.id;
@@ -276,7 +294,9 @@ export default function EvolucaoPaciente() {
               </div>
             );
           })}
-        </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Histórico de meses anteriores */}

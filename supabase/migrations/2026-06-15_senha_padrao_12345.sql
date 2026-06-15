@@ -8,6 +8,8 @@
 --        e é orientada a trocar depois de entrar.
 -- =============================================================
 
+drop function if exists public.cadastrar_paciente_direto(text, text, date, text, text, text, text);
+
 create or replace function public.cadastrar_paciente_direto(
   p_nome       text,
   p_email      text,

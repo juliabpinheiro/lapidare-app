@@ -76,16 +76,19 @@ export default function Plano() {
   async function submitRelatorio() {
     if (!respostaRelatorio.trim() || enviandoRelatorio) return;
     setEnviandoRelatorio(true);
-    const { data } = await supabase.from('relatorio_semanal').insert({
+    const { error } = await supabase.from('relatorio_semanal').insert({
       paciente_id: user.id,
       nutri_id: profile?.nutri_id ?? null,
       semana_inicio: getMondayISO(),
       pergunta: PERGUNTA_SEMANAL,
       resposta: respostaRelatorio.trim(),
       respondido_em: new Date().toISOString(),
-    }).select().maybeSingle();
+    });
     setEnviandoRelatorio(false);
-    if (data) { setRelatorio(data); setRespostaRelatorio(''); }
+    if (!error) {
+      setRelatorio({ respondido_em: new Date().toISOString() });
+      setRespostaRelatorio('');
+    }
   }
 
   if (plano === undefined) {
@@ -217,9 +220,9 @@ export default function Plano() {
           <span className="pill ghost" style={{ fontSize: 10 }}>{plano.macros?.kcal} kcal</span>
         </div>
         {[
-          { label: 'Proteína',    v: plano.macros?.prot_g, color: 'var(--red)' },
-          { label: 'Carboidrato', v: plano.macros?.cho_g,  color: 'var(--gold)' },
-          { label: 'Gordura',     v: plano.macros?.lip_g,  color: 'var(--green)' },
+          { label: 'Proteína',    v: plano.macros?.prot_g, color: 'var(--pac-macro, var(--red))' },
+          { label: 'Carboidrato', v: plano.macros?.cho_g,  color: 'var(--pac-macro, var(--gold))' },
+          { label: 'Gordura',     v: plano.macros?.lip_g,  color: 'var(--pac-macro, var(--green))' },
         ].map((m, i) => (
           <div key={i} className="macro-row">
             <div className="macro-label"><span>{m.label}</span><span>{m.v}g</span></div>

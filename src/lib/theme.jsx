@@ -267,6 +267,11 @@ export function ThemeProvider({ children }) {
     // ─── Cores exclusivas do app da paciente ───
     // Aplicadas por cima das cores de marca; só presentes quando role=paciente.
     const pc = tema.pacConfig;
+
+    // Limpa variáveis opcionais do paciente antes de reaplicar
+    ['--pac-tabbar-bg','--pac-tabbar-txt','--pac-header-ref-bg','--pac-header-ref-txt','--pac-macro','--pac-titulo']
+      .forEach(v => r.style.removeProperty(v));
+
     if (pc) {
       if (pc.pac_bg) {
         r.style.setProperty('--bg',      pc.pac_bg);
@@ -288,6 +293,12 @@ export function ThemeProvider({ children }) {
         r.style.setProperty('--ink',      pc.pac_text);
         r.style.setProperty('--ink-soft', mistura(pc.pac_text, '#ffffff', 0.25));
       }
+      if (pc.pac_tabbar)         r.style.setProperty('--pac-tabbar-bg',       pc.pac_tabbar);
+      if (pc.pac_tabbar_txt)     r.style.setProperty('--pac-tabbar-txt',      pc.pac_tabbar_txt);
+      if (pc.pac_header_ref)     r.style.setProperty('--pac-header-ref-bg',   pc.pac_header_ref);
+      if (pc.pac_header_ref_txt) r.style.setProperty('--pac-header-ref-txt',  pc.pac_header_ref_txt);
+      if (pc.pac_macro)          r.style.setProperty('--pac-macro',            pc.pac_macro);
+      if (pc.pac_titulo)         r.style.setProperty('--pac-titulo',           pc.pac_titulo);
     }
   }, [tema.cor_primaria, tema.cor_secundaria, tema.cor_sidebar, tema.cor_fundo_nutri, tema.cor_abas, tema.cor_card_nutri, tema.cor_texto, tema.tipografia, tema.cor_texto_sidebar, tema.cor_nav_item, tema.cor_nav_grupo, tema.cor_sidebar_nome, tema.cor_nav_divider, tema.cor_nav_active, tema.cor_sidebar_detail, tema.cor_topbar, tema.cor_topbar_texto, tema.cor_aba, tema.cor_btn_sec, tema.cor_btn_txt, tema.cor_input_text, tema.pacConfig]);
 

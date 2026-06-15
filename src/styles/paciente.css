@@ -55,7 +55,7 @@
   font-size: 9px;
   letter-spacing: .22em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--pac-titulo, var(--muted));
   margin-bottom: 2px;
   font-weight: 500;
 }
@@ -226,13 +226,13 @@
   overflow: hidden;
 }
 .paciente-app .refeicao-header {
-  background: var(--dark);
+  background: var(--pac-header-ref-bg, var(--dark));
   padding: 10px 16px;
   display: flex; align-items: center; justify-content: space-between;
 }
-.paciente-app .refeicao-titulo { font-family: var(--font-serif); font-size: 16px; color: var(--bg-soft); }
-.paciente-app .refeicao-kcal { font-size: 11px; color: var(--gold-soft); }
-.paciente-app .refeicao-horario { font-size: 10px; color: var(--muted-2); }
+.paciente-app .refeicao-titulo { font-family: var(--font-serif); font-size: 16px; color: var(--pac-header-ref-txt, var(--bg-soft)); }
+.paciente-app .refeicao-kcal { font-size: 11px; color: var(--pac-header-ref-txt, var(--gold-soft)); }
+.paciente-app .refeicao-horario { font-size: 10px; color: var(--pac-header-ref-txt, var(--muted-2)); }
 .paciente-app .alimento-row {
   display: flex; align-items: center; justify-content: space-between;
   padding: 9px 16px; border-bottom: 0.5px solid var(--hair-soft);
@@ -390,7 +390,7 @@
   bottom: 0; left: 50%;
   transform: translateX(-50%);
   width: 100%; max-width: 430px;
-  background: rgba(255, 255, 255, .92);
+  background: var(--pac-tabbar-bg, rgba(255, 255, 255, .92));
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-top: 0.5px solid var(--hair);
@@ -414,11 +414,11 @@
   background: none; border: none; cursor: pointer;
   font-family: var(--font-sans);
   text-decoration: none;
-  color: var(--ink);
+  color: var(--pac-tabbar-txt, var(--ink));
 }
 .paciente-app .tabbar .tab.active { opacity: 1; }
-.paciente-app .tabbar .tab i { font-size: 21px; color: var(--ink); }
-.paciente-app .tabbar .tab span { font-size: 10px; font-weight: 500; color: var(--ink); }
+.paciente-app .tabbar .tab i { font-size: 21px; color: var(--pac-tabbar-txt, var(--ink)); }
+.paciente-app .tabbar .tab span { font-size: 10px; font-weight: 500; color: var(--pac-tabbar-txt, var(--ink)); }
 .paciente-app .tabbar .tab.active::before {
   content: ''; position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
   width: 24px; height: 3px; border-radius: 0 0 3px 3px;

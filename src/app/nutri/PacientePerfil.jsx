@@ -9,6 +9,7 @@ import {
 import { TEMPLATE_PADRAO } from '../../lib/checkinDefault.js';
 import CheckinForm from '../../components/CheckinForm.jsx';
 import Evolucao from './_Evolucao.jsx';
+import FotosEvolucao from './_FotosEvolucao.jsx';
 import FollowUp from './_FollowUp.jsx';
 import Suplementacao from './_Suplementacao.jsx';
 import Habitos from './_Habitos.jsx';
@@ -289,6 +290,7 @@ export default function PacientePerfil() {
       }}>
         {[
           { id: 'evolucao',    label: 'Evolução',     icon: 'chart-line' },
+          { id: 'fotos',       label: 'Fotos',        icon: 'camera' },
           { id: 'mapa-geral',  label: 'Mapa Geral',   icon: 'map-2' },
           { id: 'anamnese',    label: 'Anamnese',     icon: 'clipboard-text' },
           { id: 'bioimpedancia', label: 'Bioimpedância', icon: 'activity' },
@@ -326,6 +328,7 @@ export default function PacientePerfil() {
       </div>
 
       {tab === 'evolucao'   && <Evolucao pacienteId={paciente.id} paciente={paciente} nutriId={user.id} />}
+      {tab === 'fotos'      && <FotosEvolucao pacienteId={paciente.id} pacienteNome={paciente.nome} />}
       {tab === 'mapa-geral' && <MapaGeral pacienteId={paciente.id} nutriId={user.id} />}
       {tab === 'anamnese'   && <Anamnese pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'bioimpedancia' && <Bioimpedancia pacienteId={paciente.id} nutriId={user.id} />}

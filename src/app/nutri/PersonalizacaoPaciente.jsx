@@ -3,19 +3,55 @@ import { supabase } from '../../lib/supabase.js';
 import { useSession } from '../../lib/session.jsx';
 
 const DEFAULTS = {
-  pac_bg:   '#f0ebe3',
-  pac_card: '#ffffff',
-  pac_btn:  '#1c1712',
-  pac_text: '#000000',
+  pac_bg:              '#f0ebe3',
+  pac_card:            '#ffffff',
+  pac_btn:             '#1c1712',
+  pac_text:            '#000000',
+  pac_tabbar:          '#ffffff',
+  pac_tabbar_txt:      '#2c2420',
+  pac_header_ref:      '#1c1712',
+  pac_header_ref_txt:  '#f0ebe3',
+  pac_macro:           '#a08456',
+  pac_titulo:          '#8a7a6e',
 };
 
 const PRESETS = [
-  { label: 'Lapidare',    pac_bg: '#f0ebe3', pac_card: '#ffffff', pac_btn: '#1c1712', pac_text: '#000000' },
-  { label: 'Rosa nude',   pac_bg: '#f9f0ee', pac_card: '#ffffff', pac_btn: '#8b3a52', pac_text: '#2a1a1f' },
-  { label: 'Verde sage',  pac_bg: '#eef2ec', pac_card: '#ffffff', pac_btn: '#2d5a27', pac_text: '#1a2e18' },
-  { label: 'Lavanda',     pac_bg: '#f0edf8', pac_card: '#ffffff', pac_btn: '#5b3d9e', pac_text: '#1e1630' },
-  { label: 'Dark mode',   pac_bg: '#1a1a1a', pac_card: '#2a2a2a', pac_btn: '#c9a96e', pac_text: '#f0ebe3' },
-  { label: 'Azul polar',  pac_bg: '#eef4fb', pac_card: '#ffffff', pac_btn: '#1a4a80', pac_text: '#0d2040' },
+  { label: 'Lapidare',
+    pac_bg: '#f0ebe3', pac_card: '#ffffff', pac_btn: '#1c1712', pac_text: '#000000',
+    pac_tabbar: '#ffffff', pac_tabbar_txt: '#2c2420',
+    pac_header_ref: '#1c1712', pac_header_ref_txt: '#f0ebe3',
+    pac_macro: '#a08456', pac_titulo: '#8a7a6e',
+  },
+  { label: 'Rosa nude',
+    pac_bg: '#f9f0ee', pac_card: '#ffffff', pac_btn: '#8b3a52', pac_text: '#2a1a1f',
+    pac_tabbar: '#ffffff', pac_tabbar_txt: '#8b3a52',
+    pac_header_ref: '#8b3a52', pac_header_ref_txt: '#f9f0ee',
+    pac_macro: '#8b3a52', pac_titulo: '#8b3a52',
+  },
+  { label: 'Verde sage',
+    pac_bg: '#eef2ec', pac_card: '#ffffff', pac_btn: '#2d5a27', pac_text: '#1a2e18',
+    pac_tabbar: '#eef2ec', pac_tabbar_txt: '#2d5a27',
+    pac_header_ref: '#2d5a27', pac_header_ref_txt: '#eef2ec',
+    pac_macro: '#2d5a27', pac_titulo: '#2d5a27',
+  },
+  { label: 'Lavanda',
+    pac_bg: '#f0edf8', pac_card: '#ffffff', pac_btn: '#5b3d9e', pac_text: '#1e1630',
+    pac_tabbar: '#f0edf8', pac_tabbar_txt: '#5b3d9e',
+    pac_header_ref: '#5b3d9e', pac_header_ref_txt: '#f0edf8',
+    pac_macro: '#5b3d9e', pac_titulo: '#5b3d9e',
+  },
+  { label: 'Dark mode',
+    pac_bg: '#1a1a1a', pac_card: '#2a2a2a', pac_btn: '#c9a96e', pac_text: '#f0ebe3',
+    pac_tabbar: '#1a1a1a', pac_tabbar_txt: '#f0ebe3',
+    pac_header_ref: '#2a2a2a', pac_header_ref_txt: '#f0ebe3',
+    pac_macro: '#c9a96e', pac_titulo: '#c9a96e',
+  },
+  { label: 'Azul polar',
+    pac_bg: '#eef4fb', pac_card: '#ffffff', pac_btn: '#1a4a80', pac_text: '#0d2040',
+    pac_tabbar: '#ffffff', pac_tabbar_txt: '#1a4a80',
+    pac_header_ref: '#1a4a80', pac_header_ref_txt: '#eef4fb',
+    pac_macro: '#1a4a80', pac_titulo: '#1a4a80',
+  },
 ];
 
 export default function PersonalizacaoPaciente() {
@@ -69,10 +105,16 @@ export default function PersonalizacaoPaciente() {
   }
 
   const campos = [
-    { key: 'pac_bg',   label: 'Fundo do app',     hint: 'Cor de fundo das telas' },
-    { key: 'pac_card', label: 'Cards e painéis',   hint: 'Cor de fundo dos cartões' },
-    { key: 'pac_btn',  label: 'Botões principais', hint: 'Cor dos botões e destaques' },
-    { key: 'pac_text', label: 'Letras',            hint: 'Cor do texto principal' },
+    { key: 'pac_bg',             label: 'Fundo do app',            hint: 'Cor de fundo de todas as telas' },
+    { key: 'pac_card',           label: 'Cards e seções',           hint: 'Cor de fundo dos cartões' },
+    { key: 'pac_btn',            label: 'Destaque / botões',        hint: 'Botões, ícones e elementos de acento' },
+    { key: 'pac_text',           label: 'Texto principal',          hint: 'Cor do texto nas telas' },
+    { key: 'pac_tabbar',         label: 'Menu inferior (fundo)',    hint: 'Fundo da barra de abas inferior' },
+    { key: 'pac_tabbar_txt',     label: 'Menu inferior (ícones)',   hint: 'Ícones e texto das abas' },
+    { key: 'pac_header_ref',     label: 'Header de refeição',       hint: 'Fundo de "Café da manhã", "Almoço" etc.' },
+    { key: 'pac_header_ref_txt', label: 'Texto do header',          hint: 'Cor do texto dentro do header de refeição' },
+    { key: 'pac_macro',          label: 'Barras de macros',         hint: 'Cor das barras de proteína, carbo e gordura' },
+    { key: 'pac_titulo',         label: 'Rótulos / categorias',     hint: 'Cor dos pequenos textos de categoria (eyebrow)' },
   ];
 
   return (
@@ -181,58 +223,83 @@ export default function PersonalizacaoPaciente() {
           </div>
           <div style={{
             background: tema.pac_bg, borderRadius: 16,
-            padding: 16, boxShadow: '0 4px 20px rgba(0,0,0,.15)',
+            boxShadow: '0 4px 20px rgba(0,0,0,.15)',
             border: '1px solid rgba(0,0,0,.06)',
             fontFamily: 'var(--font-sans)',
+            overflow: 'hidden',
           }}>
-            {/* Fake top bar */}
-            <div style={{
-              background: tema.pac_btn, borderRadius: 10, padding: '10px 14px',
-              marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            }}>
-              <div style={{ color: '#fff', fontSize: 13, fontWeight: 600 }}>Meu Plano</div>
-              <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,.25)' }} />
+            {/* Fake page header */}
+            <div style={{ padding: '12px 14px 10px', background: tema.pac_bg }}>
+              <div style={{ fontSize: 8, letterSpacing: '.18em', textTransform: 'uppercase', color: tema.pac_titulo, marginBottom: 2 }}>Plano alimentar</div>
+              <div style={{ fontSize: 16, fontWeight: 600, color: tema.pac_text }}>Meu plano</div>
             </div>
 
-            {/* Fake card macros */}
-            <div style={{
-              background: tema.pac_card, borderRadius: 10, padding: 12,
-              marginBottom: 10, boxShadow: '0 1px 4px rgba(0,0,0,.07)',
-            }}>
-              <div style={{ fontSize: 10, color: tema.pac_text, opacity: 0.5, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Macros do dia</div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                {['Proteína\n120g', 'Carbo\n150g', 'Gordura\n50g'].map((m, i) => (
-                  <div key={i} style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: tema.pac_btn }}>{m.split('\n')[1]}</div>
-                    <div style={{ fontSize: 9, color: tema.pac_text, opacity: 0.6 }}>{m.split('\n')[0]}</div>
+            <div style={{ padding: '0 12px 12px' }}>
+              {/* Fake card macros */}
+              <div style={{
+                background: tema.pac_card, borderRadius: 10, padding: 10,
+                marginBottom: 8, boxShadow: '0 1px 4px rgba(0,0,0,.07)',
+              }}>
+                <div style={{ fontSize: 8, color: tema.pac_titulo, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Macros do dia</div>
+                {[['Proteína', '70%'], ['Carboidrato', '85%'], ['Gordura', '55%']].map(([label, w], i) => (
+                  <div key={i} style={{ marginBottom: 5 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: tema.pac_text, marginBottom: 2 }}>
+                      <span>{label}</span><span style={{ opacity: .6 }}>120g</span>
+                    </div>
+                    <div style={{ background: tema.pac_bg, borderRadius: 3, height: 5, overflow: 'hidden' }}>
+                      <div style={{ width: w, height: '100%', background: tema.pac_macro, borderRadius: 3 }} />
+                    </div>
                   </div>
                 ))}
               </div>
+
+              {/* Fake refeição card */}
+              <div style={{
+                background: tema.pac_card, borderRadius: 10,
+                marginBottom: 8, boxShadow: '0 1px 4px rgba(0,0,0,.07)', overflow: 'hidden',
+              }}>
+                <div style={{
+                  background: tema.pac_header_ref, padding: '7px 10px',
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: tema.pac_header_ref_txt }}>Café da manhã</div>
+                  <div style={{ fontSize: 9, color: tema.pac_header_ref_txt, opacity: .75 }}>384 kcal</div>
+                </div>
+                <div style={{ padding: '8px 10px' }}>
+                  {['Pão integral — 2 fatias', 'Ovo mexido — 1½ un.', 'Mamão — 130g'].map((item, i) => (
+                    <div key={i} style={{ fontSize: 10, color: tema.pac_text, padding: '3px 0', opacity: i === 2 ? 0.85 : 1 }}>{item}</div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Fake button */}
+              <button style={{
+                width: '100%', background: tema.pac_btn, color: '#fff',
+                border: 'none', borderRadius: 8, padding: '8px 0',
+                fontSize: 11, fontWeight: 600, cursor: 'default',
+              }}>
+                Baixar Plano em PDF
+              </button>
             </div>
 
-            {/* Fake refeição card */}
+            {/* Fake tab bar */}
             <div style={{
-              background: tema.pac_card, borderRadius: 10, padding: 12,
-              marginBottom: 10, boxShadow: '0 1px 4px rgba(0,0,0,.07)',
+              background: tema.pac_tabbar,
+              borderTop: '0.5px solid rgba(0,0,0,.08)',
+              display: 'flex', padding: '6px 4px 8px',
             }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: tema.pac_text, marginBottom: 4 }}>🌅 Café da manhã</div>
-              <div style={{ fontSize: 11, color: tema.pac_text, opacity: 0.6, marginBottom: 8 }}>08:00 · 384 kcal</div>
-              {['Pão integral — 2 fatias', 'Ovo mexido — 1½ unidade', 'Mamão papaia — 130g'].map((item, i) => (
+              {[['home','Início'], ['salad','Plano'], ['camera','Pratos'], ['trending-up','Prog.'], ['menu-2','Mais']].map(([icon, label], i) => (
                 <div key={i} style={{
-                  fontSize: 11, color: tema.pac_text, padding: '4px 0',
-                  borderBottom: i < 2 ? `1px solid ${tema.pac_bg}` : 'none',
-                }}>{item}</div>
+                  flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+                  opacity: i === 1 ? 1 : 0.4,
+                }}>
+                  <div style={{ fontSize: 14, color: tema.pac_tabbar_txt }}>
+                    {icon === 'home' ? '⌂' : icon === 'salad' ? '🥗' : icon === 'camera' ? '📷' : icon === 'trending-up' ? '📈' : '☰'}
+                  </div>
+                  <div style={{ fontSize: 8, color: tema.pac_tabbar_txt, fontWeight: 500 }}>{label}</div>
+                </div>
               ))}
             </div>
-
-            {/* Fake button */}
-            <button style={{
-              width: '100%', background: tema.pac_btn, color: '#fff',
-              border: 'none', borderRadius: 10, padding: '10px 0',
-              fontSize: 12, fontWeight: 600, cursor: 'default',
-            }}>
-              Baixar Plano em PDF
-            </button>
           </div>
         </div>
       </div>
