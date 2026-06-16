@@ -440,7 +440,7 @@
 @media (max-width: 900px) {
   /* Layout vira coluna única; sidebar fica off-canvas */
   .nutri-panel {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
     grid-template-rows: auto 1fr;
     /* Base define overflow: hidden (linha acima, fora da media query); no mobile
        isso pode cortar scroll horizontal de conteúdo largo, então liberamos. */
@@ -462,6 +462,7 @@
   }
 
   .nutri-panel .sidebar {
+    display: none;
     position: fixed;
     top: 0; left: 0; bottom: 0;
     width: 260px;
@@ -473,6 +474,7 @@
     pointer-events: none;
   }
   .nutri-panel .sidebar.mobile-open {
+    display: flex;
     transform: translateX(0);
     box-shadow: 4px 0 24px rgba(0, 0, 0, .25);
     pointer-events: auto;
@@ -486,7 +488,7 @@
     display: block;
   }
   .nutri-panel .mobile-toggle {
-    display: inline-flex;
+    display: inline-flex !important;
   }
 
   /* Topbar mobile: hambúrguer à esquerda, título centralizado, avatar à direita */
