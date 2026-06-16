@@ -442,6 +442,9 @@
   .nutri-panel {
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;
+    /* Base define overflow: hidden (linha acima, fora da media query); no mobile
+       isso pode cortar scroll horizontal de conteúdo largo, então liberamos. */
+    overflow-x: auto;
   }
 
   /* .main não fica mais travado em 100vh fixo: o tamanho vem do grid acima,
