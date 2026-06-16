@@ -18,14 +18,29 @@ export default function PrescricoesPaciente() {
     let active = true;
     async function load() {
       if (!user) return;
-      const { data } = await supabase
-        .from('prescricoes')
-        .select('id, tipo, titulo, storage_path, nota, created_at')
-        .eq('paciente_id', user.id)
-        .not('tipo', 'eq', 'suplementacao')
-        .order('created_at', { ascending: false });
+      const [presRes, examesRes] = await Promise.all([
+        supabase.from('prescricoes')
+          .select('id, tipo, titulo, storage_path, nota, created_at')
+          .eq('paciente_id', user.id)
+          .not('tipo', 'eq', 'suplementacao')
+          .order('created_at', { ascending: false }),
+        supabase.from('exames_paciente')
+          .select('id, nome, arquivo_url, data, created_at')
+          .eq('paciente_id', user.id)
+          .order('created_at', { ascending: false }),
+      ]);
       if (!active) return;
-      setDocs(data ?? []);
+      const prescricoes = presRes.data ?? [];
+      const exames = (examesRes.data ?? []).map(e => ({
+        id: `exame-${e.id}`,
+        tipo: 'exame',
+        titulo: e.nome,
+        arquivo_url: e.arquivo_url,
+        storage_path: null,
+        nota: null,
+        created_at: e.created_at,
+      }));
+      setDocs([...prescricoes, ...exames].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
     }
     load();
     return () => { active = false; };

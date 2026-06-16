@@ -39,7 +39,18 @@ export default function Ebooks() {
 
   async function abrir(eb) {
     try {
-      // Tenta signed URL primeiro
+      // URL pública direta, sem precisar de signed URL
+      if (eb.arquivo_url && eb.arquivo_url.startsWith('http')) {
+        const a = document.createElement('a');
+        a.href = eb.arquivo_url;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        return;
+      }
+      // Senão, tenta signed URL
       const { data, error } = await supabase.storage
         .from('ebooks').createSignedUrl(eb.storage_path, 3600);
       if (!error && data?.signedUrl) {
@@ -50,11 +61,6 @@ export default function Ebooks() {
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        return;
-      }
-      // Fallback: URL pública direta
-      if (eb.arquivo_url) {
-        window.open(eb.arquivo_url, '_blank', 'noopener');
         return;
       }
       alert('Não foi possível abrir o arquivo.');

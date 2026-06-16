@@ -32,6 +32,16 @@ export default function Suplementos() {
   useEffect(() => { carregar(); }, [user]);
 
   async function baixarProtocolo(doc) {
+    if (doc.arquivo_url && doc.arquivo_url.startsWith('http')) {
+      const a = document.createElement('a');
+      a.href = doc.arquivo_url;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      return;
+    }
     const { data, error } = await supabase.storage
       .from('prescricoes').createSignedUrl(doc.storage_path, 3600);
     if (error) return alert('Não consegui abrir o documento: ' + error.message);

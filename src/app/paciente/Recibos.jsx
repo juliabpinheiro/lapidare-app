@@ -12,7 +12,7 @@ export default function Recibos() {
     (async () => {
       const { data } = await supabase
         .from('recibos_paciente')
-        .select('*')
+        .select('id, nome, arquivo_url, storage_path, created_at')
         .eq('paciente_id', user.id)
         .order('created_at', { ascending: false });
       setRecibos(data ?? []);
@@ -20,16 +20,21 @@ export default function Recibos() {
   }, [user]);
 
   async function baixar(r) {
-    const { data, error } = await supabase.storage
-      .from('recibos').createSignedUrl(r.storage_path, 3600);
+    const url = r.arquivo_url || r.storage_path;
+    if (!url) { alert('Arquivo não disponível.'); return; }
+    if (url.startsWith('http')) {
+      const a = document.createElement('a');
+      a.href = url; a.target = '_blank'; a.rel = 'noopener';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      return;
+    }
+    const { data, error } = await supabase.storage.from('recibos').createSignedUrl(url, 3600);
     if (error) return alert('Não foi possível abrir: ' + error.message);
-    const a = document.createElement('a');
-    a.href = data.signedUrl;
-    a.target = '_blank';
-    a.rel = 'noopener';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    if (data?.signedUrl) {
+      const a = document.createElement('a');
+      a.href = data.signedUrl; a.target = '_blank'; a.rel = 'noopener';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
   }
 
   return (
