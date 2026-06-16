@@ -465,40 +465,57 @@
     position: fixed;
     top: 0; left: 0; bottom: 0;
     width: 260px;
+    height: 100vh;
     transform: translateX(-100%);
     transition: transform .25s cubic-bezier(.2, .8, .2, 1);
-    z-index: 100;
+    z-index: 200;
     box-shadow: none;
+    pointer-events: none;
   }
   .nutri-panel .sidebar.mobile-open {
     transform: translateX(0);
     box-shadow: 4px 0 24px rgba(0, 0, 0, .25);
+    pointer-events: auto;
   }
   .nutri-panel .sidebar-toggle {
     /* Botão de colapsar não faz sentido no mobile (já é overlay) */
     display: none;
   }
-  .nutri-panel.mobile-drawer-open .mobile-overlay {
+  .nutri-panel.mobile-drawer-open .mobile-overlay,
+  .nutri-panel.sidebar-open .mobile-overlay {
     display: block;
   }
   .nutri-panel .mobile-toggle {
     display: inline-flex;
   }
 
-  /* Topbar: esconde a categoria, foco no título — mantém safe area */
-  .nutri-panel .topbar { padding: max(12px, calc(var(--sat, 0px) + 12px)) 14px 12px; gap: 8px; }
+  /* Topbar mobile: hambúrguer à esquerda, título centralizado, avatar à direita */
+  .nutri-panel .topbar {
+    position: relative;
+    padding: max(12px, calc(var(--sat, 0px) + 12px)) 14px 12px;
+    gap: 8px;
+  }
   .nutri-panel .topbar-zone,
   .nutri-panel .topbar-sep,
   .nutri-panel .topbar-date { display: none; }
-  .nutri-panel .topbar-page { font-size: 14px; }
+  .nutri-panel .topbar-page {
+    font-size: 14px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+    pointer-events: none;
+  }
 
-  /* Content: menos padding e altura calculada a partir da topbar real,
+  /* Content: padding compacto e altura calculada a partir da topbar real,
      em vez de depender de um 100vh fixo no .main que podia cortar o conteúdo. */
   .nutri-panel .content {
-    padding: 16px;
+    padding: 12px;
     height: calc(100vh - 56px - var(--sat, 0px));
     max-height: none;
     overflow-y: auto;
+    overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
 

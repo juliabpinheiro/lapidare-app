@@ -93,7 +93,7 @@ export default function NutriLayout() {
   };
 
   return (
-    <div className={`nutri-panel ${mobileOpen ? 'mobile-drawer-open' : ''}`}>
+    <div className={`nutri-panel ${mobileOpen ? 'mobile-drawer-open sidebar-open' : ''}`}>
       <div className="mobile-overlay" onClick={() => setMobileOpen(false)}></div>
       <aside className={`sidebar ${collapsed ? 'collapsed' : ''} ${mobileOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-head">
