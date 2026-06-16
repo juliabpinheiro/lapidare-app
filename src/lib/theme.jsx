@@ -96,6 +96,9 @@ export function ThemeProvider({ children }) {
           supabase.rpc('buscar_personalizacao_nutri', { p_nutri_id: profile.nutri_id }),
           supabase.from('configuracoes').select('tema').eq('nutri_id', profile.nutri_id).maybeSingle(),
         ]);
+        console.log('[theme] nutri_id da paciente:', profile.nutri_id);
+        console.log('[theme] configRes:', configRes);
+        console.log('[theme] pacConfig:', configRes.data?.tema);
         if (!active) return;
         const p = personRes.data?.[0];
         const pacConfig = configRes.data?.tema ?? {};
