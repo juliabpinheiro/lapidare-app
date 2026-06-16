@@ -137,15 +137,13 @@ export default function Plano() {
     // Extrai conteúdo e estilos do HTML gerado
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
-    const conteudo = doc.getElementById('plano-content');
-    if (!conteudo) return;
-
     const styleEl = document.createElement('style');
     styleEl.textContent = doc.querySelector('style')?.textContent ?? '';
     document.head.appendChild(styleEl);
 
     const elemento = document.createElement('div');
-    elemento.innerHTML = conteudo.innerHTML;
+    // Usa o body inteiro do HTML gerado
+    elemento.innerHTML = doc.body?.innerHTML ?? html;
     elemento.style.cssText = 'position:absolute;left:-9999px;top:0;width:210mm;background:#E9E5DD';
     document.body.appendChild(elemento);
 
