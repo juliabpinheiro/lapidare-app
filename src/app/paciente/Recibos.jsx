@@ -12,7 +12,7 @@ export default function Recibos() {
     (async () => {
       const { data } = await supabase
         .from('recibos_paciente')
-        .select('id, nome, arquivo_url, storage_path, created_at')
+        .select('id, nome, arquivo_url, created_at')
         .eq('paciente_id', user.id)
         .order('created_at', { ascending: false });
       setRecibos(data ?? []);
@@ -20,25 +20,10 @@ export default function Recibos() {
   }, [user]);
 
   async function baixar(r) {
+    const url = r.arquivo_url;
+    if (!url) { alert('Arquivo não disponível.'); return; }
     const win = window.open('', '_blank');
-    try {
-      let url = r.arquivo_url || null;
-      if (!url || !url.startsWith('http')) {
-        const path = r.storage_path;
-        if (!path) { win.close(); alert('Arquivo não disponível.'); return; }
-        const { data } = await supabase.storage.from('recibos').createSignedUrl(path, 3600);
-        url = data?.signedUrl;
-      }
-      if (url) {
-        win.location.href = url;
-      } else {
-        win.close();
-        alert('Não foi possível abrir o arquivo.');
-      }
-    } catch (e) {
-      win.close();
-      alert('Erro: ' + e.message);
-    }
+    if (win) win.location.href = url;
   }
 
   return (
