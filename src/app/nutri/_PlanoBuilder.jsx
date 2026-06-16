@@ -1058,18 +1058,28 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
         return;
       }
 
-      // localStorage vazio — busca do Supabase
-      const { data, error } = await supabase
-        .from('planos')
-        .select('dados')
-        .eq('paciente_id', pacienteId)
-        .eq('nutri_id', nutriId)
-        .order('publicado_em', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      // localStorage vazio — busca do Supabase (planos + planos_visuais em paralelo)
+      const [{ data, error }, { data: visual }] = await Promise.all([
+        supabase
+          .from('planos')
+          .select('dados')
+          .eq('paciente_id', pacienteId)
+          .eq('nutri_id', nutriId)
+          .order('publicado_em', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from('planos_visuais')
+          .select('dados')
+          .eq('paciente_id', pacienteId)
+          .eq('nutri_id', nutriId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
 
       if (error) console.error('[PlanoBuilder] erro Supabase:', error);
-      console.log('[PlanoBuilder] refeicoes carregadas:', JSON.stringify(data?.dados?.refeicoes?.slice(0, 1)));
+      console.log('[PlanoBuilder] dados completos:', JSON.stringify(data?.dados, null, 2));
 
       if (data?.dados?.refeicoes?.length) {
         let refs = data.dados.refeicoes; // subs devem estar aqui
@@ -1106,6 +1116,12 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
       }
       if (data?.dados?.orientacoes) {
         setOrientacoes(prev => ({ ...prev, ...data.dados.orientacoes }));
+      }
+
+      // Restaura dados da capa do PDF — ficam em planos_visuais.dados.paciente_dados
+      const capaDados = visual?.dados?.paciente_dados ?? visual?.dados?.capa ?? visual?.dados?.dadosPdf;
+      if (capaDados) {
+        setPacienteDadosPdf(prev => ({ ...prev, ...capaDados }));
       }
     }
     carregarDoSupabase();
