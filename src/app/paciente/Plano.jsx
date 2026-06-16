@@ -20,10 +20,13 @@ function normMealKey(nome) {
 }
 
 function getMondayISO() {
-  const d = new Date();
-  const day = d.getDay();
+  const now = new Date();
+  // Ajusta para UTC-3 (Brasil)
+  const utcMinus3 = new Date(now.getTime() - 3 * 60 * 60 * 1000);
+  const day = utcMinus3.getUTCDay();
   const diff = day === 0 ? -6 : 1 - day;
-  const seg = new Date(d); seg.setDate(d.getDate() + diff);
+  const seg = new Date(utcMinus3);
+  seg.setUTCDate(utcMinus3.getUTCDate() + diff);
   return seg.toISOString().slice(0, 10);
 }
 
