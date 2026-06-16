@@ -331,14 +331,15 @@ const CSS = `
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
   html,body{width:210mm;background:white!important;margin:0;padding:0}
   .btn-container{display:none!important}
-  .pagina{width:210mm!important;min-height:297mm!important;margin:0!important;padding:16mm 16mm 16mm 20mm!important;box-shadow:none!important;page-break-after:always}
+  .pagina{width:210mm!important;min-height:297mm!important;margin:0!important;padding:16mm 16mm 16mm 20mm!important;box-shadow:none!important;page-break-after:always;page-break-inside:avoid}
   .pagina:last-child{page-break-after:avoid}
+  .refeicao{page-break-inside:avoid}
   @page{size:A4;margin:0}
 }
 :root{--verde:#173103;--terra:#95380A;--bege:#E9E5DD;--begeR:#DED3C6;--branco:#FFF;--txt:#173103;--txtL:#5a5a5a;--ok:#173103;--warn:#b97d00;--err:#c0392b}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Poppins',sans-serif;font-weight:300;background:#E9E5DD;color:var(--txt);font-size:11px;line-height:1.6;-webkit-font-smoothing:antialiased}
-.pagina{width:210mm;min-height:297mm;margin:0 auto 16px auto;background:#FFF;padding:16mm 16mm 16mm 20mm;position:relative;box-shadow:0 2px 16px rgba(0,0,0,.10);overflow:hidden}
+body{font-family:'Poppins',sans-serif;font-weight:300;background:#E9E5DD;color:var(--txt);font-size:11px;line-height:1.6;-webkit-font-smoothing:antialiased;margin:0;padding:0}
+.pagina{width:210mm;min-height:297mm;margin:0 auto 16px auto;background:#FFF;padding:16mm 16mm 16mm 20mm;position:relative;box-shadow:0 2px 16px rgba(0,0,0,.10);overflow:hidden;page-break-after:always;page-break-inside:avoid}
 .pagina::before{content:'';position:absolute;left:0;top:0;width:5px;height:100%;background:linear-gradient(180deg,#95380A 0%,#173103 100%)}
 .refeicao{page-break-inside:avoid;margin-bottom:14px}
 .grupo{page-break-inside:avoid;margin-bottom:8px}
