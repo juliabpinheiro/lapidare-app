@@ -121,67 +121,70 @@ export default function Plano() {
   const total = plano.refeicoes?.length ?? 0;
 
   async function baixarPdf() {
-    if (!planoVisual) return;
+    if (!plano) { alert('Plano não carregado ainda.'); return; }
 
+    const visual = planoVisual ?? {};
     const html = gerarPlanoHtml({
-      pacienteNome: planoVisual.paciente_dados?.nome ?? user?.user_metadata?.nome ?? user?.email ?? '',
+      pacienteNome: visual.paciente_dados?.nome ?? user?.user_metadata?.nome ?? user?.email ?? '',
       plano,
-      extras: planoVisual,
-      subsTexto: planoVisual.subs_texto ?? null,
-      nutriNome:  planoVisual.nutri_nome  ?? '',
-      nutriCrn:   planoVisual.nutri_crn   ?? '',
-      nutriEmail: planoVisual.nutri_email ?? '',
-      pacienteDados: planoVisual.paciente_dados ?? null,
+      extras: visual,
+      subsTexto: visual.subs_texto ?? null,
+      nutriNome:  visual.nutri_nome  ?? '',
+      nutriCrn:   visual.nutri_crn   ?? '',
+      nutriEmail: visual.nutri_email ?? '',
+      pacienteDados: visual.paciente_dados ?? null,
     });
 
-    // Extrai conteúdo e estilos do HTML gerado
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    const styleEl = document.createElement('style');
-    styleEl.textContent = doc.querySelector('style')?.textContent ?? '';
-    document.head.appendChild(styleEl);
-
-    const elemento = document.createElement('div');
-    // Usa o body inteiro do HTML gerado
-    elemento.innerHTML = doc.body?.innerHTML ?? html;
-    elemento.style.cssText = 'position:absolute;left:-9999px;top:0;width:210mm;background:#E9E5DD';
-    document.body.appendChild(elemento);
-
-    // Carrega html2pdf dinamicamente se necessário
-    if (!window.html2pdf) {
-      await new Promise((resolve, reject) => {
-        const s = document.createElement('script');
-        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
-        s.onload = resolve;
-        s.onerror = reject;
-        document.head.appendChild(s);
-      });
-    }
-
-    const nomePaciente = (planoVisual.paciente_dados?.nome ?? 'alimentar')
-      .normalize('NFD').replace(/[^a-z0-9 ]/gi, '').trim().replace(/ +/g, '_').toLowerCase();
-
-    const opt = {
-      margin: 0,
-      filename: `plano_${nomePaciente}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, logging: false },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
-    };
-
+    // Abre janela ANTES de qualquer await (iOS exige isso)
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const win = isIOS ? window.open('', '_blank') : null;
+
+    const styleEl = document.createElement('style');
+    const elemento = document.createElement('div');
 
     try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      styleEl.textContent = doc.querySelector('style')?.textContent ?? '';
+      document.head.appendChild(styleEl);
+      elemento.innerHTML = doc.body?.innerHTML ?? html;
+      elemento.style.cssText = 'position:absolute;left:-9999px;top:0;width:210mm;background:#E9E5DD';
+      document.body.appendChild(elemento);
+
+      if (!window.html2pdf) {
+        await new Promise((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+          s.onload = resolve;
+          s.onerror = reject;
+          document.head.appendChild(s);
+        });
+      }
+
+      const nomePaciente = (visual.paciente_dados?.nome ?? 'alimentar')
+        .normalize('NFD').replace(/[^a-z0-9 ]/gi, '').trim().replace(/ +/g, '_').toLowerCase();
+
+      const opt = {
+        margin: 0,
+        filename: `plano_${nomePaciente}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+      };
+
       if (isIOS) {
         const pdfBase64 = await window.html2pdf().set(opt).from(elemento).output('datauristring');
-        window.open(pdfBase64, '_blank');
+        if (win) win.location.href = pdfBase64;
       } else {
         await window.html2pdf().set(opt).from(elemento).save();
       }
+    } catch(e) {
+      if (win) win.close();
+      alert('Erro ao gerar PDF: ' + e.message);
     } finally {
-      document.body.removeChild(elemento);
-      document.head.removeChild(styleEl);
+      if (document.body.contains(elemento)) document.body.removeChild(elemento);
+      if (document.head.contains(styleEl)) document.head.removeChild(styleEl);
     }
   }
 
