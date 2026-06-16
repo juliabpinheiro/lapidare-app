@@ -22,6 +22,7 @@ export default function PrescricoesPaciente() {
         .from('prescricoes')
         .select('id, tipo, titulo, storage_path, nota, created_at')
         .eq('paciente_id', user.id)
+        .not('tipo', 'eq', 'suplementacao')
         .order('created_at', { ascending: false });
       if (!active) return;
       setDocs(data ?? []);
