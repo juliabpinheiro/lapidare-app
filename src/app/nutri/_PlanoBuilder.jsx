@@ -1037,6 +1037,35 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
       });
   }, [pacienteId]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  /* Carrega o último plano publicado do Supabase quando não há rascunho local
+     (ex.: a nutri abre o plano em outro dispositivo, onde o localStorage está vazio) */
+  useEffect(() => {
+    async function carregarDoSupabase() {
+      if (!pacienteId) return;
+      const localDraft = (() => {
+        try { return localStorage.getItem(DRAFT_KEY); } catch { return null; }
+      })();
+      if (localDraft) return;
+
+      const { data } = await supabase
+        .from('planos')
+        .select('dados')
+        .eq('paciente_id', pacienteId)
+        .eq('nutri_id', nutriId)
+        .order('publicado_em', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (data?.dados?.refeicoes?.length) {
+        setRefeicoes(data.dados.refeicoes);
+      }
+      if (data?.dados?.orientacoes) {
+        setOrientacoes(prev => ({ ...prev, ...data.dados.orientacoes }));
+      }
+    }
+    carregarDoSupabase();
+  }, [pacienteId, nutriId]); // eslint-disable-line react-hooks/exhaustive-deps
+
   /* Auto-save rascunho (debounce 2s) */
   useEffect(() => {
     setDraft('salvando');
