@@ -1087,6 +1087,7 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
         // Compatibilidade com planos antigos: se nenhum alimento tem subs,
         // tenta reconstruir a partir do texto salvo em dados.subs_texto
         const temSubs = refs.some(r => r.alimentos?.some(a => a.subs?.length));
+        console.log('[subs check] temSubs:', temSubs, 'primeiro alimento subs:', data?.dados?.refeicoes?.[0]?.alimentos?.[0]?.subs);
         const subsTexto = data.dados.subs_texto || data.dados.subsTexto;
         if (!temSubs && subsTexto) {
           refs = refs.map(r => {
@@ -1119,9 +1120,30 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
       }
 
       // Restaura dados da capa do PDF — ficam em planos_visuais.dados.paciente_dados
-      const capaDados = visual?.dados?.paciente_dados ?? visual?.dados?.capa ?? visual?.dados?.dadosPdf;
-      if (capaDados) {
-        setPacienteDadosPdf(prev => ({ ...prev, ...capaDados }));
+      if (visual?.dados?.paciente_dados) {
+        const pd = visual.dados.paciente_dados;
+        setPacienteDadosPdf(prev => ({
+          ...prev,
+          nome:       pd.nome       || prev.nome,
+          idade:      pd.idade      ? String(pd.idade)      : prev.idade,
+          peso_kg:    pd.peso_kg    ? String(pd.peso_kg)    : prev.peso_kg,
+          altura_cm:  pd.altura_cm  ? String(pd.altura_cm)  : prev.altura_cm,
+          cintura_cm: pd.cintura_cm ? String(pd.cintura_cm) : prev.cintura_cm,
+          quadril_cm: pd.quadril_cm ? String(pd.quadril_cm) : prev.quadril_cm,
+          objetivo:   pd.objetivo   || prev.objetivo,
+        }));
+      }
+
+      // Restaura orientações de planos_visuais (prioridades, metas, etc)
+      if (visual?.dados?.prioridades || visual?.dados?.metas) {
+        setOrientacoes(prev => ({
+          ...prev,
+          prioridades:  visual.dados.prioridades  || prev.prioridades,
+          metas:        visual.dados.metas         || prev.metas,
+          suplementacao: visual.dados.suplementos  || prev.suplementacao,
+          consulta_n:   visual.dados.consulta_n   || prev.consulta_n,
+          agua_diaria:  visual.dados.agua_diaria  || prev.agua_diaria,
+        }));
       }
     }
     carregarDoSupabase();
