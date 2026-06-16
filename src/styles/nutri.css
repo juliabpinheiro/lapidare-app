@@ -441,6 +441,16 @@
   /* Layout vira coluna única; sidebar fica off-canvas */
   .nutri-panel {
     grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  /* .main não fica mais travado em 100vh fixo: o tamanho vem do grid acima,
+     e o scroll de verdade acontece em .content (calc abaixo) — evita que o
+     PlanoBuilder seja cortado/escondido em telas mobile. */
+  .nutri-panel .main {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
   }
 
   /* Sidebar drawer: começa no topo da tela (atrás da status bar), empurra cabeçalho para baixo */
@@ -479,8 +489,15 @@
   .nutri-panel .topbar-date { display: none; }
   .nutri-panel .topbar-page { font-size: 14px; }
 
-  /* Content: menos padding */
-  .nutri-panel .content { padding: 16px; }
+  /* Content: menos padding e altura calculada a partir da topbar real,
+     em vez de depender de um 100vh fixo no .main que podia cortar o conteúdo. */
+  .nutri-panel .content {
+    padding: 16px;
+    height: calc(100vh - 56px - var(--sat, 0px));
+    max-height: none;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 
   /* Grids 2-col e 3-col viram 1 col */
   .nutri-panel .g2,
