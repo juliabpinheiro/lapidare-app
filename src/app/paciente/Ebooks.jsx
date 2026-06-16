@@ -43,7 +43,13 @@ export default function Ebooks() {
       const { data, error } = await supabase.storage
         .from('ebooks').createSignedUrl(eb.storage_path, 3600);
       if (!error && data?.signedUrl) {
-        window.open(data.signedUrl, '_blank', 'noopener');
+        const a = document.createElement('a');
+        a.href = data.signedUrl;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
         return;
       }
       // Fallback: URL pública direta

@@ -35,7 +35,13 @@ export default function Suplementos() {
     const { data, error } = await supabase.storage
       .from('prescricoes').createSignedUrl(doc.storage_path, 3600);
     if (error) return alert('Não consegui abrir o documento: ' + error.message);
-    window.open(data.signedUrl, '_blank', 'noopener');
+    const a = document.createElement('a');
+    a.href = data.signedUrl;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   }
 
   async function toggle(s) {

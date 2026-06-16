@@ -23,7 +23,13 @@ export default function Recibos() {
     const { data, error } = await supabase.storage
       .from('recibos').createSignedUrl(r.storage_path, 3600);
     if (error) return alert('Não foi possível abrir: ' + error.message);
-    window.open(data.signedUrl, '_blank', 'noopener');
+    const a = document.createElement('a');
+    a.href = data.signedUrl;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   }
 
   return (
