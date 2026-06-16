@@ -74,7 +74,6 @@ export default function Exames({ pacienteId, nutriId }) {
 
     const payload = {
       paciente_id: pacienteId,
-      nutri_id: nutriId,
       data: form.data,
       nome: form.nome.trim(),
       texto: form.texto?.trim() || null,
