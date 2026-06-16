@@ -120,8 +120,9 @@ export default function Plano() {
   const totalFeitos = plano.refeicoes?.filter(r => r.feita).length ?? 0;
   const total = plano.refeicoes?.length ?? 0;
 
-  function abrirPlanoCompleto() {
+  async function baixarPdf() {
     if (!planoVisual) return;
+
     const html = gerarPlanoHtml({
       pacienteNome: planoVisual.paciente_dados?.nome ?? user?.user_metadata?.nome ?? user?.email ?? '',
       plano,
@@ -132,10 +133,58 @@ export default function Plano() {
       nutriEmail: planoVisual.nutri_email ?? '',
       pacienteDados: planoVisual.paciente_dados ?? null,
     });
-    const win = window.open('', '_blank');
-    if (!win) { alert('Permita pop-ups para abrir o PDF.'); return; }
-    win.document.write(html);
-    win.document.close();
+
+    // Extrai conteúdo e estilos do HTML gerado
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const conteudo = doc.getElementById('plano-content');
+    if (!conteudo) return;
+
+    const styleEl = document.createElement('style');
+    styleEl.textContent = doc.querySelector('style')?.textContent ?? '';
+    document.head.appendChild(styleEl);
+
+    const elemento = document.createElement('div');
+    elemento.innerHTML = conteudo.innerHTML;
+    elemento.style.cssText = 'position:absolute;left:-9999px;top:0;width:210mm;background:#E9E5DD';
+    document.body.appendChild(elemento);
+
+    // Carrega html2pdf dinamicamente se necessário
+    if (!window.html2pdf) {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+
+    const nomePaciente = (planoVisual.paciente_dados?.nome ?? 'alimentar')
+      .normalize('NFD').replace(/[^a-z0-9 ]/gi, '').trim().replace(/ +/g, '_').toLowerCase();
+
+    const opt = {
+      margin: 0,
+      filename: `plano_${nomePaciente}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, logging: false },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+    };
+
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+    try {
+      if (isIOS) {
+        const pdfBase64 = await window.html2pdf().set(opt).from(elemento).output('datauristring');
+        window.open(pdfBase64, '_blank');
+      } else {
+        await window.html2pdf().set(opt).from(elemento).save();
+      }
+    } finally {
+      document.body.removeChild(elemento);
+      document.head.removeChild(styleEl);
+    }
   }
 
   return (
@@ -216,7 +265,7 @@ export default function Plano() {
               Prioridades, metas, substituições e orientações personalizadas
             </div>
           </div>
-          <button onClick={abrirPlanoCompleto} style={{
+          <button onClick={baixarPdf} style={{
             background: '#fff', color: '#95380A', border: 'none', borderRadius: 8,
             padding: '8px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
             whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 5,
