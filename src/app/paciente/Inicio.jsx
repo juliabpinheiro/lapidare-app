@@ -488,7 +488,7 @@ export default function Inicio() {
       {todasPassaram ? (
         <div className="card dark" style={{
           padding: '20px 18px', textAlign: 'center',
-          background: 'var(--pac-hero, linear-gradient(135deg, var(--ink) 0%, #1a1612 100%))',
+          background: 'var(--dark)',
           borderColor: 'var(--pac-hero, var(--ink))',
         }}>
           <div style={{ fontSize: 30, marginBottom: 10 }}>🎉</div>
@@ -507,7 +507,7 @@ export default function Inicio() {
       ) : proximaRef ? (
         <div className="card dark" style={{
           padding: '16px 18px',
-          background: 'var(--pac-hero, linear-gradient(135deg, var(--ink) 0%, #1a1612 100%))',
+          background: 'var(--dark)',
           borderColor: 'var(--pac-hero, var(--ink))',
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
