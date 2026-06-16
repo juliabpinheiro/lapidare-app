@@ -32,14 +32,24 @@ export default function Suplementos() {
   useEffect(() => { carregar(); }, [user]);
 
   async function baixarProtocolo(doc) {
-    if (doc.arquivo_url && doc.arquivo_url.startsWith('http')) {
-      window.open(doc.arquivo_url, '_blank');
-      return;
+    const win = window.open('', '_blank');
+    try {
+      let url = doc.arquivo_url || null;
+      if (!url || !url.startsWith('http')) {
+        const { data } = await supabase.storage
+          .from('prescricoes').createSignedUrl(doc.storage_path, 3600);
+        url = data?.signedUrl;
+      }
+      if (url) {
+        win.location.href = url;
+      } else {
+        win.close();
+        alert('Não consegui abrir o documento.');
+      }
+    } catch (e) {
+      win.close();
+      alert('Erro: ' + e.message);
     }
-    const { data, error } = await supabase.storage
-      .from('prescricoes').createSignedUrl(doc.storage_path, 3600);
-    if (error) return alert('Não consegui abrir o documento: ' + error.message);
-    window.open(data.signedUrl, '_blank');
   }
 
   async function toggle(s) {

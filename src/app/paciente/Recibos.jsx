@@ -20,16 +20,24 @@ export default function Recibos() {
   }, [user]);
 
   async function baixar(r) {
-    const url = r.arquivo_url || r.storage_path;
-    if (!url) { alert('Arquivo não disponível.'); return; }
-    if (url.startsWith('http')) {
-      window.open(url, '_blank');
-      return;
-    }
-    const { data, error } = await supabase.storage.from('recibos').createSignedUrl(url, 3600);
-    if (error) return alert('Não foi possível abrir: ' + error.message);
-    if (data?.signedUrl) {
-      window.open(data.signedUrl, '_blank');
+    const win = window.open('', '_blank');
+    try {
+      let url = r.arquivo_url || null;
+      if (!url || !url.startsWith('http')) {
+        const path = r.storage_path;
+        if (!path) { win.close(); alert('Arquivo não disponível.'); return; }
+        const { data } = await supabase.storage.from('recibos').createSignedUrl(path, 3600);
+        url = data?.signedUrl;
+      }
+      if (url) {
+        win.location.href = url;
+      } else {
+        win.close();
+        alert('Não foi possível abrir o arquivo.');
+      }
+    } catch (e) {
+      win.close();
+      alert('Erro: ' + e.message);
     }
   }
 

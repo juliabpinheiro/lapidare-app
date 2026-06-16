@@ -38,21 +38,22 @@ export default function Ebooks() {
   }, [user]);
 
   async function abrir(eb) {
+    const win = window.open('', '_blank');
     try {
-      // URL pública direta, sem precisar de signed URL
-      if (eb.arquivo_url && eb.arquivo_url.startsWith('http')) {
-        window.open(eb.arquivo_url, '_blank');
-        return;
+      let url = eb.arquivo_url || null;
+      if (!url || !url.startsWith('http')) {
+        const { data } = await supabase.storage
+          .from('ebooks').createSignedUrl(eb.storage_path, 3600);
+        url = data?.signedUrl;
       }
-      // Senão, tenta signed URL
-      const { data, error } = await supabase.storage
-        .from('ebooks').createSignedUrl(eb.storage_path, 3600);
-      if (!error && data?.signedUrl) {
-        window.open(data.signedUrl, '_blank');
-        return;
+      if (url) {
+        win.location.href = url;
+      } else {
+        win.close();
+        alert('Não foi possível abrir o arquivo.');
       }
-      alert('Não foi possível abrir o arquivo.');
     } catch (e) {
+      win.close();
       alert('Erro ao abrir: ' + e.message);
     }
   }

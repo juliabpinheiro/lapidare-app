@@ -53,24 +53,27 @@ export default function PrescricoesPaciente() {
   }, [docs, filtro]);
 
   async function abrir(doc) {
-    const buckets = ['prescricoes', 'ebooks', 'laudos', 'documentos-nutri', 'planos-arquivos'];
-
-    // Tenta abrir diretamente se for URL pública
-    if (doc.arquivo_url && doc.arquivo_url.startsWith('http')) {
-      window.open(doc.arquivo_url, '_blank', 'noopener');
-      return;
-    }
-
-    // Tenta cada bucket com signed URL
-    const path = doc.storage_path;
-    for (const bucket of buckets) {
-      const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, 3600);
-      if (!error && data?.signedUrl) {
-        window.open(data.signedUrl, '_blank');
-        return;
+    const win = window.open('', '_blank');
+    try {
+      let url = doc.arquivo_url || null;
+      if (!url || !url.startsWith('http')) {
+        const buckets = ['prescricoes', 'ebooks', 'laudos', 'documentos-nutri', 'planos-arquivos'];
+        const path = doc.storage_path;
+        for (const bucket of buckets) {
+          const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, 3600);
+          if (!error && data?.signedUrl) { url = data.signedUrl; break; }
+        }
       }
+      if (url) {
+        win.location.href = url;
+      } else {
+        win.close();
+        alert('Não consegui abrir o documento.');
+      }
+    } catch (e) {
+      win.close();
+      alert('Erro: ' + e.message);
     }
-    alert('Não consegui abrir o documento.');
   }
 
   return (
