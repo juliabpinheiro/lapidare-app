@@ -1119,6 +1119,14 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
         setOrientacoes(prev => ({ ...prev, ...data.dados.orientacoes }));
       }
 
+      // Refeições completas com subs de planos_visuais (fonte mais confiável)
+      if (visual?.dados?.refeicoes?.length) {
+        const temSubs = visual.dados.refeicoes.some(r => r.alimentos?.some(a => a.subs?.length));
+        if (temSubs) {
+          setRefeicoes(visual.dados.refeicoes);
+        }
+      }
+
       // Restaura dados da capa do PDF — ficam em planos_visuais.dados.paciente_dados
       if (visual?.dados?.paciente_dados) {
         const pd = visual.dados.paciente_dados;
@@ -1371,6 +1379,13 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
       nutri_nome:  nutriInfo.nome,
       nutri_crn:   nutriInfo.crn,
       nutri_email: nutriInfo.email,
+      refeicoes: refeicoes.map(r => ({
+        ...r,
+        alimentos: r.alimentos.map(a => ({
+          ...a,
+          subs: a.subs ?? [],
+        })),
+      })),
       ...(subsTexto ? { subs_texto: subsTexto } : {}),
     };
     await supabase.from('planos_visuais').insert({
