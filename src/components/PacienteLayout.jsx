@@ -20,6 +20,7 @@ const MAIS_ITEMS = [
   { path: '/paciente/compras',     icon: 'shopping-cart', label: 'Lista de compras',     sub: 'Lista da semana' },
   { path: '/paciente/suplementos', icon: 'pill',          label: 'Suplementos',          sub: 'Lista do dia' },
   { path: '/paciente/habitos',     icon: 'checklist',     label: 'Hábitos',              sub: 'Tracker diário' },
+  { path: '/paciente/habitos-mes', icon: 'calendar-stats', label: 'Hábitos do mês',       sub: 'Check diário mensal' },
   { path: '/paciente/prescricoes', icon: 'file-text',     label: 'Prescrições',          sub: 'Documentos da Dra.' },
   { path: '/paciente/ebooks',      icon: 'book-2',        label: 'E-books',              sub: 'Materiais da Dra.' },
   { path: '/paciente/chat',        icon: 'message-circle', label: 'Chat com a Dra.',     sub: 'Conversa direta' },
@@ -36,6 +37,7 @@ const HEADERS = {
   '/paciente/ebooks':       () =>                ({ eyebrow: 'Materiais',        title: 'E-books',           subtitle: 'Compartilhados pela sua nutri' }),
   '/paciente/suplementos':  () =>                ({ eyebrow: 'Habit tracker',    title: 'Meus suplementos',  subtitle: 'Marque diariamente' }),
   '/paciente/habitos':      () =>                ({ eyebrow: 'Hábitos do dia',   title: 'Meus hábitos',      subtitle: 'Acompanhe sua rotina' }),
+  '/paciente/habitos-mes':  () =>                ({ eyebrow: 'Hábitos do mês',   title: 'Hábitos do mês',    subtitle: 'Check diário mensal' }),
   '/paciente/chat':         (_nome, nutriNome) => ({ eyebrow: 'Conversa',         title: nutriNome || 'Sua nutri', subtitle: 'Online' }),
 };
 
@@ -188,7 +190,7 @@ export default function PacienteLayout() {
           {TABS.map(t => {
             const active = t.path
               ? location.pathname === t.path
-              : ['/paciente/compras', '/paciente/suplementos', '/paciente/habitos', '/paciente/prescricoes', '/paciente/ebooks', '/paciente/chat'].includes(location.pathname);
+              : ['/paciente/compras', '/paciente/suplementos', '/paciente/habitos', '/paciente/habitos-mes', '/paciente/prescricoes', '/paciente/ebooks', '/paciente/chat'].includes(location.pathname);
 
             if (!t.path) {
               return (

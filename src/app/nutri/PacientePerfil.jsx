@@ -13,6 +13,7 @@ import FotosEvolucao from './_FotosEvolucao.jsx';
 import FollowUp from './_FollowUp.jsx';
 import Suplementacao from './_Suplementacao.jsx';
 import Habitos from './_Habitos.jsx';
+import { HABITOS_PADRAO, MESES } from '../paciente/HabitosMes.jsx';
 import Anamnese from './_Anamnese.jsx';
 import MapaGeral from './_MapaGeral.jsx';
 import Bioimpedancia from './_Bioimpedancia.jsx';
@@ -299,6 +300,7 @@ export default function PacientePerfil() {
           { id: 'compras',       label: 'Compras',        icon: 'shopping-cart' },
           { id: 'suplementacao', label: 'Suplementação', icon: 'pill' },
           { id: 'habitos',       label: 'Hábitos',       icon: 'checklist' },
+          { id: 'habitos-mes',   label: 'Hábitos do mês', icon: 'calendar-stats' },
           { id: 'prescricoes', label: 'Prescrições',  icon: 'file-text' },
           { id: 'ebooks',      label: 'E-books',      icon: 'book-2' },
           { id: 'avaliacao',   label: 'Avaliação',    icon: 'ruler-measure' },
@@ -339,6 +341,7 @@ export default function PacientePerfil() {
       {tab === 'minha-semana' && <MinhaSemana pacienteId={paciente.id} />}
       {tab === 'suplementacao' && <Suplementacao pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'habitos' && <Habitos pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
+      {tab === 'habitos-mes' && <HabitosMesNutri pacienteId={paciente.id} />}
       {tab === 'plano' && <PlanoBuilder pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} paciente={paciente} onLiberar={(lista) => { setListaDraft(lista); setTab('compras'); }} />}
       {tab === 'compras' && <PublicarLista pacienteId={paciente.id} nutriId={user.id} listaDraft={listaDraft} onDraftClear={() => setListaDraft(null)} />}
       {tab === 'prescricoes' && <EnviarPrescricao pacienteId={paciente.id} nutriId={user.id} />}
@@ -2051,6 +2054,117 @@ function MinhaSemana({ pacienteId }) {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+/* ============================================================
+   HÁBITOS DO MÊS — visualização em modo leitura para a nutri
+   ============================================================ */
+function HabitosMesNutri({ pacienteId }) {
+  const hoje = new Date();
+  const [ano, setAno] = useState(hoje.getFullYear());
+  const [mes, setMes] = useState(hoje.getMonth() + 1);
+  const [registro, setRegistro] = useState(undefined);
+
+  useEffect(() => {
+    let active = true;
+    supabase.from('habitos_mes').select('*')
+      .eq('paciente_id', pacienteId).eq('ano', ano).eq('mes', mes)
+      .maybeSingle()
+      .then(({ data }) => { if (active) setRegistro(data ?? null); });
+    return () => { active = false; };
+  }, [pacienteId, ano, mes]);
+
+  function navMes(delta) {
+    let m = mes + delta, a = ano;
+    if (m < 1) { m = 12; a--; }
+    if (m > 12) { m = 1; a++; }
+    setMes(m); setAno(a);
+  }
+
+  if (registro === undefined) {
+    return <div className="card empty-card"><div className="empty-sub">Carregando…</div></div>;
+  }
+
+  const habitos = registro?.habitos?.length ? registro.habitos : HABITOS_PADRAO;
+  const checks = registro?.checks ?? {};
+  const campos = registro?.campos ?? {};
+  const diasNoMes = new Date(ano, mes, 0).getDate();
+  const dias = Array.from({ length: diasNoMes }, (_, i) => i + 1);
+  const hojeISO = hoje.toISOString().slice(0, 10);
+  const isMesAtual = ano === hoje.getFullYear() && mes === hoje.getMonth() + 1;
+
+  return (
+    <div className="card" style={{ padding: '16px 18px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+        <span style={{ fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase', color: '#888', fontWeight: 600 }}>
+          Hábitos do mês
+        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button style={CAL_NAV_BTN} onClick={() => navMes(-1)} aria-label="mês anterior">
+            <i className="ti ti-chevron-left" style={{ fontSize: 13 }} aria-hidden="true"></i>
+          </button>
+          <span style={{ fontSize: 13, fontWeight: 600, minWidth: 138, textAlign: 'center' }}>
+            {MESES[mes - 1]} {ano}
+          </span>
+          <button style={CAL_NAV_BTN} onClick={() => navMes(1)} aria-label="próximo mês">
+            <i className="ti ti-chevron-right" style={{ fontSize: 13 }} aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+
+      {(campos.nome || campos.data_inicio || campos.peso_inicio || campos.peso_final) && (
+        <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginBottom: 16, fontSize: 13, color: 'var(--text2)' }}>
+          {campos.nome && <span><strong>Nome:</strong> {campos.nome}</span>}
+          {campos.data_inicio && <span><strong>Início:</strong> {dataBR(campos.data_inicio)}</span>}
+          {campos.peso_inicio && <span><strong>Peso início:</strong> {campos.peso_inicio} kg</span>}
+          {campos.peso_final && <span><strong>Peso final:</strong> {campos.peso_final} kg</span>}
+        </div>
+      )}
+
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: dias.length * 28 + 160 }}>
+          <thead>
+            <tr>
+              <th style={{ fontSize: 10, padding: '0 2px 8px', textAlign: 'left', minWidth: 150, position: 'sticky', left: 0, background: 'var(--white)' }}></th>
+              {dias.map(d => {
+                const iso = `${ano}-${String(mes).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const isHoje = isMesAtual && iso === hojeISO;
+                return (
+                  <th key={d} style={{ fontSize: 10, padding: '0 2px 8px', textAlign: 'center', minWidth: 24, color: isHoje ? 'var(--dark)' : '#aaa', fontWeight: isHoje ? 700 : 500 }}>
+                    {d}
+                  </th>
+                );
+              })}
+            </tr>
+          </thead>
+          <tbody>
+            {habitos.map((h, hi) => (
+              <tr key={hi}>
+                <td style={{ fontSize: 12, color: 'var(--dark)', padding: '6px 10px 6px 0', whiteSpace: 'nowrap', position: 'sticky', left: 0, background: 'var(--white)' }}>
+                  {h}
+                </td>
+                {dias.map(d => {
+                  const marcado = !!checks[String(hi)]?.[String(d)];
+                  return (
+                    <td key={d} style={{ padding: 2, textAlign: 'center' }}>
+                      <div style={{
+                        width: 20, height: 20, borderRadius: 6, margin: '0 auto',
+                        background: marcado ? 'var(--dark)' : 'transparent',
+                        border: marcado ? 'none' : '0.5px solid var(--border)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        {marcado && <i className="ti ti-check" style={{ fontSize: 11, color: '#fff' }} aria-hidden="true"></i>}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
