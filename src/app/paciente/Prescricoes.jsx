@@ -36,16 +36,25 @@ export default function PrescricoesPaciente() {
     return docs.filter(d => d.tipo === filtro);
   }, [docs, filtro]);
 
-  async function abrir(storage_path) {
-    const { data, error } = await supabase
-      .storage
-      .from('prescricoes')
-      .createSignedUrl(storage_path, 60);
-    if (error) {
-      alert('Não consegui abrir o documento: ' + error.message);
+  async function abrir(doc) {
+    const buckets = ['prescricoes', 'ebooks', 'laudos', 'documentos-nutri', 'planos-arquivos'];
+
+    // Tenta abrir diretamente se for URL pública
+    if (doc.arquivo_url && doc.arquivo_url.startsWith('http')) {
+      window.open(doc.arquivo_url, '_blank', 'noopener');
       return;
     }
-    window.open(data.signedUrl, '_blank', 'noopener');
+
+    // Tenta cada bucket com signed URL
+    const path = doc.storage_path;
+    for (const bucket of buckets) {
+      const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, 3600);
+      if (!error && data?.signedUrl) {
+        window.open(data.signedUrl, '_blank', 'noopener');
+        return;
+      }
+    }
+    alert('Não consegui abrir o documento.');
   }
 
   return (
@@ -104,7 +113,7 @@ export default function PrescricoesPaciente() {
                     {d.nota}
                   </div>
                 )}
-                <button className="btn ghost sm" onClick={() => abrir(d.storage_path)}>
+                <button className="btn ghost sm" onClick={() => abrir(d)}>
                   <i className="ti ti-eye" style={{ fontSize: 13 }} aria-hidden="true"></i> Ver documento
                 </button>
               </div>
