@@ -20,8 +20,6 @@ export const HABITOS_PADRAO = [
 
 export const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
-const CAMPOS_PADRAO = { nome: '', data_inicio: '', peso_inicio: '', peso_final: '' };
-
 const inputStyle = {
   width: '100%', padding: '9px 11px', fontSize: 13,
   background: 'var(--bg-soft)', border: '0.5px solid var(--hair)',
@@ -38,13 +36,12 @@ const thStyle = { fontSize: 10, padding: '0 2px 8px', textAlign: 'center', minWi
 const tdLabelStyle = { fontSize: 12, color: 'var(--ink)', padding: '6px 10px 6px 0', whiteSpace: 'nowrap' };
 
 export default function HabitosMes() {
-  const { user, profile } = useSession();
+  const { user } = useSession();
   const agora = new Date();
   const [ano, setAno] = useState(agora.getFullYear());
   const [mes, setMes] = useState(agora.getMonth() + 1);
   const [habitos, setHabitos] = useState(HABITOS_PADRAO);
   const [checks, setChecks] = useState({});
-  const [campos, setCampos] = useState(CAMPOS_PADRAO);
   const [carregando, setCarregando] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
   const [editHabitos, setEditHabitos] = useState([]);
@@ -63,12 +60,6 @@ export default function HabitosMes() {
       .maybeSingle();
     setHabitos(data?.habitos?.length ? data.habitos : HABITOS_PADRAO);
     setChecks(data?.checks ?? {});
-    setCampos({
-      nome: data?.campos?.nome ?? profile?.nome ?? '',
-      data_inicio: data?.campos?.data_inicio ?? '',
-      peso_inicio: data?.campos?.peso_inicio ?? '',
-      peso_final: data?.campos?.peso_final ?? '',
-    });
     setCarregando(false);
   }
 
@@ -78,7 +69,6 @@ export default function HabitosMes() {
       ano, mes,
       habitos: partial.habitos ?? habitos,
       checks: partial.checks ?? checks,
-      campos: partial.campos ?? campos,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'paciente_id,ano,mes' });
   }
@@ -92,12 +82,6 @@ export default function HabitosMes() {
     };
     setChecks(novo);
     salvar({ checks: novo });
-  }
-
-  function commitCampo(campo, valor) {
-    const novo = { ...campos, [campo]: valor };
-    setCampos(novo);
-    salvar({ campos: novo });
   }
 
   function abrirEdicao() {
@@ -142,15 +126,6 @@ export default function HabitosMes() {
           <button onClick={() => navMes(1)} aria-label="Próximo mês" style={navBtnStyle}>
             <i className="ti ti-chevron-right" aria-hidden="true"></i>
           </button>
-        </div>
-
-        <div className="card" style={{ padding: '14px 16px', marginBottom: 14 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <Campo label="Nome" value={campos.nome} onCommit={v => commitCampo('nome', v)} />
-            <Campo label="Data de início" type="date" value={campos.data_inicio} onCommit={v => commitCampo('data_inicio', v)} />
-            <Campo label="Peso de início" value={campos.peso_inicio} onCommit={v => commitCampo('peso_inicio', v)} placeholder="kg" />
-            <Campo label="Peso final" value={campos.peso_final} onCommit={v => commitCampo('peso_final', v)} placeholder="kg" />
-          </div>
         </div>
 
         <div className="card" style={{ padding: '14px 16px 16px', marginBottom: 14, overflowX: 'auto' }}>
@@ -253,25 +228,5 @@ export default function HabitosMes() {
         </div>
       )}
     </>
-  );
-}
-
-function Campo({ label, value, onCommit, type = 'text', placeholder }) {
-  const [local, setLocal] = useState(value ?? '');
-  useEffect(() => { setLocal(value ?? ''); }, [value]);
-  return (
-    <label style={{ display: 'block' }}>
-      <span style={{ display: 'block', fontSize: 11, color: 'var(--ink-soft, var(--muted))', marginBottom: 5, fontWeight: 500 }}>
-        {label}
-      </span>
-      <input
-        type={type}
-        value={local}
-        placeholder={placeholder}
-        onChange={e => setLocal(e.target.value)}
-        onBlur={() => onCommit(local)}
-        style={inputStyle}
-      />
-    </label>
   );
 }

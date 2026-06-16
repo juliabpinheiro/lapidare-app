@@ -12,6 +12,7 @@ const TABS = [
   { id: 'plano',     path: '/paciente/plano',     label: 'Plano',     icon: 'salad' },
   { id: 'feed',      path: '/paciente/feed',      label: 'Pratos',    icon: 'camera' },
   { id: 'evolucao',  path: '/paciente/evolucao',  label: 'Evolução',  icon: 'camera-selfie' },
+  { id: 'habitos-mes', path: '/paciente/habitos-mes', label: 'Hábitos', icon: 'calendar-stats' },
   { id: 'progresso', path: '/paciente/progresso', label: 'Progresso', icon: 'trending-up' },
   { id: 'mais',                                    label: 'Mais',      icon: 'menu-2' },
 ];
@@ -20,7 +21,6 @@ const MAIS_ITEMS = [
   { path: '/paciente/compras',     icon: 'shopping-cart', label: 'Lista de compras',     sub: 'Lista da semana' },
   { path: '/paciente/suplementos', icon: 'pill',          label: 'Suplementos',          sub: 'Lista do dia' },
   { path: '/paciente/habitos',     icon: 'checklist',     label: 'Hábitos',              sub: 'Tracker diário' },
-  { path: '/paciente/habitos-mes', icon: 'calendar-stats', label: 'Hábitos do mês',       sub: 'Check diário mensal' },
   { path: '/paciente/prescricoes', icon: 'file-text',     label: 'Prescrições',          sub: 'Documentos da Dra.' },
   { path: '/paciente/ebooks',      icon: 'book-2',        label: 'E-books',              sub: 'Materiais da Dra.' },
   { path: '/paciente/chat',        icon: 'message-circle', label: 'Chat com a Dra.',     sub: 'Conversa direta' },
@@ -190,7 +190,7 @@ export default function PacienteLayout() {
           {TABS.map(t => {
             const active = t.path
               ? location.pathname === t.path
-              : ['/paciente/compras', '/paciente/suplementos', '/paciente/habitos', '/paciente/habitos-mes', '/paciente/prescricoes', '/paciente/ebooks', '/paciente/chat'].includes(location.pathname);
+              : ['/paciente/compras', '/paciente/suplementos', '/paciente/habitos', '/paciente/prescricoes', '/paciente/ebooks', '/paciente/chat'].includes(location.pathname);
 
             if (!t.path) {
               return (
