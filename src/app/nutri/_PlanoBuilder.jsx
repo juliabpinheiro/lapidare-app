@@ -1069,10 +1069,40 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
         .maybeSingle();
 
       if (error) console.error('[PlanoBuilder] erro Supabase:', error);
-      console.log('[PlanoBuilder] dados do Supabase:', data);
+      console.log('[PlanoBuilder] refeicoes carregadas:', JSON.stringify(data?.dados?.refeicoes?.slice(0, 1)));
 
       if (data?.dados?.refeicoes?.length) {
-        setRefeicoes(data.dados.refeicoes);
+        let refs = data.dados.refeicoes; // subs devem estar aqui
+
+        // Compatibilidade com planos antigos: se nenhum alimento tem subs,
+        // tenta reconstruir a partir do texto salvo em dados.subs_texto
+        const temSubs = refs.some(r => r.alimentos?.some(a => a.subs?.length));
+        const subsTexto = data.dados.subs_texto || data.dados.subsTexto;
+        if (!temSubs && subsTexto) {
+          refs = refs.map(r => {
+            const mk = normMealKey(r.nome);
+            const grupo = subsTexto[mk];
+            if (!grupo) return r;
+            return {
+              ...r,
+              alimentos: r.alimentos.map(a => {
+                if (a.subs?.length) return a;
+                const ck = a.catKey || guessCatKey(a);
+                const texto = grupo[ck];
+                if (!texto) return a;
+                const partes = texto.split(' · ').slice(1); // ignora o próprio alimento
+                if (!partes.length) return a;
+                const subs = partes.map(p => {
+                  const m = p.match(/^(.*?)\s+([\d.,]+\s*\S*)$/);
+                  return { id: uid(), nome: m ? m[1].trim() : p.trim(), qty: m ? m[2].trim() : '' };
+                });
+                return { ...a, subs };
+              }),
+            };
+          });
+        }
+
+        setRefeicoes(refs);
       }
       if (data?.dados?.orientacoes) {
         setOrientacoes(prev => ({ ...prev, ...data.dados.orientacoes }));
@@ -1217,7 +1247,10 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
           prot_g:    rd(tot.prot_g, 1),
           cho_g:     rd(tot.cho_g, 1),
           lip_g:     rd(tot.lip_g, 1),
-          alimentos: r.alimentos.map(a => ({ nome: a.nome, qty: a.qty, kcal: a.kcal, prot_g: a.prot_g, cho_g: a.cho_g, lip_g: a.lip_g, catKey: a.catKey || '' })),
+          alimentos: r.alimentos.map(a => ({
+            nome: a.nome, qty: a.qty, kcal: a.kcal, prot_g: a.prot_g, cho_g: a.cho_g, lip_g: a.lip_g, catKey: a.catKey || '',
+            subs: (a.subs ?? []).map(s => ({ id: s.id, nome: s.nome, qty: s.qty, kcal: s.kcal, prot_g: s.prot_g, cho_g: s.cho_g, lip_g: s.lip_g })),
+          })),
         };
       });
     return {
