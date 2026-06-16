@@ -136,6 +136,20 @@ export default function Plano() {
     });
 
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+    // iOS: abre HTML em nova aba — sem nenhum await antes do window.open
+    if (isIOS) {
+      const win = window.open('', '_blank');
+      if (win) {
+        win.document.write(html);
+        win.document.close();
+      } else {
+        alert('Permita pop-ups para baixar o plano.');
+      }
+      return;
+    }
+
+    // Não-iOS: gera PDF com html2pdf
     const styleEl = document.createElement('style');
     const elemento = document.createElement('div');
 
@@ -170,19 +184,7 @@ export default function Plano() {
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
       };
 
-      if (isIOS) {
-        const pdfBase64 = await window.html2pdf().set(opt).from(elemento).output('datauristring');
-        // Cria link temporário na página atual (não abre nova janela)
-        const link = document.createElement('a');
-        link.href = pdfBase64;
-        link.download = opt.filename;
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        setTimeout(() => document.body.removeChild(link), 1000);
-      } else {
-        await window.html2pdf().set(opt).from(elemento).save();
-      }
+      await window.html2pdf().set(opt).from(elemento).save();
     } catch(e) {
       alert('Erro ao gerar PDF: ' + e.message);
     } finally {
