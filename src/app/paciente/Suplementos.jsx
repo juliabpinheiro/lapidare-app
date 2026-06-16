@@ -33,25 +33,13 @@ export default function Suplementos() {
 
   async function baixarProtocolo(doc) {
     if (doc.arquivo_url && doc.arquivo_url.startsWith('http')) {
-      const a = document.createElement('a');
-      a.href = doc.arquivo_url;
-      a.target = '_blank';
-      a.rel = 'noopener';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      window.open(doc.arquivo_url, '_blank');
       return;
     }
     const { data, error } = await supabase.storage
       .from('prescricoes').createSignedUrl(doc.storage_path, 3600);
     if (error) return alert('Não consegui abrir o documento: ' + error.message);
-    const a = document.createElement('a');
-    a.href = data.signedUrl;
-    a.target = '_blank';
-    a.rel = 'noopener';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    window.open(data.signedUrl, '_blank');
   }
 
   async function toggle(s) {

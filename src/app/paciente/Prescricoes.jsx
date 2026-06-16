@@ -66,13 +66,7 @@ export default function PrescricoesPaciente() {
     for (const bucket of buckets) {
       const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, 3600);
       if (!error && data?.signedUrl) {
-        const a = document.createElement('a');
-        a.href = data.signedUrl;
-        a.target = '_blank';
-        a.rel = 'noopener';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        window.open(data.signedUrl, '_blank');
         return;
       }
     }
