@@ -1042,12 +1042,24 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
   useEffect(() => {
     async function carregarDoSupabase() {
       if (!pacienteId) return;
-      const localDraft = (() => {
-        try { return localStorage.getItem(DRAFT_KEY); } catch { return null; }
-      })();
-      if (localDraft) return;
 
-      const { data } = await supabase
+      // Verifica se localStorage tem refeições reais (não array vazio)
+      const localDraft = (() => {
+        try {
+          const s = localStorage.getItem(DRAFT_KEY);
+          if (!s) return null;
+          const parsed = JSON.parse(s);
+          return Array.isArray(parsed) && parsed.length > 0 ? parsed : null;
+        } catch { return null; }
+      })();
+
+      if (localDraft) {
+        setRefeicoes(localDraft);
+        return;
+      }
+
+      // localStorage vazio — busca do Supabase
+      const { data, error } = await supabase
         .from('planos')
         .select('dados')
         .eq('paciente_id', pacienteId)
@@ -1055,6 +1067,9 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
         .order('publicado_em', { ascending: false })
         .limit(1)
         .maybeSingle();
+
+      if (error) console.error('[PlanoBuilder] erro Supabase:', error);
+      console.log('[PlanoBuilder] dados do Supabase:', data);
 
       if (data?.dados?.refeicoes?.length) {
         setRefeicoes(data.dados.refeicoes);
@@ -1064,7 +1079,7 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
       }
     }
     carregarDoSupabase();
-  }, [pacienteId, nutriId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [pacienteId, nutriId, DRAFT_KEY]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* Auto-save rascunho (debounce 2s) */
   useEffect(() => {
