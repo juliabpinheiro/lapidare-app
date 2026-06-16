@@ -44,6 +44,7 @@ import Checkin from './app/paciente/Checkin.jsx';
 import EbooksPaciente from './app/paciente/Ebooks.jsx';
 import SuplementosPaciente from './app/paciente/Suplementos.jsx';
 import HabitosPaciente from './app/paciente/Habitos.jsx';
+import RecibosPaciente from './app/paciente/Recibos.jsx';
 import HabitosMesPaciente from './app/paciente/HabitosMes.jsx';
 import EvolucaoPaciente from './app/paciente/Evolucao.jsx';
 
@@ -98,6 +99,7 @@ export default function App() {
             <Route path="/paciente/ebooks" element={<EbooksPaciente />} />
             <Route path="/paciente/suplementos" element={<SuplementosPaciente />} />
             <Route path="/paciente/habitos" element={<HabitosPaciente />} />
+            <Route path="/paciente/recibos" element={<RecibosPaciente />} />
             <Route path="/paciente/habitos-mes" element={<HabitosMesPaciente />} />
             <Route path="/paciente/evolucao" element={<EvolucaoPaciente />} />
             <Route path="/paciente/checkin/:envioId" element={<Checkin />} />

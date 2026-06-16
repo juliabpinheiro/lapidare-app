@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../lib/supabase.js';
 import { useSession } from '../../lib/session.jsx';
+import { dataBR } from '../../lib/utils.js';
 
 const HOJE = () => new Date().toISOString().slice(0, 10);
 
@@ -8,10 +9,11 @@ export default function Suplementos() {
   const { user } = useSession();
   const [suplementos, setSuplementos] = useState(null);
   const [logs, setLogs] = useState([]);   // últimos 30 dias
+  const [protocolos, setProtocolos] = useState([]);
 
   async function carregar() {
     if (!user) return;
-    const [supRes, logRes] = await Promise.all([
+    const [supRes, logRes, protoRes] = await Promise.all([
       supabase.from('suplementos').select('*')
         .eq('paciente_id', user.id).eq('ativo', true)
         .order('ordem'),
@@ -19,11 +21,22 @@ export default function Suplementos() {
         .eq('paciente_id', user.id)
         .gte('data', new Date(Date.now() - 30 * 86_400_000).toISOString().slice(0, 10))
         .order('data', { ascending: false }),
+      supabase.from('prescricoes').select('*')
+        .eq('paciente_id', user.id).eq('tipo', 'suplementacao')
+        .order('created_at', { ascending: false }),
     ]);
     setSuplementos(supRes.data ?? []);
     setLogs(logRes.data ?? []);
+    setProtocolos(protoRes.data ?? []);
   }
   useEffect(() => { carregar(); }, [user]);
+
+  async function baixarProtocolo(doc) {
+    const { data, error } = await supabase.storage
+      .from('prescricoes').createSignedUrl(doc.storage_path, 3600);
+    if (error) return alert('Não consegui abrir o documento: ' + error.message);
+    window.open(data.signedUrl, '_blank', 'noopener');
+  }
 
   async function toggle(s) {
     const hoje = HOJE();
@@ -82,13 +95,49 @@ export default function Suplementos() {
   if (suplementos === null) {
     return <div style={{ padding: 24, textAlign: 'center', color: 'var(--muted)' }}>Carregando…</div>;
   }
+  const protocolosSection = protocolos.length > 0 && (
+    <div style={{ marginBottom: 18 }}>
+      <div style={{
+        fontSize: 10, letterSpacing: '.18em', textTransform: 'uppercase',
+        color: 'var(--muted)', fontWeight: 500, margin: '4px 4px 8px',
+      }}>Protocolos de suplementação</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {protocolos.map(doc => (
+          <div key={doc.id} style={{
+            display: 'flex', alignItems: 'center', gap: 12,
+            background: 'var(--white)', border: '0.5px solid var(--hair)',
+            borderRadius: 14, padding: 14,
+          }}>
+            <div style={{
+              width: 42, height: 42, borderRadius: 11,
+              background: 'var(--bg-soft)', display: 'flex',
+              alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            }}>
+              <i className="ti ti-file-text" style={{ fontSize: 20, color: 'var(--gold-deep)' }} aria-hidden="true"></i>
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--ink)' }}>{doc.titulo}</div>
+              <div style={{ fontSize: 11, color: 'var(--muted)' }}>{dataBR(doc.created_at)}</div>
+            </div>
+            <button className="btn ghost sm" onClick={() => baixarProtocolo(doc)}>
+              <i className="ti ti-download" style={{ fontSize: 13 }} aria-hidden="true"></i> Baixar
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   if (suplementos.length === 0) {
     return (
-      <div style={{ padding: '40px 16px', textAlign: 'center' }}>
-        <i className="ti ti-pill" style={{ fontSize: 40, color: 'var(--muted-2)' }} aria-hidden="true"></i>
-        <div style={{ fontSize: 14, fontWeight: 500, margin: '8px 0 4px' }}>Nenhum suplemento prescrito</div>
-        <div style={{ fontSize: 12, color: 'var(--muted)' }}>
-          A Dra. ainda não cadastrou seus suplementos.
+      <div style={{ padding: '0 16px' }}>
+        {protocolosSection}
+        <div style={{ padding: '40px 0', textAlign: 'center' }}>
+          <i className="ti ti-pill" style={{ fontSize: 40, color: 'var(--muted-2)' }} aria-hidden="true"></i>
+          <div style={{ fontSize: 14, fontWeight: 500, margin: '8px 0 4px' }}>Nenhum suplemento prescrito</div>
+          <div style={{ fontSize: 12, color: 'var(--muted)' }}>
+            A Dra. ainda não cadastrou seus suplementos.
+          </div>
         </div>
       </div>
     );
@@ -96,6 +145,7 @@ export default function Suplementos() {
 
   return (
     <div style={{ padding: '0 16px' }}>
+      {protocolosSection}
       {/* Resumo do dia */}
       <div style={{
         background: 'linear-gradient(135deg, var(--gold-soft, var(--bg-soft)), var(--white))',
