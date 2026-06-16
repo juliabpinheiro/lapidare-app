@@ -397,7 +397,7 @@ h1,h2,h3{page-break-after:avoid}
 .alimento-tabela th{font-family:'Lato',sans-serif;font-size:7px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txtL);padding:4px 6px;text-align:left;border-bottom:1px solid var(--begeR)}
 .alimento-tabela td{padding:5px 6px;border-bottom:1px solid var(--bege);color:var(--txt)}
 .alimento-tabela tr:last-child td{border-bottom:none}
-.alimento-tabela .subtotal td{font-weight:600;color:var(--verde);background:var(--bege);font-size:9px}
+.alimento-tabela .subtotal td{font-weight:600;color:var(--verde);background:var(--bege);font-size:11px}
 .grupo-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--terra);font-weight:700;text-align:center;margin-bottom:4px}
 .grupo-caixa{background:var(--bege);border-radius:6px;padding:10px 16px;text-align:center;font-size:11px;color:var(--txt);line-height:1.9}
 .ref-nota{font-size:11px;font-style:italic;color:var(--terra);margin-top:6px;padding:6px 10px;background:#fdf3ee;border-radius:4px;border-left:3px solid var(--terra)}
