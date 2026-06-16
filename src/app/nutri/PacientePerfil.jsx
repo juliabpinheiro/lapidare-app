@@ -2066,9 +2066,20 @@ function HabitosMesNutri({ pacienteId }) {
   const [ano, setAno] = useState(hoje.getFullYear());
   const [mes, setMes] = useState(hoje.getMonth() + 1);
   const [registro, setRegistro] = useState(undefined);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editHabitos, setEditHabitos] = useState([]);
+  const [salvando, setSalvando] = useState(false);
+
+  async function carregar() {
+    const { data } = await supabase.from('habitos_mes').select('*')
+      .eq('paciente_id', pacienteId).eq('ano', ano).eq('mes', mes)
+      .maybeSingle();
+    setRegistro(data ?? null);
+  }
 
   useEffect(() => {
     let active = true;
+    setRegistro(undefined);
     supabase.from('habitos_mes').select('*')
       .eq('paciente_id', pacienteId).eq('ano', ano).eq('mes', mes)
       .maybeSingle()
@@ -2081,6 +2092,25 @@ function HabitosMesNutri({ pacienteId }) {
     if (m < 1) { m = 12; a--; }
     if (m > 12) { m = 1; a++; }
     setMes(m); setAno(a);
+  }
+
+  function abrirEdicao() {
+    setEditHabitos([...(registro?.habitos?.length ? registro.habitos : HABITOS_PADRAO)]);
+    setEditOpen(true);
+  }
+
+  async function salvarEdicao() {
+    const limpos = editHabitos.map(h => h.trim()).filter(Boolean);
+    setSalvando(true);
+    await supabase.from('habitos_mes').upsert({
+      paciente_id: pacienteId,
+      ano, mes,
+      habitos: limpos,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'paciente_id,ano,mes' });
+    setSalvando(false);
+    setEditOpen(false);
+    carregar();
   }
 
   if (registro === undefined) {
@@ -2110,6 +2140,9 @@ function HabitosMesNutri({ pacienteId }) {
           </span>
           <button style={CAL_NAV_BTN} onClick={() => navMes(1)} aria-label="próximo mês">
             <i className="ti ti-chevron-right" style={{ fontSize: 13 }} aria-hidden="true"></i>
+          </button>
+          <button className="btn-outline" style={{ fontSize: 12, padding: '4px 10px', marginLeft: 6 }} onClick={abrirEdicao}>
+            <i className="ti ti-edit" aria-hidden="true"></i> Editar hábitos
           </button>
         </div>
       </div>
@@ -2165,6 +2198,53 @@ function HabitosMesNutri({ pacienteId }) {
           </tbody>
         </table>
       </div>
+
+      {editOpen && (
+        <div style={{
+          position: 'fixed', inset: 0,
+          background: 'rgba(28,23,18,.55)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100,
+        }} onClick={() => setEditOpen(false)}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: 'var(--white)', borderRadius: 12, padding: 22,
+            width: 460, maxWidth: '90vw', maxHeight: '85vh',
+            border: '0.5px solid var(--border)', display: 'flex', flexDirection: 'column',
+          }}>
+            <div style={{ fontFamily: 'var(--font-serif)', fontSize: 17, marginBottom: 14 }}>Editar hábitos</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto', marginBottom: 14, flex: 1 }}>
+              {editHabitos.map((h, i) => (
+                <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  <input
+                    value={h}
+                    onChange={e => setEditHabitos(arr => arr.map((x, xi) => xi === i ? e.target.value : x))}
+                    style={{
+                      flex: 1, padding: '8px 10px', fontSize: 13,
+                      border: '0.5px solid var(--border)', borderRadius: 8,
+                      fontFamily: 'var(--font-sans)',
+                    }}
+                  />
+                  <button onClick={() => setEditHabitos(arr => arr.filter((_, xi) => xi !== i))}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--red)', padding: 4 }}>
+                    <i className="ti ti-trash" aria-hidden="true"></i>
+                  </button>
+                </div>
+              ))}
+            </div>
+            <button onClick={() => setEditHabitos(arr => [...arr, ''])} style={{
+              background: 'none', border: '1px dashed var(--border)', borderRadius: 8,
+              padding: '8px 12px', fontSize: 13, color: 'var(--text3)', cursor: 'pointer',
+              width: '100%', marginBottom: 14, fontFamily: 'var(--font-sans)',
+            }}>+ Adicionar hábito</button>
+
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button className="btn-outline" onClick={() => setEditOpen(false)}>Cancelar</button>
+              <button className="btn" onClick={salvarEdicao} disabled={salvando}>
+                {salvando ? 'Salvando...' : 'Salvar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

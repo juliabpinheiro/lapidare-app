@@ -20,13 +20,6 @@ export const HABITOS_PADRAO = [
 
 export const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
-const inputStyle = {
-  width: '100%', padding: '9px 11px', fontSize: 13,
-  background: 'var(--bg-soft)', border: '0.5px solid var(--hair)',
-  borderRadius: 10, outline: 'none', color: 'var(--ink)',
-  fontFamily: 'inherit', boxSizing: 'border-box',
-};
-
 const navBtnStyle = {
   background: 'var(--bg-soft)', border: '0.5px solid var(--hair)', borderRadius: 8,
   padding: '6px 10px', cursor: 'pointer', color: 'var(--dark)', display: 'flex', alignItems: 'center',
@@ -43,8 +36,6 @@ export default function HabitosMes() {
   const [habitos, setHabitos] = useState(HABITOS_PADRAO);
   const [checks, setChecks] = useState({});
   const [carregando, setCarregando] = useState(true);
-  const [editOpen, setEditOpen] = useState(false);
-  const [editHabitos, setEditHabitos] = useState([]);
 
   useEffect(() => { carregar(); }, [user, ano, mes]);
 
@@ -84,18 +75,6 @@ export default function HabitosMes() {
     salvar({ checks: novo });
   }
 
-  function abrirEdicao() {
-    setEditHabitos([...habitos]);
-    setEditOpen(true);
-  }
-
-  function salvarEdicao() {
-    const limpos = editHabitos.map(h => h.trim()).filter(Boolean);
-    setHabitos(limpos);
-    setEditOpen(false);
-    salvar({ habitos: limpos });
-  }
-
   function navMes(delta) {
     let m = mes + delta, a = ano;
     if (m < 1) { m = 12; a--; }
@@ -129,17 +108,10 @@ export default function HabitosMes() {
         </div>
 
         <div className="card" style={{ padding: '14px 16px 16px', marginBottom: 14, overflowX: 'auto' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <div style={{ marginBottom: 12 }}>
             <span style={{ fontSize: 10, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 500 }}>
               Check diário
             </span>
-            <button onClick={abrirEdicao} style={{
-              background: 'none', border: '0.5px solid var(--hair)', borderRadius: 8,
-              padding: '5px 10px', fontSize: 11, color: 'var(--ink)', cursor: 'pointer',
-              fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 4,
-            }}>
-              <i className="ti ti-edit" aria-hidden="true" style={{ fontSize: 13 }}></i> Editar hábitos
-            </button>
           </div>
 
           <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: dias.length * 28 + 160 }}>
@@ -188,45 +160,6 @@ export default function HabitosMes() {
           </table>
         </div>
       </div>
-
-      {editOpen && (
-        <div className="sheet-backdrop" onClick={() => setEditOpen(false)}>
-          <div className="sheet" onClick={e => e.stopPropagation()}>
-            <div className="grabber"></div>
-            <div className="serif" style={{ fontSize: 20, marginBottom: 14 }}>Editar hábitos</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: '50vh', overflowY: 'auto', marginBottom: 14 }}>
-              {editHabitos.map((h, i) => (
-                <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                  <input
-                    value={h}
-                    onChange={e => setEditHabitos(arr => arr.map((x, xi) => xi === i ? e.target.value : x))}
-                    style={inputStyle}
-                  />
-                  <button onClick={() => setEditHabitos(arr => arr.filter((_, xi) => xi !== i))}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--red, #c0392b)', padding: 4 }}>
-                    <i className="ti ti-trash" aria-hidden="true"></i>
-                  </button>
-                </div>
-              ))}
-            </div>
-            <button onClick={() => setEditHabitos(arr => [...arr, ''])} style={{
-              background: 'none', border: '1px dashed var(--hair)', borderRadius: 10,
-              padding: '8px 12px', fontSize: 13, color: 'var(--muted)', cursor: 'pointer',
-              width: '100%', marginBottom: 14, fontFamily: 'inherit',
-            }}>+ Adicionar hábito</button>
-
-            <button onClick={salvarEdicao} style={{
-              width: '100%', padding: '11px 18px', background: 'var(--dark)', color: '#fff',
-              borderRadius: 12, fontSize: 13, fontWeight: 500, border: 'none', cursor: 'pointer',
-              fontFamily: 'inherit', marginBottom: 8,
-            }}>Salvar</button>
-            <button onClick={() => setEditOpen(false)} style={{
-              width: '100%', padding: '10px', background: 'none', border: 'none',
-              fontSize: 13, color: 'var(--muted)', cursor: 'pointer', fontFamily: 'inherit',
-            }}>Cancelar</button>
-          </div>
-        </div>
-      )}
     </>
   );
 }
