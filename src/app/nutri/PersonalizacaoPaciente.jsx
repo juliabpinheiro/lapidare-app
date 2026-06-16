@@ -109,8 +109,33 @@ export default function PersonalizacaoPaciente() {
   }
 
   async function resetar() {
-    setTema({ ...DEFAULTS });
+    const padrao = {
+      pac_bg:    '#F0EBE3',
+      pac_card:  '#FFFFFF',
+      pac_btn:   '#173103',
+      pac_text:  '#000000',
+      pac_hero:        '#173103',
+      pac_card_dark:   '#173103',
+      pac_btn_plano:   '#95380A',
+      pac_avatar:      '#173103',
+      pac_macro:       '#95380A',
+      pac_titulo:      '#173103',
+      pac_tabbar:      '#FFFFFF',
+      pac_tabbar_txt:  '#173103',
+      pac_header_ref:      '#173103',
+      pac_header_ref_txt:  '#FFFFFF',
+    };
+    setTema(padrao);
     setFeedback(null);
+    setBusy(true);
+    const agora = new Date().toISOString();
+    const { data: existente } = await supabase
+      .from('configuracoes').select('id').eq('nutri_id', user.id).maybeSingle();
+    const { error } = existente
+      ? await supabase.from('configuracoes').update({ tema: padrao, updated_at: agora }).eq('nutri_id', user.id)
+      : await supabase.from('configuracoes').insert({ nutri_id: user.id, tema: padrao, updated_at: agora });
+    setBusy(false);
+    if (!error) setFeedback({ tipo: 'ok', msg: 'Cores restauradas para o padrão!' });
   }
 
   const campos = [
