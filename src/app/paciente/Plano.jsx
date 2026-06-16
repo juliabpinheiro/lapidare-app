@@ -135,10 +135,7 @@ export default function Plano() {
       pacienteDados: visual.paciente_dados ?? null,
     });
 
-    // Abre janela ANTES de qualquer await (iOS exige isso)
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const win = isIOS ? window.open('', '_blank') : null;
-
     const styleEl = document.createElement('style');
     const elemento = document.createElement('div');
 
@@ -175,12 +172,18 @@ export default function Plano() {
 
       if (isIOS) {
         const pdfBase64 = await window.html2pdf().set(opt).from(elemento).output('datauristring');
-        if (win) win.location.href = pdfBase64;
+        // Cria link temporário na página atual (não abre nova janela)
+        const link = document.createElement('a');
+        link.href = pdfBase64;
+        link.download = opt.filename;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        setTimeout(() => document.body.removeChild(link), 1000);
       } else {
         await window.html2pdf().set(opt).from(elemento).save();
       }
     } catch(e) {
-      if (win) win.close();
       alert('Erro ao gerar PDF: ' + e.message);
     } finally {
       if (document.body.contains(elemento)) document.body.removeChild(elemento);
