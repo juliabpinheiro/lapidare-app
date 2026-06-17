@@ -614,6 +614,37 @@
   .nutri-panel .empty-card { padding: 24px 16px; }
 }
 
+/* ── CADASTRAR PACIENTE ── */
+.nutri-panel .cadastrar-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas: "form info" "form recentes";
+  gap: 16px;
+  align-items: start;
+}
+.nutri-panel .cadastrar-form { grid-area: form; }
+.nutri-panel .cadastrar-info { grid-area: info; }
+.nutri-panel .cadastrar-recentes { grid-area: recentes; }
+.nutri-panel .cadastrar-campos-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 10px;
+}
+.nutri-panel .cadastrar-plano-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 900px) {
+  .nutri-panel .cadastrar-grid {
+    grid-template-columns: 1fr !important;
+    grid-template-areas: "info" "form" "recentes" !important;
+  }
+  .nutri-panel .cadastrar-campos-row { grid-template-columns: 1fr !important; }
+  .nutri-panel .cadastrar-plano-row { grid-template-columns: 1fr !important; }
+}
+
 /* Layout específico do Chat (lista + conversa) */
 .nutri-panel .chat-layout {
   display: grid;

@@ -107,20 +107,20 @@ export default function Cadastrar() {
       <div className="page-title">Cadastrar paciente</div>
       <div className="page-sub">Preencha os dados — a conta é criada com a senha inicial <strong>12345</strong>. A paciente acessa direto e pode trocar a senha quando quiser.</div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 16 }}>
+      <div className="cadastrar-grid">
 
         {/* ─── Formulário ─── */}
-        <form onSubmit={salvar} className="card" style={{ padding: 18 }}>
+        <form onSubmit={salvar} className="card cadastrar-form" style={{ padding: 18 }}>
           <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 12 }}>Novo cadastro</div>
 
           <Field label="Nome completo *" value={form.nome} onChange={set('nome')} required autoFocus />
-          <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 10 }}>
+          <div className="cadastrar-campos-row">
             <Field label="Email *" type="email" value={form.email} onChange={set('email')} required />
             <Field label="Data de nascimento" type="date" value={form.nascimento} onChange={set('nascimento')} />
           </div>
 
           <SelectField label="Objetivo" value={form.objetivo} onChange={set('objetivo')} options={OBJETIVOS} />
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+          <div className="cadastrar-plano-row">
             <SelectField label="Tipo de plano" value={form.tipoPlano} onChange={set('tipoPlano')} options={PLANOS} />
             <Field label="Valor do plano (R$)" inputMode="decimal" placeholder="ex: 350,00" value={form.valorPlano} onChange={set('valorPlano')} />
             <SelectField label="Modalidade de atendimento" value={form.modalidade} onChange={set('modalidade')} options={MODALIDADES} />
@@ -153,8 +153,8 @@ export default function Cadastrar() {
           </button>
         </form>
 
-        {/* ─── Painel direito ─── */}
-        <div>
+        {/* ─── Info card ─── */}
+        <div className="cadastrar-info">
           {sucesso ? (
             <CartaoSucesso
               nome={sucesso.nome}
@@ -174,8 +174,10 @@ export default function Cadastrar() {
               </div>
             </div>
           )}
+        </div>
 
-          {/* ─── Pacientes recentemente cadastradas ─── */}
+        {/* ─── Pacientes recentemente cadastradas ─── */}
+        <div className="cadastrar-recentes">
           {recentes.length > 0 && (
             <>
               <div className="section-label" style={{ marginTop: 4 }}>
