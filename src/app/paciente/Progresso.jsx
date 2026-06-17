@@ -366,13 +366,6 @@ function FotosEvolucao() {
     carregar();
   }
 
-  async function excluirFoto(f) {
-    if (!window.confirm('Excluir esta foto?')) return;
-    await supabase.storage.from('fotos_evolucao').remove([f.storage_path]);
-    await supabase.from('fotos_evolucao').delete().eq('id', f.id);
-    carregar();
-  }
-
   return (
     <>
       <div style={{ margin: '20px 16px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
@@ -540,17 +533,6 @@ function FotosEvolucao() {
               }}>
                 {dataBR(f.data_foto)}
               </div>
-              <button onClick={() => excluirFoto(f)}
-                style={{
-                  position: 'absolute', top: 4, right: 4,
-                  background: 'rgba(0,0,0,.55)', color: 'white',
-                  border: 'none', borderRadius: '50%',
-                  width: 24, height: 24, fontSize: 11,
-                  cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                <i className="ti ti-trash" aria-hidden="true"></i>
-              </button>
             </div>
           ))}
         </div>
