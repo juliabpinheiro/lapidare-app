@@ -263,6 +263,14 @@ export default function Evolucao({ pacienteId, paciente, nutriId }) {
         </div>
       </div>
 
+      {/* ── Gráficos de evolução ── */}
+      {registroConsultas.length > 0 && (
+        <>
+          <div className="section-title" style={{ marginTop: 24, marginBottom: 12 }}>Evolução ao longo do tempo</div>
+          <GraficosEvolucao consultas={registroConsultas} />
+        </>
+      )}
+
       {/* ── Histórico de consultas ── */}
       <div className="section-header" style={{ marginTop: 24 }}>
         <div className="section-title">Histórico de consultas</div>
@@ -654,29 +662,37 @@ function ConsultaSecao({ titulo, icon, children }) {
    ============================================================ */
 function ModalConsulta({ consulta, pacienteId, nutriId, anamneses, planos, onClose, onSaved }) {
   const isNova = !consulta;
-  const [data,       setData]       = useState(consulta?.data_consulta ?? new Date().toISOString().slice(0, 10));
-  const [pesoKg,     setPesoKg]     = useState(consulta?.peso_kg ?? '');
-  const [objetivo,   setObjetivo]   = useState(consulta?.objetivo ?? '');
-  const [obs,        setObs]        = useState(consulta?.dados?.obs ?? '');
-  const [calculo,    setCalculo]    = useState(consulta?.dados?.calculo ?? '');
-  const [suplementos, setSupl]      = useState(consulta?.dados?.suplementos ?? '');
-  const [anamneseId, setAnamneseId] = useState(consulta?.anamnese_id ?? '');
-  const [planoId,    setPlanoId]    = useState(consulta?.plano_id ?? '');
-  const [busy,       setBusy]       = useState(false);
-  const [erro,       setErro]       = useState(null);
+  const [data,           setData]       = useState(consulta?.data_consulta ?? new Date().toISOString().slice(0, 10));
+  const [pesoKg,         setPesoKg]     = useState(consulta?.peso_kg ?? '');
+  const [alturaKg,       setAlturaKg]   = useState(consulta?.altura_cm ?? '');
+  const [pgcForm,        setPgcForm]    = useState(consulta?.percentual_gordura ?? '');
+  const [massaMuscular,  setMasaMuscular] = useState(consulta?.massa_muscular_kg ?? '');
+  const [massaGorda,     setMassaGorda] = useState(consulta?.massa_gorda_kg ?? '');
+  const [objetivo,       setObjetivo]   = useState(consulta?.objetivo ?? '');
+  const [obs,            setObs]        = useState(consulta?.dados?.obs ?? '');
+  const [calculo,        setCalculo]    = useState(consulta?.dados?.calculo ?? '');
+  const [suplementos,    setSupl]       = useState(consulta?.dados?.suplementos ?? '');
+  const [anamneseId,     setAnamneseId] = useState(consulta?.anamnese_id ?? '');
+  const [planoId,        setPlanoId]    = useState(consulta?.plano_id ?? '');
+  const [busy,           setBusy]       = useState(false);
+  const [erro,           setErro]       = useState(null);
 
   async function salvar() {
     setErro(null);
     if (!data) { setErro('Selecione a data da consulta.'); return; }
     setBusy(true);
     const payload = {
-      paciente_id: pacienteId,
-      nutri_id:    nutriId,
-      data_consulta: data,
-      peso_kg:     pesoKg !== '' ? Number(pesoKg) : null,
-      objetivo:    objetivo.trim()    || null,
-      anamnese_id: anamneseId         || null,
-      plano_id:    planoId            || null,
+      paciente_id:        pacienteId,
+      nutri_id:           nutriId,
+      data_consulta:      data,
+      peso_kg:            pesoKg       !== '' ? Number(pesoKg)      : null,
+      altura_cm:          alturaKg     !== '' ? Number(alturaKg)    : null,
+      percentual_gordura: pgcForm      !== '' ? Number(pgcForm)     : null,
+      massa_muscular_kg:  massaMuscular !== '' ? Number(massaMuscular) : null,
+      massa_gorda_kg:     massaGorda   !== '' ? Number(massaGorda)  : null,
+      objetivo:           objetivo.trim()    || null,
+      anamnese_id:        anamneseId         || null,
+      plano_id:           planoId            || null,
       dados: {
         obs:        obs.trim()        || null,
         calculo:    calculo.trim()    || null,
@@ -710,11 +726,37 @@ function ModalConsulta({ consulta, pacienteId, nutriId, anamneses, planos, onClo
         </div>
         <div>
           <label className="form-lbl">Peso (kg)</label>
-          <input
-            type="number" step="0.1" min="20" max="300"
-            value={pesoKg} onChange={e => setPesoKg(e.target.value)}
-            placeholder="Ex: 68,5"
-          />
+          <input type="number" step="0.1" min="20" max="300"
+            value={pesoKg} onChange={e => setPesoKg(e.target.value)} placeholder="Ex: 68,5" />
+        </div>
+      </div>
+
+      <div style={{
+        fontSize: 10, letterSpacing: 1.2, textTransform: 'uppercase',
+        color: 'var(--text3)', fontWeight: 600, margin: '12px 0 6px',
+      }}>
+        Composição corporal
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 4 }}>
+        <div>
+          <label className="form-lbl">Altura (cm)</label>
+          <input type="number" step="0.5" min="100" max="220"
+            value={alturaKg} onChange={e => setAlturaKg(e.target.value)} placeholder="Ex: 165" />
+        </div>
+        <div>
+          <label className="form-lbl">% Gordura corporal</label>
+          <input type="number" step="0.1" min="3" max="60"
+            value={pgcForm} onChange={e => setPgcForm(e.target.value)} placeholder="Ex: 28,5" />
+        </div>
+        <div>
+          <label className="form-lbl">Massa muscular (kg)</label>
+          <input type="number" step="0.1" min="10" max="120"
+            value={massaMuscular} onChange={e => setMasaMuscular(e.target.value)} placeholder="Ex: 42,0" />
+        </div>
+        <div>
+          <label className="form-lbl">Massa gorda (kg)</label>
+          <input type="number" step="0.1" min="1" max="150"
+            value={massaGorda} onChange={e => setMassaGorda(e.target.value)} placeholder="Ex: 18,5" />
         </div>
       </div>
 
@@ -1111,6 +1153,135 @@ function VerCheckinModal({ envio, onClose }) {
         <button className="btn-outline" onClick={onClose}>Fechar</button>
       </div>
     </ModalShell>
+  );
+}
+
+/* ============================================================
+   GRÁFICOS DE EVOLUÇÃO (baseados em registro_consultas)
+   ============================================================ */
+const GRAFICOS_DEF = [
+  { key: 'peso_kg',            label: 'Peso',                  unidade: 'kg', dec: 1, melhorMenor: true  },
+  { key: 'massa_muscular_kg',  label: 'Massa muscular',        unidade: 'kg', dec: 1, melhorMenor: false },
+  { key: 'massa_gorda_kg',     label: 'Massa gorda',           unidade: 'kg', dec: 1, melhorMenor: true  },
+  { key: 'percentual_gordura', label: 'Gordura corporal',      unidade: '%',  dec: 1, melhorMenor: true  },
+  { key: '_imc',               label: 'IMC',                   unidade: '',   dec: 1, melhorMenor: true  },
+];
+
+function GraficosEvolucao({ consultas }) {
+  const graficos = GRAFICOS_DEF.map(def => {
+    const pontos = consultas
+      .map(c => {
+        let valor = null;
+        if (def.key === '_imc') {
+          if (c.peso_kg != null && c.altura_cm != null && c.altura_cm > 0) {
+            valor = c.peso_kg / Math.pow(c.altura_cm / 100, 2);
+          }
+        } else {
+          valor = c[def.key];
+        }
+        return valor != null ? { data: c.data_consulta, valor: Number(valor) } : null;
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.data.localeCompare(b.data));
+    return { ...def, pontos };
+  }).filter(g => g.pontos.length > 0);
+
+  if (graficos.length === 0) return null;
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
+      {graficos.map(g => (
+        <GraficoMetrica key={g.key} {...g} />
+      ))}
+    </div>
+  );
+}
+
+function GraficoMetrica({ label, unidade, dec, melhorMenor, pontos, key: gradId }) {
+  const atual   = pontos[pontos.length - 1];
+  const inicial = pontos[0];
+  const dif     = atual.valor - inicial.valor;
+
+  let pts = [], path = '', area = '';
+  if (pontos.length > 1) {
+    const vals = pontos.map(p => p.valor);
+    const min  = Math.min(...vals);
+    const max  = Math.max(...vals);
+    const pad  = (max - min) * 0.1 || 0.5;
+    const lo   = min - pad;
+    const range = (max + pad) - lo || 1;
+    pts = pontos.map((p, i) => ({
+      x: (i / (pontos.length - 1)) * 100,
+      y: 100 - ((p.valor - lo) / range) * 100,
+      ...p,
+    }));
+    path = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+    area = path + ' L 100 100 L 0 100 Z';
+  }
+
+  const corDelta = dif === 0 ? 'var(--text3)'
+    : (melhorMenor ? dif < 0 : dif > 0) ? 'var(--green)' : 'var(--red)';
+  const sinal = dif > 0 ? '+' : dif < 0 ? '−' : '';
+
+  return (
+    <div className="card" style={{ padding: '14px 16px' }}>
+      <div style={{
+        fontSize: 10, letterSpacing: 1.2, textTransform: 'uppercase',
+        color: 'var(--text3)', fontWeight: 600, marginBottom: 8,
+      }}>
+        {label}
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 8 }}>
+        <span style={{ fontFamily: 'var(--font-serif)', fontSize: 26, fontWeight: 600, color: 'var(--dark)', lineHeight: 1 }}>
+          {atual.valor.toFixed(dec).replace('.', ',')}
+          {unidade && <span style={{ fontSize: 13, color: 'var(--text3)', marginLeft: 3 }}>{unidade}</span>}
+        </span>
+        {pontos.length > 1 && (
+          <span style={{ fontSize: 12, fontWeight: 500, color: corDelta }}>
+            {sinal}{Math.abs(dif).toFixed(dec).replace('.', ',')}{unidade && ` ${unidade}`}
+          </span>
+        )}
+      </div>
+
+      {pontos.length > 1 ? (
+        <>
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none"
+            style={{ width: '100%', height: 72, display: 'block' }}>
+            <defs>
+              <linearGradient id={`evol-${label}`} x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%"   stopColor="var(--amber)" stopOpacity=".25" />
+                <stop offset="100%" stopColor="var(--amber)" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            {[33, 66].map(y => (
+              <line key={y} x1="0" x2="100" y1={y} y2={y}
+                stroke="var(--border)" strokeWidth=".4" strokeDasharray="1.5,1.5" />
+            ))}
+            <path d={area} fill={`url(#evol-${label})`} />
+            <path d={path} fill="none" stroke="var(--dark)" strokeWidth=".8"
+              strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+            {pts.map((p, i) => (
+              <circle key={i} cx={p.x} cy={p.y} r="1.4"
+                fill="var(--amber)" stroke="var(--dark)" strokeWidth=".5"
+                vectorEffect="non-scaling-stroke" />
+            ))}
+          </svg>
+          <div style={{
+            display: 'flex', justifyContent: 'space-between',
+            fontSize: 9, color: 'var(--text3)', marginTop: 4,
+          }}>
+            <span>{dataBR(pontos[0].data)}</span>
+            <span>{pontos.length} consultas</span>
+            <span>{dataBR(pontos[pontos.length - 1].data)}</span>
+          </div>
+        </>
+      ) : (
+        <div style={{ fontSize: 11, color: 'var(--text3)' }}>
+          {dataBR(atual.data)} · gráfico a partir de 2 registros
+        </div>
+      )}
+    </div>
   );
 }
 
