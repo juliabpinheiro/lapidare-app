@@ -18,12 +18,13 @@ export default function Checkin() {
     let active = true;
     async function load() {
       if (!user) return;
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('checkins')
         .select('*')
         .eq('paciente_id', user.id)
         .eq('semana', SEMANA)
         .maybeSingle();
+      if (error) console.error('[checkin] fetch error:', JSON.stringify(error));
       if (!active) return;
       setCheckin(data ?? null);
       if (data) setRespostas(data.respostas ?? {});
@@ -63,7 +64,10 @@ export default function Checkin() {
     });
 
     setBusy(false);
-    if (error) return setErro(error.message);
+    if (error) {
+      console.error('[checkin] insert error:', JSON.stringify(error));
+      return setErro(error.message);
+    }
     setSucesso(true);
   }
 
