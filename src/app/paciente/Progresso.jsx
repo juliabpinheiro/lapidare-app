@@ -39,13 +39,37 @@ export default function Progresso() {
     let active = true;
     async function load() {
       if (!user) return;
-      const { data } = await supabase
-        .from('peso_registros')
-        .select('id, data, kg, altura_cm, cintura_cm, quadril_cm, braco_cm, coxa_cm, pgc, mm_kg, obs')
-        .eq('paciente_id', user.id)
-        .order('data', { ascending: true });
+      const [{ data: pesosData }, { data: consultasData }] = await Promise.all([
+        supabase.from('peso_registros')
+          .select('id, data, kg, altura_cm, cintura_cm, quadril_cm, braco_cm, coxa_cm, pgc, mm_kg, obs')
+          .eq('paciente_id', user.id)
+          .order('data', { ascending: true }),
+        supabase.from('registro_consultas')
+          .select('id, data_consulta, peso_kg, objetivo')
+          .eq('paciente_id', user.id)
+          .order('data_consulta', { ascending: true }),
+      ]);
       if (!active) return;
-      setRegistros(data ?? []);
+
+      // Normaliza consultas para o shape de peso_registros
+      const consultasNorm = (consultasData ?? [])
+        .filter(c => c.peso_kg != null)
+        .map(c => ({
+          id: `rc_${c.id}`,
+          data: c.data_consulta,
+          kg: c.peso_kg,
+          obs: c.objetivo || null,
+          altura_cm: null, cintura_cm: null, quadril_cm: null,
+          braco_cm: null, coxa_cm: null, pgc: null, mm_kg: null,
+        }));
+
+      // Mescla: peso_registros tem prioridade quando há mesma data
+      const porData = new Map((pesosData ?? []).map(r => [r.data, r]));
+      for (const c of consultasNorm) {
+        if (!porData.has(c.data)) porData.set(c.data, c);
+      }
+      const merged = [...porData.values()].sort((a, b) => a.data.localeCompare(b.data));
+      setRegistros(merged);
     }
     load();
     return () => { active = false; };
