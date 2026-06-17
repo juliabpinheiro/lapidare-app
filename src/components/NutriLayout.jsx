@@ -50,6 +50,7 @@ export default function NutriLayout() {
   const navRef = useRef(null);
   const scrollNav = (dir) => navRef.current?.scrollBy({ top: dir * 120, behavior: 'smooth' });
   const [unreadChat, setUnreadChat] = useState(0);
+  const [unreadCheckins, setUnreadCheckins] = useState(0);
   const location = useLocation();
 
   // Fecha drawer ao trocar de rota (mobile)
@@ -86,6 +87,36 @@ export default function NutriLayout() {
       .subscribe();
 
     return () => { active = false; supabase.removeChannel(channel); };
+  }, [user]);
+
+  // Conta check-ins não lidos das pacientes
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+
+    async function recarregarCheckins() {
+      const { count } = await supabase
+        .from('checkins')
+        .select('id', { count: 'exact', head: true })
+        .eq('nutricionista_id', user.id)
+        .eq('lido', false);
+      if (active) setUnreadCheckins(count ?? 0);
+    }
+
+    recarregarCheckins();
+    const ch = supabase
+      .channel(`nutri-checkins-unread-${user.id}`)
+      .on('postgres_changes', {
+        event: 'INSERT', schema: 'public', table: 'checkins',
+        filter: `nutricionista_id=eq.${user.id}`,
+      }, recarregarCheckins)
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'checkins',
+        filter: `nutricionista_id=eq.${user.id}`,
+      }, recarregarCheckins)
+      .subscribe();
+
+    return () => { active = false; supabase.removeChannel(ch); };
   }, [user]);
 
   const handleLogout = async () => {
@@ -131,6 +162,9 @@ export default function NutriLayout() {
                   <span>{item.label}</span>
                   {item.id === 'chat' && unreadChat > 0 && (
                     <span className="nav-badge">{unreadChat}</span>
+                  )}
+                  {item.id === 'checkins' && unreadCheckins > 0 && (
+                    <span className="nav-badge">{unreadCheckins}</span>
                   )}
                 </NavLink>
               ))}

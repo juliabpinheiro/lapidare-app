@@ -102,7 +102,7 @@ export default function App() {
             <Route path="/paciente/recibos" element={<RecibosPaciente />} />
             <Route path="/paciente/habitos-mes" element={<HabitosMesPaciente />} />
             <Route path="/paciente/evolucao" element={<EvolucaoPaciente />} />
-            <Route path="/paciente/checkin/:envioId" element={<Checkin />} />
+            <Route path="/paciente/checkin" element={<Checkin />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

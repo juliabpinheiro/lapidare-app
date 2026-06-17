@@ -7,6 +7,15 @@ import { supabase } from '../lib/supabase.js';
 import { iniciais } from '../lib/utils.js';
 import '../styles/paciente.css';
 
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const arr = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; i++) arr[i] = rawData.charCodeAt(i);
+  return arr;
+}
+
 const TABS = [
   { id: 'inicio',    path: '/paciente/inicio',    label: 'Início',    icon: 'home' },
   { id: 'plano',     path: '/paciente/plano',     label: 'Plano',     icon: 'salad' },
@@ -18,6 +27,7 @@ const TABS = [
 ];
 
 const MAIS_ITEMS = [
+  { path: '/paciente/checkin',     icon: 'clipboard-text', label: 'Check-in semanal',    sub: 'Como foi sua semana?' },
   { path: '/paciente/compras',     icon: 'shopping-cart', label: 'Lista de compras',     sub: 'Lista da semana' },
   { path: '/paciente/suplementos', icon: 'pill',          label: 'Suplementos',          sub: 'Lista do dia' },
   { path: '/paciente/habitos',     icon: 'checklist',     label: 'Hábitos',              sub: 'Tracker diário' },
@@ -41,6 +51,7 @@ const HEADERS = {
   '/paciente/habitos':      () =>                ({ eyebrow: 'Hábitos do dia',   title: 'Meus hábitos',      subtitle: 'Acompanhe sua rotina' }),
   '/paciente/habitos-mes':  () =>                ({ eyebrow: 'Hábitos do mês',   title: 'Hábitos do mês',    subtitle: 'Check diário mensal' }),
   '/paciente/chat':         (_nome, nutriNome) => ({ eyebrow: 'Conversa',         title: nutriNome || 'Sua nutri', subtitle: 'Online' }),
+  '/paciente/checkin':      () =>                ({ eyebrow: 'Check-in semanal', title: 'Como estou',         subtitle: 'Compartilhe com a sua nutri' }),
 };
 
 export default function PacienteLayout() {
@@ -57,6 +68,41 @@ export default function PacienteLayout() {
   const [senhaErro, setSenhaErro] = useState(null);
   const [senhaBusy, setSenhaBusy] = useState(false);
   const [senhaSucesso, setSenhaSucesso] = useState(false);
+
+  // Registro do service worker e assinatura push
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+    if (!vapidKey || !('PushManager' in window)) return;
+    let active = true;
+    async function assinarPush() {
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        let sub = await reg.pushManager.getSubscription();
+        if (!sub) {
+          const perm = await Notification.requestPermission();
+          if (!active || perm !== 'granted') return;
+          sub = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(vapidKey),
+          });
+        }
+        if (!active) return;
+        await supabase.from('push_subscriptions').upsert(
+          { paciente_id: user.id, subscription: sub.toJSON() },
+          { onConflict: 'paciente_id' }
+        );
+      } catch { /* push não crítico */ }
+    }
+    assinarPush();
+    return () => { active = false; };
+  }, [user]);
 
   const isChat = location.pathname === '/paciente/chat';
   const primeiroNome = profile?.nome?.split(' ')[0] ?? '';
@@ -192,7 +238,7 @@ export default function PacienteLayout() {
           {TABS.map(t => {
             const active = t.path
               ? location.pathname === t.path
-              : ['/paciente/compras', '/paciente/suplementos', '/paciente/habitos', '/paciente/prescricoes', '/paciente/ebooks', '/paciente/recibos', '/paciente/chat'].includes(location.pathname);
+              : ['/paciente/checkin', '/paciente/compras', '/paciente/suplementos', '/paciente/habitos', '/paciente/prescricoes', '/paciente/ebooks', '/paciente/recibos', '/paciente/chat'].includes(location.pathname);
 
             if (!t.path) {
               return (

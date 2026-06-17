@@ -1,15 +1,14 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabase.js';
 import { useSession } from '../../lib/session.jsx';
-import { respostasIniciais } from '../../lib/checkinDefault.js';
-import CheckinForm from '../../components/CheckinForm.jsx';
+import { PERGUNTAS_SEMANAL, segundaFeiraDaSemana } from '../../lib/checkinDefault.js';
+
+const SEMANA = segundaFeiraDaSemana();
+const SEMANA_BR = new Date(SEMANA + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
 export default function Checkin() {
-  const { envioId } = useParams();
-  const navigate = useNavigate();
   const { user } = useSession();
-  const [envio, setEnvio] = useState(undefined);
+  const [checkin, setCheckin] = useState(undefined); // undefined=carregando
   const [respostas, setRespostas] = useState({});
   const [busy, setBusy] = useState(false);
   const [erro, setErro] = useState(null);
@@ -19,134 +18,217 @@ export default function Checkin() {
     let active = true;
     async function load() {
       if (!user) return;
-      const { data, error } = await supabase
-        .from('checkin_envios')
+      const { data } = await supabase
+        .from('checkins')
         .select('*')
-        .eq('id', envioId)
         .eq('paciente_id', user.id)
+        .eq('semana', SEMANA)
         .maybeSingle();
       if (!active) return;
-      if (error) { setErro(error.message); setEnvio(null); return; }
-      setEnvio(data ?? null);
-      if (data) {
-        // se já respondeu, mostra as respostas em modo read-only
-        setRespostas(data.respostas ?? respostasIniciais(data.perguntas));
-      }
+      setCheckin(data ?? null);
+      if (data) setRespostas(data.respostas ?? {});
     }
     load();
     return () => { active = false; };
-  }, [envioId, user]);
-
-  if (envio === undefined) {
-    return (
-      <div style={{ padding: 40, textAlign: 'center', color: 'var(--muted)', fontSize: 13 }}>
-        Carregando…
-      </div>
-    );
-  }
-
-  if (envio === null) {
-    return (
-      <div className="empty-state">
-        <i className="ti ti-file-off empty-icon" aria-hidden="true"></i>
-        <div className="empty-title">Check-in não encontrado</div>
-        <div className="empty-sub">Pode ter sido removido ou o link está incorreto.</div>
-        <button className="btn primary sm" style={{ marginTop: 14 }}
-          onClick={() => navigate('/paciente/inicio')}>
-          Voltar ao início
-        </button>
-      </div>
-    );
-  }
-
-  const jaRespondido = !!envio.respondido_em;
+  }, [user]);
 
   async function enviar() {
     setErro(null);
+    const scaleQs = PERGUNTAS_SEMANAL.filter(q => q.tipo !== 'texto');
+    if (scaleQs.some(q => respostas[q.id] == null)) {
+      return setErro('Responda todas as perguntas antes de enviar.');
+    }
     setBusy(true);
-    const { error } = await supabase
-      .from('checkin_envios')
-      .update({
-        respostas,
-        respondido_em: new Date().toISOString(),
-      })
-      .eq('id', envio.id);
+
+    const { data: pacData } = await supabase
+      .from('pacientes')
+      .select('nutri_id')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (!pacData?.nutri_id) {
+      setBusy(false);
+      return setErro('Erro ao identificar sua nutricionista.');
+    }
+
+    const { error } = await supabase.from('checkins').insert({
+      paciente_id: user.id,
+      nutricionista_id: pacData.nutri_id,
+      semana: SEMANA,
+      respostas,
+    });
+
     setBusy(false);
     if (error) return setErro(error.message);
     setSucesso(true);
-    setTimeout(() => navigate('/paciente/inicio', { replace: true }), 2500);
   }
 
   if (sucesso) {
     return (
       <div style={{
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        padding: '60px 24px', textAlign: 'center', minHeight: 'calc(100vh - 200px)',
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        justifyContent: 'center', padding: '60px 24px', textAlign: 'center',
+        minHeight: 'calc(100svh - 220px)',
       }}>
         <div style={{
           width: 80, height: 80, borderRadius: '50%',
-          background: 'var(--green-soft)',
+          background: 'var(--green-soft, #ecfdf5)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 36, marginBottom: 24,
           animation: 'view-in .4s cubic-bezier(.175,.885,.32,1.275)',
         }}>✨</div>
-        <div className="serif" style={{ fontSize: 28, marginBottom: 8 }}>Check-in enviado!</div>
-        <div style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.6, maxWidth: 280 }}>
-          Obrigada por compartilhar como está se sentindo.<br />
-          A Dra. vai analisar suas respostas em breve.
+        <div className="serif" style={{ fontSize: 28, marginBottom: 8, color: 'var(--green, #10b981)' }}>
+          Enviado!
+        </div>
+        <div style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.6, maxWidth: 260 }}>
+          Sua nutri vai adorar saber como você está se sentindo!
         </div>
       </div>
     );
   }
 
+  if (checkin === undefined) return null;
+
+  const jaRespondido = !!checkin;
+
   return (
-    <>
-      <div style={{
-        background: 'var(--ink)', color: 'var(--bg-soft)',
-        padding: '18px 22px',
-        margin: '-18px -16px 16px',
-      }}>
-        <div style={{
-          fontSize: 10, letterSpacing: '.22em', textTransform: 'uppercase',
-          color: 'var(--gold)', marginBottom: 4,
-        }}>
-          {envio.tipo === 'pre_consulta' ? 'Check-in pré-consulta' : 'Check-in'}
+    <div style={{ padding: '0 16px 48px' }}>
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ fontSize: 10, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 6 }}>
+          Semana de {SEMANA_BR}
         </div>
-        <div className="serif" style={{ fontSize: 22, lineHeight: 1.1, marginBottom: 2 }}>
-          {jaRespondido
-            ? 'Suas respostas'
-            : envio.tipo === 'pre_consulta'
-              ? 'Antes da primeira consulta'
-              : (envio.nome || 'Como você está esta semana?')}
-        </div>
-        <div style={{ fontSize: 11, opacity: .55 }}>
-          {jaRespondido
-            ? `Respondido em ${new Date(envio.respondido_em).toLocaleDateString('pt-BR')}`
-            : `Enviado em ${new Date(envio.enviado_em).toLocaleDateString('pt-BR')}`}
-        </div>
+        {jaRespondido && (
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            fontSize: 12, color: 'var(--green, #10b981)',
+            background: 'var(--green-soft, #ecfdf5)',
+            padding: '5px 12px', borderRadius: 999,
+          }}>
+            <i className="ti ti-check" aria-hidden="true"></i>
+            Check-in desta semana enviado!
+          </div>
+        )}
       </div>
 
-      <CheckinForm
-        perguntas={envio.perguntas}
-        valores={respostas}
-        onChange={(id, v) => setRespostas(r => ({ ...r, [id]: v }))}
-        disabled={jaRespondido}
-      />
+      {PERGUNTAS_SEMANAL.map(q => {
+        const valor = respostas[q.id];
+        const obs = respostas[`${q.id}_obs`];
+
+        if (q.tipo === 'texto') {
+          return (
+            <div key={q.id} style={{ marginBottom: 28 }}>
+              <div style={{ fontSize: 10, letterSpacing: '.15em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 5, fontWeight: 500 }}>
+                {q.label}
+              </div>
+              <div style={{ fontSize: 15, fontWeight: 500, marginBottom: 10 }}>{q.pergunta}</div>
+              <textarea
+                disabled={jaRespondido}
+                value={valor ?? ''}
+                onChange={e => setRespostas(r => ({ ...r, [q.id]: e.target.value }))}
+                rows={3}
+                placeholder={q.placeholder}
+                style={{
+                  width: '100%', padding: '10px 12px', fontSize: 13,
+                  border: '0.5px solid var(--border, #e2e0da)', borderRadius: 10,
+                  outline: 'none', fontFamily: 'var(--font-sans)',
+                  resize: 'vertical', boxSizing: 'border-box',
+                  background: jaRespondido ? 'var(--bg-soft)' : 'var(--white)',
+                  color: 'var(--ink)',
+                }}
+              />
+            </div>
+          );
+        }
+
+        return (
+          <div key={q.id} style={{ marginBottom: 28 }}>
+            <div style={{ fontSize: 10, letterSpacing: '.15em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 5, fontWeight: 500 }}>
+              {q.label}
+            </div>
+            <div style={{ fontSize: 15, fontWeight: 500, marginBottom: 12 }}>{q.pergunta}</div>
+
+            <div style={{ display: 'flex', gap: 6 }}>
+              {q.opcoes.map(o => (
+                <button
+                  key={o.valor}
+                  disabled={jaRespondido}
+                  onClick={() => setRespostas(r => ({ ...r, [q.id]: o.valor }))}
+                  style={{
+                    flex: 1, minWidth: 0, padding: '10px 4px',
+                    borderRadius: 12,
+                    border: valor === o.valor
+                      ? '2px solid var(--gold-deep)'
+                      : '1.5px solid var(--hair, #e2e0da)',
+                    background: valor === o.valor ? 'var(--gold-soft)' : 'var(--white)',
+                    cursor: jaRespondido ? 'default' : 'pointer',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                    transition: 'border-color .15s, background .15s',
+                  }}
+                >
+                  <span style={{ fontSize: 22 }}>{o.emoji}</span>
+                  <span style={{
+                    fontSize: 9, lineHeight: 1.2, textAlign: 'center',
+                    color: valor === o.valor ? 'var(--gold-deep)' : 'var(--muted)',
+                    fontWeight: valor === o.valor ? 600 : 400,
+                  }}>{o.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {!jaRespondido && valor != null && (
+              <textarea
+                value={obs ?? ''}
+                onChange={e => setRespostas(r => ({ ...r, [`${q.id}_obs`]: e.target.value }))}
+                rows={2}
+                placeholder="Comentário opcional..."
+                style={{
+                  marginTop: 8, width: '100%', padding: '8px 10px', fontSize: 12,
+                  border: '0.5px solid var(--border, #e2e0da)', borderRadius: 8,
+                  outline: 'none', fontFamily: 'var(--font-sans)',
+                  resize: 'none', boxSizing: 'border-box', color: 'var(--ink)',
+                  background: 'var(--bg-soft)',
+                }}
+              />
+            )}
+
+            {jaRespondido && obs && (
+              <div style={{
+                marginTop: 8, fontSize: 12, color: 'var(--ink-soft)',
+                fontStyle: 'italic', padding: '6px 10px',
+                background: 'var(--bg-soft)', borderRadius: 8,
+              }}>
+                "{obs}"
+              </div>
+            )}
+          </div>
+        );
+      })}
 
       {!jaRespondido && (
-        <div style={{ padding: '16px 20px 40px' }}>
+        <div style={{ marginTop: 4 }}>
           {erro && (
             <div style={{
               background: 'var(--red-soft)', color: 'var(--red)',
               padding: '8px 12px', borderRadius: 8, fontSize: 12, marginBottom: 12,
             }}>{erro}</div>
           )}
-          <button className="btn primary full" onClick={enviar} disabled={busy}
-            style={{ padding: 16, fontSize: 14, fontWeight: 600 }}>
+          <button
+            onClick={enviar}
+            disabled={busy}
+            style={{
+              width: '100%', padding: '16px',
+              background: 'var(--ink)', color: 'var(--bg-soft)',
+              border: 'none', borderRadius: 14,
+              fontSize: 15, fontWeight: 600,
+              cursor: busy ? 'not-allowed' : 'pointer',
+              fontFamily: 'var(--font-sans)',
+              opacity: busy ? .6 : 1,
+            }}
+          >
             {busy ? 'Enviando...' : 'Enviar check-in ✨'}
           </button>
         </div>
       )}
-    </>
+    </div>
   );
 }

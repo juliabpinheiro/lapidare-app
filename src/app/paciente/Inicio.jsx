@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase.js';
 import { useSession } from '../../lib/session.jsx';
 import { useTheme } from '../../lib/theme.jsx';
 import { textoDias, dataConsultaBR, diasAte, linkCall, consultaEmBreve, gerarGoogleCalendarUrl } from '../../lib/utils.js';
+import { segundaFeiraDaSemana } from '../../lib/checkinDefault.js';
 
 export default function Inicio() {
   const tema = useTheme();
@@ -40,9 +41,9 @@ export default function Inicio() {
         supabase.from('consultas').select('id, data_hora, tipo, duracao_min, meet_link, links_extras')
           .eq('paciente_id', user.id).eq('status', 'agendada')
           .gte('data_hora', agora).order('data_hora', { ascending: true }).limit(1).maybeSingle(),
-        supabase.from('checkin_envios').select('id, enviado_em, lembrete_enviado_em, nome, tipo')
-          .eq('paciente_id', user.id).is('respondido_em', null)
-          .order('enviado_em', { ascending: false }).limit(1).maybeSingle(),
+        supabase.from('checkins').select('id')
+          .eq('paciente_id', user.id).eq('semana', segundaFeiraDaSemana())
+          .maybeSingle(),
         supabase.from('ebooks_pacientes').select('id', { count: 'exact', head: true })
           .eq('paciente_id', user.id).is('visto_em', null),
         supabase.from('habitos').select('id, nome, emoji, tipo, meta, unidade, ordem')
@@ -55,7 +56,7 @@ export default function Inicio() {
       setPlano(planoRes.data?.dados ?? null);
       setCompras(comprasRes.data?.dados ?? null);
       setProximaConsulta(consultaRes.data ?? null);
-      setCheckinPendente(checkinRes.data ?? null);
+      setCheckinPendente(!checkinRes.data);
       setEbooksNovos(ebooksRes.count ?? 0);
 
       const habitosLista = habitosRes.data ?? [];
@@ -119,9 +120,6 @@ export default function Inicio() {
     local: 'Online',
   }) : null;
 
-  // Lembrete de check-in: se foi enviado pela nutri E ainda não respondido.
-  // Se houver `lembrete_enviado_em`, fica em estilo "urgente" (gradiente forte).
-  const ckUrgente = !!checkinPendente?.lembrete_enviado_em;
 
   async function marcarEbooksComoVistos() {
     await supabase.from('ebooks_pacientes')
@@ -337,16 +335,14 @@ export default function Inicio() {
         </div>
       )}
 
-      {/* Lembrete de check-in pendente */}
+      {/* Check-in semanal pendente */}
       {checkinPendente && (
         <div
-          onClick={() => navigate(`/paciente/checkin/${checkinPendente.id}`)}
+          onClick={() => navigate('/paciente/checkin')}
           style={{
             margin: '0 16px 12px',
-            background: ckUrgente
-              ? 'linear-gradient(135deg, #ffd9c4 0%, #f5a373 100%)'
-              : 'var(--paper)',
-            border: ckUrgente ? 'none' : '1.5px dashed var(--gold)',
+            background: 'var(--paper)',
+            border: '1.5px dashed var(--gold)',
             borderRadius: 14,
             padding: '14px 16px',
             display: 'flex', alignItems: 'center', gap: 12,
@@ -354,37 +350,26 @@ export default function Inicio() {
           }}>
           <div style={{
             width: 42, height: 42, borderRadius: 11,
-            background: ckUrgente ? 'rgba(28,23,18,.12)' : 'var(--gold-soft)',
+            background: 'var(--gold-soft)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
           }}>
-            <i className="ti ti-clipboard-text" style={{
-              fontSize: 20, color: ckUrgente ? 'var(--ink)' : 'var(--gold-deep)',
-            }} aria-hidden="true"></i>
+            <i className="ti ti-clipboard-text" style={{ fontSize: 20, color: 'var(--gold-deep)' }} aria-hidden="true"></i>
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{
               fontSize: 9, letterSpacing: '.22em', textTransform: 'uppercase',
-              color: ckUrgente ? 'var(--ink)' : 'var(--gold-deep)',
-              fontWeight: 500, marginBottom: 2,
+              color: 'var(--gold-deep)', fontWeight: 500, marginBottom: 2,
             }}>
-              {ckUrgente
-                ? 'Lembrete · pendente'
-                : checkinPendente.tipo === 'pre_consulta'
-                  ? 'Check-in pré-consulta'
-                  : 'Check-in pendente'}
+              Check-in semanal
             </div>
             <div className="serif" style={{ fontSize: 18, lineHeight: 1.1, marginBottom: 2 }}>
-              {checkinPendente.tipo === 'pre_consulta'
-                ? 'Antes da nossa primeira consulta'
-                : (checkinPendente.nome || 'Sua Dra. pediu um check-in')}
+              Como foi sua semana?
             </div>
-            <div style={{ fontSize: 11, color: ckUrgente ? 'var(--ink)' : 'var(--muted)', opacity: ckUrgente ? .8 : 1 }}>
-              {checkinPendente.tipo === 'pre_consulta'
-                ? 'Toque para responder — leva uns 5 minutos'
-                : 'Toque para responder · leva uns 3 minutos'}
+            <div style={{ fontSize: 11, color: 'var(--muted)' }}>
+              Toque para responder · leva uns 2 minutos
             </div>
           </div>
-          <i className="ti ti-chevron-right" style={{ fontSize: 18, color: ckUrgente ? 'var(--ink)' : 'var(--muted)', flexShrink: 0 }} aria-hidden="true"></i>
+          <i className="ti ti-chevron-right" style={{ fontSize: 18, color: 'var(--muted)', flexShrink: 0 }} aria-hidden="true"></i>
         </div>
       )}
 

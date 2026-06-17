@@ -272,6 +272,87 @@ export function labelFrequencia(f) { return FREQ_LABEL[f] ?? f; }
 /**
  * Renderiza uma resposta de forma legível (para o painel da nutri).
  */
+// ─── Check-in semanal simplificado (6 perguntas fixas) ──────────────────────
+
+export const PERGUNTAS_SEMANAL = [
+  {
+    id: 'bem_estar',
+    label: 'Bem-estar',
+    pergunta: 'Como foi sua semana em geral?',
+    opcoes: [
+      { valor: 1, emoji: '😞', label: 'Muito difícil' },
+      { valor: 2, emoji: '😕', label: 'Difícil' },
+      { valor: 3, emoji: '😐', label: 'Normal' },
+      { valor: 4, emoji: '🙂', label: 'Boa' },
+      { valor: 5, emoji: '😁', label: 'Ótima!' },
+    ],
+  },
+  {
+    id: 'alimentacao',
+    label: 'Alimentação',
+    pergunta: 'Como foi sua adesão ao plano alimentar?',
+    opcoes: [
+      { valor: 1, emoji: '😞', label: 'Não segui' },
+      { valor: 2, emoji: '😕', label: 'Pouco' },
+      { valor: 3, emoji: '😐', label: 'Mais ou menos' },
+      { valor: 4, emoji: '🙂', label: 'Bem' },
+      { valor: 5, emoji: '😁', label: 'Tudo!' },
+    ],
+  },
+  {
+    id: 'energia',
+    label: 'Energia',
+    pergunta: 'Como foi sua energia e disposição esta semana?',
+    opcoes: [
+      { valor: 1, emoji: '😞', label: 'Muito baixa' },
+      { valor: 2, emoji: '😕', label: 'Baixa' },
+      { valor: 3, emoji: '😐', label: 'Normal' },
+      { valor: 4, emoji: '🙂', label: 'Boa' },
+      { valor: 5, emoji: '😁', label: 'Alta!' },
+    ],
+  },
+  {
+    id: 'sono',
+    label: 'Sono',
+    pergunta: 'Como foi o seu sono esta semana?',
+    opcoes: [
+      { valor: 1, emoji: '😞', label: 'Péssimo' },
+      { valor: 2, emoji: '😕', label: 'Ruim' },
+      { valor: 3, emoji: '😐', label: 'Regular' },
+      { valor: 4, emoji: '🙂', label: 'Bom' },
+      { valor: 5, emoji: '😁', label: 'Ótimo!' },
+    ],
+  },
+  {
+    id: 'atividade',
+    label: 'Atividade física',
+    pergunta: 'Você praticou atividade física esta semana?',
+    opcoes: [
+      { valor: 1, emoji: '😞', label: 'Nada' },
+      { valor: 2, emoji: '😕', label: 'Pouco' },
+      { valor: 3, emoji: '😐', label: 'Moderado' },
+      { valor: 4, emoji: '🙂', label: 'Bastante' },
+      { valor: 5, emoji: '😁', label: 'Muito!' },
+    ],
+  },
+  {
+    id: 'livre',
+    label: 'Espaço livre',
+    pergunta: 'Quer compartilhar algo com a sua nutri?',
+    tipo: 'texto',
+    placeholder: 'Conquistas, dificuldades, dúvidas — à vontade...',
+  },
+];
+
+/** Retorna a data da segunda-feira da semana de `d` no formato 'YYYY-MM-DD'. */
+export function segundaFeiraDaSemana(d = new Date()) {
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  const m = new Date(d);
+  m.setDate(d.getDate() + diff);
+  return m.toISOString().slice(0, 10);
+}
+
 export function formatarResposta(pergunta, valor) {
   if (valor == null || valor === '') return '—';
   if (pergunta.tipo === 'emoji_scale') {
