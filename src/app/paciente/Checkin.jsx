@@ -34,8 +34,12 @@ export default function Checkin() {
 
   async function enviar() {
     setErro(null);
-    const scaleQs = PERGUNTAS_SEMANAL.filter(q => q.tipo !== 'texto');
-    if (scaleQs.some(q => respostas[q.id] == null)) {
+    const semResposta = PERGUNTAS_SEMANAL.filter(q => {
+      if (q.tipo !== 'texto') return respostas[q.id] == null;
+      if (q.obrigatoria) return !respostas[q.id]?.trim();
+      return false;
+    });
+    if (semResposta.length > 0) {
       return setErro('Responda todas as perguntas antes de enviar.');
     }
     setBusy(true);

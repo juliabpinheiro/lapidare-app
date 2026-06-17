@@ -336,6 +336,22 @@ export const PERGUNTAS_SEMANAL = [
     ],
   },
   {
+    id: 'momento_semana',
+    label: 'Momento da semana',
+    pergunta: 'Qual foi o momento da semana em que você sentiu que estava no caminho certo, ou fora dele?',
+    tipo: 'texto',
+    obrigatoria: true,
+    placeholder: 'Conte o que aconteceu...',
+  },
+  {
+    id: 'autoestima',
+    label: 'Autoestima e corpo',
+    pergunta: 'Como está sua autoestima e sua relação com seu corpo essa semana? Viu evolução?',
+    tipo: 'texto',
+    obrigatoria: true,
+    placeholder: 'Compartilhe como você está se sentindo...',
+  },
+  {
     id: 'livre',
     label: 'Espaço livre',
     pergunta: 'Quer compartilhar algo com a sua nutri?',
