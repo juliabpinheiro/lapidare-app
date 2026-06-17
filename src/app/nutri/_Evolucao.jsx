@@ -672,10 +672,20 @@ function ModalConsulta({ consulta, pacienteId, nutriId, anamneses, planos, onClo
   const [obs,            setObs]        = useState(consulta?.dados?.obs ?? '');
   const [calculo,        setCalculo]    = useState(consulta?.dados?.calculo ?? '');
   const [suplementos,    setSupl]       = useState(consulta?.dados?.suplementos ?? '');
-  const [anamneseId,     setAnamneseId] = useState(consulta?.anamnese_id ?? '');
-  const [planoId,        setPlanoId]    = useState(consulta?.plano_id ?? '');
-  const [busy,           setBusy]       = useState(false);
-  const [erro,           setErro]       = useState(null);
+  const [anamneseId,     setAnamneseId]     = useState(consulta?.anamnese_id ?? '');
+  const [planoId,        setPlanoId]        = useState(consulta?.plano_id ?? '');
+  const [calculosSalvos, setCalculosSalvos] = useState([]);
+  const [calculoSel,     setCalculoSel]     = useState('');
+  const [busy,           setBusy]           = useState(false);
+  const [erro,           setErro]           = useState(null);
+
+  useEffect(() => {
+    supabase.from('calculos_salvos')
+      .select('id, data, tmb, tdee, proteina_g, carboidrato_g, gordura_g')
+      .eq('paciente_id', pacienteId)
+      .order('data', { ascending: false })
+      .then(({ data }) => setCalculosSalvos(data ?? []));
+  }, [pacienteId]);
 
   async function salvar() {
     setErro(null);
@@ -774,9 +784,38 @@ function ModalConsulta({ consulta, pacienteId, nutriId, anamneses, planos, onClo
       />
 
       <label className="form-lbl">Cálculo energético</label>
+      {calculosSalvos.length > 0 && (
+        <select
+          value={calculoSel}
+          style={{ marginBottom: 6 }}
+          onChange={e => {
+            const id = e.target.value;
+            setCalculoSel(id);
+            if (!id) return;
+            const c = calculosSalvos.find(x => x.id === id);
+            if (!c) return;
+            const temMacros = c.proteina_g != null || c.carboidrato_g != null || c.gordura_g != null;
+            const linhas = [
+              `TMB: ${c.tmb} kcal · TDEE: ${c.tdee} kcal`,
+              temMacros ? `Meta: P ${c.proteina_g ?? '?'}g · C ${c.carboidrato_g ?? '?'}g · G ${c.gordura_g ?? '?'}g` : null,
+            ].filter(Boolean);
+            setCalculo(linhas.join('\n'));
+          }}
+        >
+          <option value="">— Selecionar cálculo salvo —</option>
+          {calculosSalvos.map(c => (
+            <option key={c.id} value={c.id}>
+              {dataBR(c.data)} · TMB {c.tmb} kcal · TDEE {c.tdee} kcal
+              {(c.proteina_g || c.carboidrato_g || c.gordura_g)
+                ? ` · P ${c.proteina_g ?? '?'}g C ${c.carboidrato_g ?? '?'}g G ${c.gordura_g ?? '?'}g`
+                : ''}
+            </option>
+          ))}
+        </select>
+      )}
       <textarea
-        value={calculo} onChange={e => setCalculo(e.target.value)} rows={3}
-        placeholder={"TMB: 1400 kcal\nTDEE: 1750 kcal\nMeta: P 120g · C 180g · G 55g"}
+        value={calculo} onChange={e => { setCalculoSel(''); setCalculo(e.target.value); }} rows={3}
+        placeholder={"TMB: 1400 kcal · TDEE: 1750 kcal\nMeta: P 120g · C 180g · G 55g"}
         style={{ width: '100%', resize: 'vertical', fontFamily: 'monospace', fontSize: 12 }}
       />
 

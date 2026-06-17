@@ -1422,12 +1422,21 @@ const FATORES_ATIVIDADE = [
 ];
 
 function CalculoEnergetico({ paciente }) {
+  const { user } = useSession();
   const [peso, setPeso]         = useState('');
   const [altura, setAltura]     = useState('');
   const [idade, setIdade]       = useState('');
   const [pgcBio, setPgcBio]     = useState(null);
   const [mmBio, setMmBio]       = useState(null);
   const [carregou, setCarregou] = useState(false);
+  const [sexoCalc,      setSexoCalc]      = useState('F');
+  const [fatorIdx,      setFatorIdx]      = useState(2);
+  const [protG,         setProtG]         = useState('');
+  const [carbG,         setCarbG]         = useState('');
+  const [gordG,         setGordG]         = useState('');
+  const [dataCalc,      setDataCalc]      = useState(new Date().toISOString().slice(0, 10));
+  const [salvandoCalc,  setSalvandoCalc]  = useState(false);
+  const [salvoFeedback, setSalvoFeedback] = useState(null);
 
   useEffect(() => {
     async function carregar() {
@@ -1586,6 +1595,97 @@ function CalculoEnergetico({ paciente }) {
           </tbody>
         </table>
       </div>
+
+      {/* ── Salvar cálculo ── */}
+      {pronto && (
+        <div className="card" style={{ padding: '16px 18px', marginTop: 14 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--dark)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <i className="ti ti-device-floppy" aria-hidden="true"></i> Salvar em Evolução
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10, marginBottom: 10 }}>
+            <div>
+              <label className="field-label">Sexo</label>
+              <select value={sexoCalc} onChange={e => setSexoCalc(e.target.value)}>
+                <option value="F">Mulher</option>
+                <option value="M">Homem</option>
+              </select>
+            </div>
+            <div>
+              <label className="field-label">Nível de atividade</label>
+              <select value={fatorIdx} onChange={e => setFatorIdx(Number(e.target.value))}>
+                {FATORES_ATIVIDADE.map((f, i) => (
+                  <option key={f.v} value={i}>{f.l}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="field-label">Data</label>
+              <input type="date" value={dataCalc} onChange={e => setDataCalc(e.target.value)} />
+            </div>
+          </div>
+
+          <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 6, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.08em' }}>
+            Meta de macros (opcional)
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 12 }}>
+            <div>
+              <label className="field-label">Proteína (g)</label>
+              <input type="number" step="1" value={protG} onChange={e => setProtG(e.target.value)} placeholder="ex: 120" />
+            </div>
+            <div>
+              <label className="field-label">Carboidrato (g)</label>
+              <input type="number" step="1" value={carbG} onChange={e => setCarbG(e.target.value)} placeholder="ex: 180" />
+            </div>
+            <div>
+              <label className="field-label">Gordura (g)</label>
+              <input type="number" step="1" value={gordG} onChange={e => setGordG(e.target.value)} placeholder="ex: 55" />
+            </div>
+          </div>
+
+          {(() => {
+            const tmbCalc = sexoCalc === 'M' ? tmbH : tmbM;
+            const fa = parseFloat(FATORES_ATIVIDADE[fatorIdx].v);
+            const tdeeCalc = Math.round(tmbCalc * fa);
+            return (
+              <div style={{
+                background: 'var(--bg2)', borderRadius: 6,
+                padding: '8px 12px', fontSize: 12, marginBottom: 12,
+                fontFamily: 'monospace', color: 'var(--dark)',
+              }}>
+                TMB: {Math.round(tmbCalc)} kcal ({sexoCalc === 'M' ? 'Homem' : 'Mulher'})
+                {' · '}TDEE: {tdeeCalc} kcal ({FATORES_ATIVIDADE[fatorIdx].l})
+                {(protG || carbG || gordG) && ` · P ${protG || '?'}g · C ${carbG || '?'}g · G ${gordG || '?'}g`}
+              </div>
+            );
+          })()}
+
+          <button className="btn" disabled={salvandoCalc} onClick={async () => {
+            setSalvandoCalc(true);
+            setSalvoFeedback(null);
+            const tmbCalc = sexoCalc === 'M' ? tmbH : tmbM;
+            const fa = parseFloat(FATORES_ATIVIDADE[fatorIdx].v);
+            const { error } = await supabase.from('calculos_salvos').insert({
+              paciente_id:      paciente.id,
+              nutricionista_id: user.id,
+              data:             dataCalc,
+              tmb:              Math.round(tmbCalc),
+              tdee:             Math.round(tmbCalc * fa),
+              proteina_g:       protG !== '' ? Number(protG)  : null,
+              carboidrato_g:    carbG !== '' ? Number(carbG)  : null,
+              gordura_g:        gordG !== '' ? Number(gordG)  : null,
+            });
+            setSalvandoCalc(false);
+            setSalvoFeedback(error
+              ? { tipo: 'erro', msg: error.message }
+              : { tipo: 'ok',  msg: 'Cálculo salvo! Já aparece no modal de Nova Consulta.' });
+          }}>
+            <i className="ti ti-device-floppy" aria-hidden="true"></i>{' '}
+            {salvandoCalc ? 'Salvando…' : 'Salvar em Evolução'}
+          </button>
+          {salvoFeedback && <FeedbackInline f={salvoFeedback} />}
+        </div>
+      )}
     </>
   );
 }
