@@ -1122,12 +1122,16 @@ function ModalShell({ title, subtitle, children, onClose, large }) {
     <div style={{
       position: 'fixed', inset: 0,
       background: 'rgba(28,23,18,.55)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 150,
+      display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+      overflowY: 'auto',
+      padding: 'max(16px, calc(env(safe-area-inset-top, 0px) + 16px)) 16px 16px',
+      boxSizing: 'border-box',
+      zIndex: 150,
     }} onClick={onClose}>
       <div onClick={e => e.stopPropagation()} style={{
         background: 'var(--white)', borderRadius: 12, padding: 22,
-        width: large ? 600 : 460, maxWidth: '92vw',
-        maxHeight: '92vh', overflowY: 'auto',
+        width: large ? 600 : 460, maxWidth: '100%',
+        flexShrink: 0,
         border: '0.5px solid var(--border)',
       }}>
         <div style={{ fontFamily: 'var(--font-serif)', fontSize: 19, marginBottom: 4 }}>{title}</div>
