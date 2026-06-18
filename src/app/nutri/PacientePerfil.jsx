@@ -93,13 +93,16 @@ export default function PacientePerfil() {
   }
 
   async function inativarOuReativar() {
+    console.log('[inativar] clicou | paciente.id:', id, '| paciente.ativo:', paciente.ativo, '| user.id:', user?.id);
     const ativando = paciente.ativo === false;
     const msg = ativando
       ? `Reativar ${paciente.nome}? Ela voltará a ter acesso ao app.`
       : `Inativar ${paciente.nome}? Ela perderá acesso ao app, mas todos os dados serão mantidos.`;
     if (!window.confirm(msg)) return;
     const novoValor = !ativando;
-    const { error } = await supabase.rpc('toggle_paciente_ativo', { p_id: id, p_ativo: novoValor });
+    console.log('[inativar] chamando RPC | p_id:', id, '| p_ativo:', novoValor, '| p_nutri_id:', user?.id);
+    const { error } = await supabase.rpc('toggle_paciente_ativo', { p_id: id, p_ativo: novoValor, p_nutri_id: user.id });
+    console.log('[inativar] RPC error:', JSON.stringify(error));
     if (error) {
       alert(`Erro ao ${ativando ? 'reativar' : 'inativar'}: ${error.message}`);
       return;
