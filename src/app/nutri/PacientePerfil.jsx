@@ -95,17 +95,27 @@ export default function PacientePerfil() {
   }
 
   async function confirmarToggleAtivo() {
-    const ativando = paciente.ativo === false;
-    const novoValor = !ativando;
-    setBusyInativar(true);
-    const { error } = await supabase.rpc('toggle_paciente_ativo', { p_id: id, p_ativo: novoValor, p_nutri_id: user.id });
-    setBusyInativar(false);
-    setConfirmInativar(false);
-    if (error) {
-      alert(`Erro ao ${ativando ? 'reativar' : 'inativar'}: ${error.message}`);
-      return;
+    console.log('[confirmar] clicado | user?.id:', user?.id, '| paciente?.id:', paciente?.id, '| paciente.ativo:', paciente?.ativo);
+    try {
+      const ativando = paciente.ativo === false;
+      const novoValor = !ativando;
+      setBusyInativar(true);
+      console.log('[confirmar] chamando RPC com:', { p_id: id, p_ativo: novoValor, p_nutri_id: user?.id });
+      const { data, error } = await supabase.rpc('toggle_paciente_ativo', { p_id: id, p_ativo: novoValor, p_nutri_id: user?.id });
+      console.log('[confirmar] RPC retornou | data:', data, '| error:', JSON.stringify(error));
+      setBusyInativar(false);
+      setConfirmInativar(false);
+      if (error) {
+        alert(`Erro: ${error.message}\nCódigo: ${error.code}\nHint: ${error.hint ?? '—'}`);
+        return;
+      }
+      carregar();
+    } catch (e) {
+      setBusyInativar(false);
+      setConfirmInativar(false);
+      console.error('[confirmar] exceção inesperada:', e);
+      alert('Exceção: ' + e.message);
     }
-    carregar();
   }
 
   async function salvarNascimento() {
