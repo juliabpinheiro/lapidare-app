@@ -98,7 +98,11 @@ export default function PacientePerfil() {
       ? `Reativar ${paciente.nome}? Ela voltará a ter acesso ao app.`
       : `Inativar ${paciente.nome}? Ela perderá acesso ao app, mas todos os dados serão mantidos.`;
     if (!window.confirm(msg)) return;
-    await supabase.from('pacientes').update({ ativo: !ativando }).eq('id', id);
+    const { error } = await supabase.from('pacientes').update({ ativo: !ativando }).eq('id', id);
+    if (error) {
+      alert(`Erro ao ${ativando ? 'reativar' : 'inativar'}: ${error.message}`);
+      return;
+    }
     carregar();
   }
 

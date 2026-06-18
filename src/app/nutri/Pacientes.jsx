@@ -171,6 +171,7 @@ export default function Pacientes() {
             <thead>
               <tr>
                 <th>Paciente</th>
+                <th>Status</th>
                 <th>Objetivo</th>
                 <th>Plano</th>
                 <th>Modalidade</th>
@@ -190,15 +191,20 @@ export default function Pacientes() {
                         fontSize: 12, fontWeight: 600, color: 'var(--dark)'
                       }}>{iniciais(p.nome)}</div>
                       <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ fontWeight: 500 }}>{p.nome}</span>
-                          {p.ativo === false && (
-                            <span style={{ fontSize: 10, fontWeight: 600, padding: '1px 6px', background: '#fee2e2', color: '#b91c1c', borderRadius: 20 }}>Inativa</span>
-                          )}
-                        </div>
+                        <div style={{ fontWeight: 500 }}>{p.nome}</div>
                         <div style={{ fontSize: 12, color: 'var(--text3)' }}>{p.email}</div>
                       </div>
                     </div>
+                  </td>
+                  <td>
+                    <span style={{
+                      fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999,
+                      background: p.ativo === false ? '#f3f4f6' : '#dcfce7',
+                      color: p.ativo === false ? '#6b7280' : '#166534',
+                      letterSpacing: '.3px',
+                    }}>
+                      {p.ativo === false ? 'Inativo' : 'Ativo'}
+                    </span>
                   </td>
                   <td>{p.objetivo ?? '—'}</td>
                   <td>{p.tipo_plano ?? '—'}</td>
