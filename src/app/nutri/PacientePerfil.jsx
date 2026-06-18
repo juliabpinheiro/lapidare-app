@@ -98,9 +98,20 @@ export default function PacientePerfil() {
       ? `Reativar ${paciente.nome}? Ela voltará a ter acesso ao app.`
       : `Inativar ${paciente.nome}? Ela perderá acesso ao app, mas todos os dados serão mantidos.`;
     if (!window.confirm(msg)) return;
-    const { error } = await supabase.from('pacientes').update({ ativo: !ativando }).eq('id', id);
+    const novoValor = !ativando;
+    console.log('[inativar] payload:', { ativo: novoValor }, '| paciente.id:', id, '| paciente.ativo atual:', paciente.ativo);
+    const { data, error } = await supabase
+      .from('pacientes')
+      .update({ ativo: novoValor })
+      .eq('id', id)
+      .select('id, ativo');
+    console.log('[inativar] resultado — data:', JSON.stringify(data), '| error:', JSON.stringify(error));
     if (error) {
-      alert(`Erro ao ${ativando ? 'reativar' : 'inativar'}: ${error.message}`);
+      alert(`Erro ao ${ativando ? 'reativar' : 'inativar'}: ${error.message}\n\nCódigo: ${error.code}\nDetalhes: ${error.details ?? '—'}\nHint: ${error.hint ?? '—'}`);
+      return;
+    }
+    if (!data || data.length === 0) {
+      alert('Update executou sem erro mas nenhuma linha foi afetada. Verifique as RLS policies de UPDATE na tabela pacientes (a policy pode existir mas estar bloqueando por outro motivo).');
       return;
     }
     carregar();
