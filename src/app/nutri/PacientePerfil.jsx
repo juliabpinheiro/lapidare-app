@@ -100,8 +100,8 @@ export default function PacientePerfil() {
       const ativando = paciente.ativo === false;
       const novoValor = !ativando;
       setBusyInativar(true);
-      console.log('[confirmar] chamando RPC com:', { p_id: id, p_ativo: novoValor, p_nutri_id: user?.id });
-      const { data, error } = await supabase.rpc('toggle_paciente_ativo', { p_id: id, p_ativo: novoValor, p_nutri_id: user?.id });
+      console.log('[confirmar] chamando RPC com:', { p_id: id, p_ativo: novoValor });
+      const { data, error } = await supabase.rpc('toggle_paciente_ativo', { p_id: id, p_ativo: novoValor });
       console.log('[confirmar] RPC retornou | data:', data, '| error:', JSON.stringify(error));
       setBusyInativar(false);
       setConfirmInativar(false);
