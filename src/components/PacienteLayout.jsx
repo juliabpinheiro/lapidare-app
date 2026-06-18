@@ -33,6 +33,7 @@ const MAIS_ITEMS = [
   { path: '/paciente/habitos',     icon: 'checklist',     label: 'Hábitos',              sub: 'Tracker diário' },
   { path: '/paciente/prescricoes', icon: 'file-text',     label: 'Prescrições',          sub: 'Documentos da Dra.' },
   { path: '/paciente/ebooks',      icon: 'book-2',        label: 'E-books',              sub: 'Materiais da Dra.' },
+  { path: '/paciente/receitas',   icon: 'chef-hat',      label: 'Receitas',             sub: 'Arquivos da sua nutri' },
   { path: '/paciente/recibos',     icon: 'receipt',       label: 'Recibos',              sub: 'Comprovantes de pagamento' },
   { path: '/paciente/chat',        icon: 'message-circle', label: 'Chat com a Dra.',     sub: 'Conversa direta' },
 ];
@@ -52,6 +53,7 @@ const HEADERS = {
   '/paciente/habitos-mes':  () =>                ({ eyebrow: 'Hábitos do mês',   title: 'Hábitos do mês',    subtitle: 'Check diário mensal' }),
   '/paciente/chat':         (_nome, nutriNome) => ({ eyebrow: 'Conversa',         title: nutriNome || 'Sua nutri', subtitle: 'Online' }),
   '/paciente/checkin':      () =>                ({ eyebrow: 'Check-in semanal', title: 'Como estou',         subtitle: 'Compartilhe com a sua nutri' }),
+  '/paciente/receitas':    () =>                ({ eyebrow: 'Conteúdo',         title: 'Receitas',            subtitle: 'Da sua nutricionista' }),
 };
 
 export default function PacienteLayout() {
@@ -238,7 +240,7 @@ export default function PacienteLayout() {
           {TABS.map(t => {
             const active = t.path
               ? location.pathname === t.path
-              : ['/paciente/checkin', '/paciente/compras', '/paciente/suplementos', '/paciente/habitos', '/paciente/prescricoes', '/paciente/ebooks', '/paciente/recibos', '/paciente/chat'].includes(location.pathname);
+              : ['/paciente/checkin', '/paciente/compras', '/paciente/suplementos', '/paciente/habitos', '/paciente/prescricoes', '/paciente/ebooks', '/paciente/recibos', '/paciente/chat', '/paciente/receitas'].includes(location.pathname);
 
             if (!t.path) {
               return (

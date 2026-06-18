@@ -21,6 +21,7 @@ const NAV_CONFIG = [
       { id: 'biblioteca',   path: '/nutri/biblioteca',   label: 'Biblioteca',          icon: 'book-2' },
       { id: 'checkins',     path: '/nutri/checkins',     label: 'Check-ins',           icon: 'clipboard-check' },
       { id: 'questionarios', path: '/nutri/questionarios', label: 'Pré-consulta',       icon: 'clipboard-list' },
+      { id: 'receitas',     path: '/nutri/receitas',     label: 'Receitas',            icon: 'chef-hat' },
       { id: 'cadastrar',    path: '/nutri/cadastrar',    label: 'Cadastrar paciente',  icon: 'user-plus' },
     ],
   },

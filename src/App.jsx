@@ -32,6 +32,7 @@ import Personalizacao from './app/nutri/Personalizacao.jsx';
 import PersonalizacaoPaciente from './app/nutri/PersonalizacaoPaciente.jsx';
 import Contratos from './app/nutri/Contratos.jsx';
 import Documentos from './app/nutri/Documentos.jsx';
+import ReceitasNutri from './app/nutri/Receitas.jsx';
 
 import Inicio from './app/paciente/Inicio.jsx';
 import Plano from './app/paciente/Plano.jsx';
@@ -47,6 +48,7 @@ import HabitosPaciente from './app/paciente/Habitos.jsx';
 import RecibosPaciente from './app/paciente/Recibos.jsx';
 import HabitosMesPaciente from './app/paciente/HabitosMes.jsx';
 import EvolucaoPaciente from './app/paciente/Evolucao.jsx';
+import ReceitasPaciente from './app/paciente/Receitas.jsx';
 
 export default function App() {
   return (
@@ -84,6 +86,7 @@ export default function App() {
             <Route path="/nutri/personalizacao-paciente" element={<PersonalizacaoPaciente />} />
             <Route path="/nutri/contratos" element={<Contratos />} />
             <Route path="/nutri/documentos" element={<Documentos />} />
+            <Route path="/nutri/receitas" element={<ReceitasNutri />} />
           </Route>
 
           {/* App da Paciente */}
@@ -103,6 +106,7 @@ export default function App() {
             <Route path="/paciente/habitos-mes" element={<HabitosMesPaciente />} />
             <Route path="/paciente/evolucao" element={<EvolucaoPaciente />} />
             <Route path="/paciente/checkin" element={<Checkin />} />
+            <Route path="/paciente/receitas" element={<ReceitasPaciente />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
