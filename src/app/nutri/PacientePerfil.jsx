@@ -95,26 +95,31 @@ export default function PacientePerfil() {
   }
 
   async function confirmarToggleAtivo() {
-    console.log('[confirmar] clicado | user?.id:', user?.id, '| paciente?.id:', paciente?.id, '| paciente.ativo:', paciente?.ativo);
+    const ativando = paciente.ativo === false;
+    const novoValor = !ativando;
+    setBusyInativar(true);
     try {
-      const ativando = paciente.ativo === false;
-      const novoValor = !ativando;
-      setBusyInativar(true);
-      console.log('[confirmar] chamando RPC com:', { p_id: id, p_ativo: novoValor });
-      const { data, error } = await supabase.rpc('toggle_paciente_ativo', { p_id: id, p_ativo: novoValor });
-      console.log('[confirmar] RPC retornou | data:', data, '| error:', JSON.stringify(error));
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch('/.netlify/functions/toggle-paciente', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ paciente_id: id, ativo: novoValor }),
+      });
+      const json = await res.json();
       setBusyInativar(false);
       setConfirmInativar(false);
-      if (error) {
-        alert(`Erro: ${error.message}\nCódigo: ${error.code}\nHint: ${error.hint ?? '—'}`);
+      if (!res.ok) {
+        alert(`Erro ao ${ativando ? 'reativar' : 'inativar'}: ${json.error ?? res.status}`);
         return;
       }
       carregar();
     } catch (e) {
       setBusyInativar(false);
       setConfirmInativar(false);
-      console.error('[confirmar] exceção inesperada:', e);
-      alert('Exceção: ' + e.message);
+      alert('Erro inesperado: ' + e.message);
     }
   }
 
