@@ -108,13 +108,14 @@ export default function Checkins() {
                     <span style={{ fontSize: 13, fontWeight: 600 }}>
                       {nome.split(' ')[0]}
                     </span>
-                    {!ck.lido && (
-                      <span style={{
-                        background: 'var(--gold-deep)', color: '#fff',
-                        fontSize: 9, fontWeight: 700,
-                        padding: '1px 6px', borderRadius: 999,
-                      }}>Novo</span>
-                    )}
+                    <span style={{
+                      fontSize: 9, fontWeight: 700,
+                      padding: '2px 7px', borderRadius: 999,
+                      background: ck.lido ? '#10b981' : '#e05555',
+                      color: '#fff',
+                    }}>
+                      {ck.lido ? 'Lido' : 'Não lido'}
+                    </span>
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--muted)' }}>
                     Semana de {semanaLabel(ck.semana)}

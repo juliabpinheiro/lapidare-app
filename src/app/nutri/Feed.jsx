@@ -37,7 +37,7 @@ export default function FeedNutri() {
     if (!user) return;
     const { data } = await supabase
       .from('feed_pratos')
-      .select('id, refeicao, legenda, storage_path, comentario_nutri, reacao_nutri, created_at, paciente:pacientes(id, nome, nutri_id)')
+      .select('id, refeicao, legenda, storage_path, comentario_nutri, reacao_nutri, created_at, visto_nutri, paciente:pacientes(id, nome, nutri_id)')
       .order('created_at', { ascending: false })
       .limit(150);
     const mine = (data ?? []).filter(p => p.paciente?.nutri_id === user.id);
@@ -47,6 +47,13 @@ export default function FeedNutri() {
       mine.map(async p => [p.id, await getSignedUrl(p.storage_path)])
     );
     setUrls(Object.fromEntries(entries.filter(([, url]) => url)));
+
+    // Marca posts não vistos como vistos (badge fica verde na próxima renderização)
+    const naoVistos = mine.filter(p => !p.visto_nutri).map(p => p.id);
+    if (naoVistos.length > 0) {
+      await supabase.from('feed_pratos').update({ visto_nutri: true }).in('id', naoVistos);
+      setPosts(ps => (ps ?? []).map(p => naoVistos.includes(p.id) ? { ...p, visto_nutri: true } : p));
+    }
   }
 
   useEffect(() => { carregar(); }, [user]);
@@ -159,13 +166,23 @@ function FeedCard({ post, url, reagindo, comentEdit, salvando, onReagir, onEdita
             {post.refeicao ?? 'Refeição'} · {dataHora(post.created_at)}
           </div>
         </div>
-        {!post.comentario_nutri && !post.reacao_nutri && (
+        <div style={{ display: 'flex', gap: 5, flexShrink: 0, alignItems: 'center' }}>
           <span style={{
-            fontSize: 9, padding: '2px 8px', borderRadius: 20,
-            background: '#fef5eb', color: '#c97c2e',
-            fontWeight: 700, letterSpacing: '.6px', textTransform: 'uppercase', flexShrink: 0,
-          }}>Sem feedback</span>
-        )}
+            fontSize: 9, padding: '2px 7px', borderRadius: 20, fontWeight: 700,
+            letterSpacing: '.4px', textTransform: 'uppercase',
+            background: post.visto_nutri ? '#10b981' : '#e05555',
+            color: '#fff',
+          }}>
+            {post.visto_nutri ? 'Lido' : 'Não lido'}
+          </span>
+          {!post.comentario_nutri && !post.reacao_nutri && (
+            <span style={{
+              fontSize: 9, padding: '2px 8px', borderRadius: 20,
+              background: '#fef5eb', color: '#c97c2e',
+              fontWeight: 700, letterSpacing: '.6px', textTransform: 'uppercase',
+            }}>Sem feedback</span>
+          )}
+        </div>
       </div>
 
       {/* Foto */}

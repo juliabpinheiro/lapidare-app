@@ -152,12 +152,17 @@ export default function ChatNutri() {
                         ? (c.ultima.de === 'nutri' ? 'Você: ' : '') + c.ultima.texto
                         : 'Sem mensagens ainda'}
                     </span>
-                    {c.naoLidas > 0 && (
+                    {c.ultima && (
                       <span style={{
-                        background: 'var(--amber)', color: 'var(--dark)',
-                        fontSize: 11, fontWeight: 600,
-                        padding: '1px 6px', borderRadius: 20, flexShrink: 0, minWidth: 16, textAlign: 'center',
-                      }}>{c.naoLidas}</span>
+                        fontSize: 9, fontWeight: 700,
+                        padding: '2px 7px', borderRadius: 999,
+                        background: c.naoLidas > 0 ? '#e05555' : '#10b981',
+                        color: '#fff',
+                        letterSpacing: '.3px', textTransform: 'uppercase',
+                        flexShrink: 0,
+                      }}>
+                        {c.naoLidas > 0 ? 'Não lido' : 'Lido'}
+                      </span>
                     )}
                   </div>
                 </div>

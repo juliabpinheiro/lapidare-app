@@ -66,6 +66,15 @@ export default function ChatPaciente() {
           await supabase.from('mensagens').update({ lida: true }).eq('id', m.id);
         }
       })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'mensagens',
+        filter: `paciente_id=eq.${user.id}`,
+      }, (payload) => {
+        const m = payload.new;
+        setMsgs(curr => (curr ?? []).map(x => x.id === m.id ? { ...x, ...m } : x));
+      })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [user]);
@@ -133,7 +142,10 @@ export default function ChatPaciente() {
           msgs.map(m => (
             <div key={m.id} className={`bubble ${m.de === 'paciente' ? 'me' : 'dr'}`}>
               {m.texto}
-              <div className="ts">{fmtHora(m.created_at)}</div>
+              <div className="ts">
+                {fmtHora(m.created_at)}
+                {m.de === 'paciente' && m.lida && ' ✓ Lido'}
+              </div>
             </div>
           ))
         )}

@@ -37,7 +37,7 @@ export default function FeedPaciente() {
     if (!user) return;
     const { data } = await supabase
       .from('feed_pratos')
-      .select('id, refeicao, legenda, storage_path, comentario_nutri, reacao_nutri, created_at')
+      .select('id, refeicao, legenda, storage_path, comentario_nutri, reacao_nutri, visto_nutri, created_at')
       .eq('paciente_id', user.id)
       .order('created_at', { ascending: false });
     setPosts(data ?? []);
@@ -51,6 +51,21 @@ export default function FeedPaciente() {
     setUrls(novasUrls);
   }
   useEffect(() => { carregar(); }, [user]);
+
+  // Subscribe ao UPDATE para detectar quando a nutri visualiza ou comenta
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`feed-paciente-${user.id}`)
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'feed_pratos',
+        filter: `paciente_id=eq.${user.id}`,
+      }, (payload) => {
+        setPosts(prev => (prev ?? []).map(p => p.id === payload.new.id ? { ...p, ...payload.new } : p));
+      })
+      .subscribe();
+    return () => supabase.removeChannel(channel);
+  }, [user]);
 
   function selecionarFoto(e) {
     const file = e.target.files?.[0];
@@ -200,6 +215,17 @@ export default function FeedPaciente() {
                   {p.refeicao ?? 'Refeição'} · {dataBR(p.created_at)}
                 </div>
               </div>
+              {p.visto_nutri && (
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 4,
+                  fontSize: 10, color: 'var(--green, #10b981)',
+                  background: 'var(--green-soft, #ecfdf5)',
+                  padding: '3px 9px', borderRadius: 999, flexShrink: 0,
+                }}>
+                  <i className="ti ti-eye" style={{ fontSize: 11 }} aria-hidden="true"></i>
+                  Visualizado pela {nutriNome}
+                </div>
+              )}
             </div>
             <div style={{ background: 'var(--bg-deep)', height: 240 }}>
               {urls[p.id] ? (

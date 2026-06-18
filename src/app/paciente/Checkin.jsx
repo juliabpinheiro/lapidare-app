@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase.js';
 import { useSession } from '../../lib/session.jsx';
+import { useTheme } from '../../lib/theme.jsx';
 import { PERGUNTAS_SEMANAL, segundaFeiraDaSemana } from '../../lib/checkinDefault.js';
 
 const SEMANA = segundaFeiraDaSemana();
@@ -8,6 +9,8 @@ const SEMANA_BR = new Date(SEMANA + 'T12:00:00').toLocaleDateString('pt-BR', { d
 
 export default function Checkin() {
   const { user } = useSession();
+  const tema = useTheme();
+  const nutriNome = tema.nutri_nome ?? 'Dra. Júlia';
   const [checkin, setCheckin] = useState(undefined); // undefined=carregando
   const [respostas, setRespostas] = useState({});
   const [busy, setBusy] = useState(false);
@@ -32,6 +35,21 @@ export default function Checkin() {
     load();
     return () => { active = false; };
   }, [user]);
+
+  // Subscribe ao UPDATE do checkin para detectar quando a nutri visualizar
+  useEffect(() => {
+    if (!checkin?.id) return;
+    const channel = supabase
+      .channel(`checkin-lido-${checkin.id}`)
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'checkins',
+        filter: `id=eq.${checkin.id}`,
+      }, (payload) => {
+        setCheckin(prev => prev ? { ...prev, ...payload.new } : prev);
+      })
+      .subscribe();
+    return () => supabase.removeChannel(channel);
+  }, [checkin?.id]);
 
   async function enviar() {
     setErro(null);
@@ -106,14 +124,28 @@ export default function Checkin() {
           Semana de {SEMANA_BR}
         </div>
         {jaRespondido && (
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: 6,
-            fontSize: 12, color: 'var(--green, #10b981)',
-            background: 'var(--green-soft, #ecfdf5)',
-            padding: '5px 12px', borderRadius: 999,
-          }}>
-            <i className="ti ti-check" aria-hidden="true"></i>
-            Check-in desta semana enviado!
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              fontSize: 12, color: 'var(--green, #10b981)',
+              background: 'var(--green-soft, #ecfdf5)',
+              padding: '5px 12px', borderRadius: 999,
+              width: 'fit-content',
+            }}>
+              <i className="ti ti-check" aria-hidden="true"></i>
+              Check-in desta semana enviado!
+            </div>
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              fontSize: 11,
+              color: checkin?.lido ? 'var(--green, #10b981)' : 'var(--muted)',
+              background: checkin?.lido ? 'var(--green-soft, #ecfdf5)' : 'var(--bg-soft)',
+              padding: '4px 10px', borderRadius: 999,
+              width: 'fit-content',
+            }}>
+              <i className={`ti ti-${checkin?.lido ? 'eye' : 'clock'}`} aria-hidden="true"></i>
+              {checkin?.lido ? `Visualizado pela ${nutriNome}` : 'Aguardando visualização'}
+            </div>
           </div>
         )}
       </div>
