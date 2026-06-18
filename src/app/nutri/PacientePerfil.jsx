@@ -34,6 +34,8 @@ export default function PacientePerfil() {
   const [salvandoNasc, setSalvandoNasc] = useState(false);
   const [listaDraft, setListaDraft] = useState(null);
   const [ultimaAnamnese, setUltimaAnamnese] = useState(undefined); // undefined=carregando, null=sem anamnese
+  const [confirmInativar, setConfirmInativar] = useState(false);
+  const [busyInativar, setBusyInativar] = useState(false);
 
   async function carregar() {
     const { data } = await supabase
@@ -92,17 +94,13 @@ export default function PacientePerfil() {
     }
   }
 
-  async function inativarOuReativar() {
-    console.log('[inativar] clicou | paciente.id:', id, '| paciente.ativo:', paciente.ativo, '| user.id:', user?.id);
+  async function confirmarToggleAtivo() {
     const ativando = paciente.ativo === false;
-    const msg = ativando
-      ? `Reativar ${paciente.nome}? Ela voltará a ter acesso ao app.`
-      : `Inativar ${paciente.nome}? Ela perderá acesso ao app, mas todos os dados serão mantidos.`;
-    if (!window.confirm(msg)) return;
     const novoValor = !ativando;
-    console.log('[inativar] chamando RPC | p_id:', id, '| p_ativo:', novoValor, '| p_nutri_id:', user?.id);
+    setBusyInativar(true);
     const { error } = await supabase.rpc('toggle_paciente_ativo', { p_id: id, p_ativo: novoValor, p_nutri_id: user.id });
-    console.log('[inativar] RPC error:', JSON.stringify(error));
+    setBusyInativar(false);
+    setConfirmInativar(false);
     if (error) {
       alert(`Erro ao ${ativando ? 'reativar' : 'inativar'}: ${error.message}`);
       return;
@@ -190,7 +188,8 @@ export default function PacientePerfil() {
               <i className="ti ti-key" aria-hidden="true" style={{ fontSize: 13 }}></i>
               Enviar redefinição de senha
             </button>
-            <button onClick={inativarOuReativar}
+            <button
+              onClick={() => { console.log('[inativar] botão clicado'); setConfirmInativar(true); }}
               title={paciente.ativo === false ? 'Reativar paciente' : 'Inativar paciente'}
               style={{
                 background: 'transparent',
@@ -357,6 +356,53 @@ export default function PacientePerfil() {
       {tab === 'avaliacao' && <RegistrarAvaliacao pacienteId={paciente.id} nutriId={user.id} />}
       {tab === 'checkin' && <CheckinPersonalizado pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'recibo'  && <Recibo pacienteId={paciente.id} nutriId={user.id} />}
+
+      {confirmInativar && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 300,
+          background: 'rgba(28,23,18,.55)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: 24,
+        }} onClick={() => !busyInativar && setConfirmInativar(false)}>
+          <div style={{
+            background: 'var(--white)', borderRadius: 16,
+            padding: '24px 20px', width: '100%', maxWidth: 360,
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>
+              {paciente.ativo === false ? 'Reativar paciente?' : 'Inativar paciente?'}
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--text3)', marginBottom: 20, lineHeight: 1.55 }}>
+              {paciente.ativo === false
+                ? `${paciente.nome.split(' ')[0]} voltará a ter acesso ao app.`
+                : `${paciente.nome.split(' ')[0]} perderá acesso ao app. Os dados serão mantidos.`}
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                onClick={() => setConfirmInativar(false)}
+                disabled={busyInativar}
+                style={{
+                  flex: 1, padding: '10px', borderRadius: 10, fontSize: 13,
+                  border: '0.5px solid var(--border)', background: 'transparent',
+                  cursor: 'pointer', fontFamily: 'var(--font-sans)',
+                }}>
+                Cancelar
+              </button>
+              <button
+                onClick={confirmarToggleAtivo}
+                disabled={busyInativar}
+                style={{
+                  flex: 1, padding: '10px', borderRadius: 10, fontSize: 13, fontWeight: 600,
+                  border: 'none', cursor: busyInativar ? 'not-allowed' : 'pointer',
+                  fontFamily: 'var(--font-sans)',
+                  background: paciente.ativo === false ? '#10b981' : '#e05555',
+                  color: '#fff', opacity: busyInativar ? .6 : 1,
+                }}>
+                {busyInativar ? '…' : paciente.ativo === false ? 'Reativar' : 'Inativar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
