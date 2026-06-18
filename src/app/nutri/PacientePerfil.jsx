@@ -99,14 +99,9 @@ export default function PacientePerfil() {
       : `Inativar ${paciente.nome}? Ela perderá acesso ao app, mas todos os dados serão mantidos.`;
     if (!window.confirm(msg)) return;
     const novoValor = !ativando;
-    console.log('[inativar] paciente.id:', id, '| valor atual:', paciente.ativo, '| novo valor:', novoValor);
-    const { error } = await supabase
-      .from('pacientes')
-      .update({ ativo: novoValor })
-      .eq('id', id);
-    console.log('[inativar] error:', JSON.stringify(error));
+    const { error } = await supabase.rpc('toggle_paciente_ativo', { p_id: id, p_ativo: novoValor });
     if (error) {
-      alert(`Erro: ${error.message}\nCódigo: ${error.code}\nHint: ${error.hint ?? '—'}`);
+      alert(`Erro ao ${ativando ? 'reativar' : 'inativar'}: ${error.message}`);
       return;
     }
     carregar();
