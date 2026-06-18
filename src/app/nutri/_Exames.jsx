@@ -27,6 +27,10 @@ export default function Exames({ pacienteId, nutriId }) {
   const [fbk, setFbk]           = useState(null);
   const fileRef                 = useRef(null);
 
+  // Resultados enviados pela paciente
+  const [resultados, setResultados] = useState(null);
+  const unreadCount = (resultados ?? []).filter(r => !r.lido_nutri).length;
+
   async function carregar() {
     const { data } = await supabase
       .from('exames_paciente')
@@ -37,7 +41,31 @@ export default function Exames({ pacienteId, nutriId }) {
     setExames(data ?? []);
   }
 
+  async function carregarResultados() {
+    const { data } = await supabase
+      .from('resultados_exames')
+      .select('*')
+      .eq('paciente_id', pacienteId)
+      .eq('nutri_id', nutriId)
+      .order('created_at', { ascending: false });
+    setResultados(data ?? []);
+  }
+
+  async function abrirResultado(r) {
+    if (!r.lido_nutri) {
+      await supabase.from('resultados_exames')
+        .update({ lido_nutri: true })
+        .eq('id', r.id);
+      setResultados(curr => curr.map(x => x.id === r.id ? { ...x, lido_nutri: true } : x));
+    }
+    const { data: d } = await supabase.storage
+      .from('exames').createSignedUrl(r.arquivo_path, 3600);
+    const url = d?.signedUrl ?? r.arquivo_url;
+    if (url) window.open(url, '_blank');
+  }
+
   useEffect(() => { carregar(); }, [pacienteId]);
+  useEffect(() => { carregarResultados(); }, [pacienteId, nutriId]);
 
   function abrirNovo() {
     setForm({ data: hoje(), nome: '', texto: '', arquivo_url: null, _arquivo: null });
@@ -207,6 +235,68 @@ export default function Exames({ pacienteId, nutriId }) {
         </div>
       )}
 
+      {/* Resultados enviados pela paciente */}
+      <div style={{ borderTop: '1px solid var(--border)', paddingTop: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
+          <div>
+            <div className="card-title">Resultados enviados pela paciente</div>
+            <div className="card-sub">Arquivos de exames enviados diretamente pela paciente</div>
+          </div>
+          {unreadCount > 0 && (
+            <span style={{
+              fontSize: 10, fontWeight: 700, padding: '3px 9px', borderRadius: 999,
+              background: '#fde8e8', color: '#e05555', letterSpacing: '.3px',
+            }}>
+              {unreadCount} novo{unreadCount > 1 ? 's' : ''}
+            </span>
+          )}
+        </div>
+
+        {resultados === null ? (
+          <div className="card empty-card"><div className="empty-sub">Carregando…</div></div>
+        ) : resultados.length === 0 ? (
+          <div style={{ fontSize: 13, color: 'var(--text3)', padding: '8px 0' }}>
+            Nenhum resultado enviado pela paciente ainda.
+          </div>
+        ) : (
+          resultados.map(r => (
+            <div key={r.id} className="card" style={{ padding: '14px 18px', marginBottom: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                {!r.lido_nutri && (
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#e05555', flexShrink: 0 }} />
+                )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--dark)' }}>{r.nome}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 2, display: 'flex', gap: 8 }}>
+                    <span>{new Date(r.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                    {!r.lido_nutri && <span style={{ color: '#e05555', fontWeight: 600 }}>Novo</span>}
+                  </div>
+                </div>
+                <button
+                  onClick={() => abrirResultado(r)}
+                  style={{
+                    padding: '6px 14px', borderRadius: 8,
+                    background: 'var(--gold-deep, #b8860b)', color: '#fff',
+                    border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600,
+                    display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
+                  }}
+                >
+                  <i className="ti ti-external-link" aria-hidden="true" />
+                  Abrir
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Exames registrados pela nutricionista */}
+      <div style={{ borderTop: '1px solid var(--border)', paddingTop: 20 }}>
+        <div style={{ marginBottom: 14 }}>
+          <div className="card-title">Registros da nutricionista</div>
+          <div className="card-sub">Resultados e notas adicionados por você</div>
+        </div>
+
       {/* Lista */}
       {exames === null ? (
         <div className="card empty-card">
@@ -283,6 +373,7 @@ export default function Exames({ pacienteId, nutriId }) {
           </div>
         ))
       )}
+      </div>{/* fim seção registros nutri */}
     </div>
   );
 }

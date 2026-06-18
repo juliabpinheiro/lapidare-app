@@ -107,17 +107,18 @@ export default function HabitosMes() {
           </button>
         </div>
 
-        <div className="card" style={{ padding: '14px 16px 16px', marginBottom: 14, overflowX: 'auto' }}>
+        <div className="card" style={{ padding: '14px 16px 16px', marginBottom: 14, overflow: 'hidden' }}>
           <div style={{ marginBottom: 12 }}>
             <span style={{ fontSize: 10, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 500 }}>
               Check diário
             </span>
           </div>
 
-          <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: dias.length * 28 + 160 }}>
+          <div style={{ overflowX: 'auto' }}>
+          <table style={{ borderCollapse: 'collapse', minWidth: dias.length * 28 + 160 }}>
             <thead>
               <tr>
-                <th style={{ ...thStyle, position: 'sticky', left: 0, background: 'var(--paper)', textAlign: 'left', minWidth: 150 }}></th>
+                <th style={{ ...thStyle, position: 'sticky', left: 0, background: 'var(--paper)', textAlign: 'left', minWidth: 150, zIndex: 1 }}></th>
                 {dias.map(d => {
                   const iso = `${ano}-${String(mes).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                   const isHoje = isMesAtual && iso === hojeISO;
@@ -132,7 +133,7 @@ export default function HabitosMes() {
             <tbody>
               {habitos.map((h, hi) => (
                 <tr key={hi}>
-                  <td style={{ ...tdLabelStyle, position: 'sticky', left: 0, background: 'var(--paper)' }}>
+                  <td style={{ ...tdLabelStyle, position: 'sticky', left: 0, background: 'var(--paper)', zIndex: 1 }}>
                     {h}
                   </td>
                   {dias.map(d => {
@@ -158,6 +159,7 @@ export default function HabitosMes() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
     </>

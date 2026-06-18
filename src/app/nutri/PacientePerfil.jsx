@@ -10,7 +10,6 @@ import { TEMPLATE_PADRAO } from '../../lib/checkinDefault.js';
 import CheckinForm from '../../components/CheckinForm.jsx';
 import Evolucao from './_Evolucao.jsx';
 import FotosEvolucao from './_FotosEvolucao.jsx';
-import FollowUp from './_FollowUp.jsx';
 import Suplementacao from './_Suplementacao.jsx';
 import Habitos from './_Habitos.jsx';
 import { HABITOS_PADRAO, MESES } from '../paciente/HabitosMes.jsx';
@@ -36,6 +35,7 @@ export default function PacientePerfil() {
   const [ultimaAnamnese, setUltimaAnamnese] = useState(undefined); // undefined=carregando, null=sem anamnese
   const [confirmInativar, setConfirmInativar] = useState(false);
   const [busyInativar, setBusyInativar] = useState(false);
+  const [unreadExames, setUnreadExames] = useState(0);
 
   async function carregar() {
     const { data } = await supabase
@@ -68,6 +68,17 @@ export default function PacientePerfil() {
     return () => { active = false; };
   }, [id]);
 
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('resultados_exames')
+      .select('id', { count: 'exact', head: true })
+      .eq('paciente_id', id)
+      .eq('nutri_id', user.id)
+      .eq('lido_nutri', false)
+      .then(({ count }) => setUnreadExames(count ?? 0));
+  }, [id, user]);
+
   async function enviarRedefinicaoSenha() {
     if (!paciente?.email) return;
     const ok = window.confirm(
@@ -95,32 +106,19 @@ export default function PacientePerfil() {
   }
 
   async function confirmarToggleAtivo() {
-    const ativando = paciente.ativo === false;
-    const novoValor = !ativando;
+    const novoValor = paciente.ativo === false ? true : false;
     setBusyInativar(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch('/.netlify/functions/toggle-paciente', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ paciente_id: id, ativo: novoValor }),
-      });
-      const json = await res.json();
-      setBusyInativar(false);
-      setConfirmInativar(false);
-      if (!res.ok) {
-        alert(`Erro ao ${ativando ? 'reativar' : 'inativar'}: ${json.error ?? res.status}`);
-        return;
-      }
-      carregar();
-    } catch (e) {
-      setBusyInativar(false);
-      setConfirmInativar(false);
-      alert('Erro inesperado: ' + e.message);
+    const { error } = await supabase
+      .from('pacientes')
+      .update({ ativo: novoValor })
+      .eq('id', id);
+    setBusyInativar(false);
+    setConfirmInativar(false);
+    if (error) {
+      alert('Erro: ' + error.message);
+      return;
     }
+    carregar();
   }
 
   async function salvarNascimento() {
@@ -328,7 +326,6 @@ export default function PacientePerfil() {
           { id: 'avaliacao',   label: 'Avaliação',    icon: 'ruler-measure' },
           { id: 'checkin',     label: 'Check-in',     icon: 'clipboard-check' },
           { id: 'exames',      label: 'Exames',       icon: 'test-pipe' },
-          { id: 'followup',    label: 'Follow-up',    icon: 'notebook' },
           { id: 'minha-semana', label: 'Minha semana', icon: 'calendar-week' },
           { id: 'recibo',      label: 'Recibo',       icon: 'receipt' },
         ].map(t => (
@@ -348,6 +345,13 @@ export default function PacientePerfil() {
             }}>
             <i className={`ti ti-${t.icon}`} style={{ fontSize: 14 }} aria-hidden="true"></i>
             {t.label}
+            {t.id === 'exames' && unreadExames > 0 && (
+              <span style={{
+                background: '#e05555', color: '#fff',
+                fontSize: 9, fontWeight: 700, borderRadius: 999,
+                padding: '1px 5px', lineHeight: 1.4, minWidth: 16, textAlign: 'center',
+              }}>{unreadExames}</span>
+            )}
           </button>
         ))}
       </div>
@@ -359,7 +363,6 @@ export default function PacientePerfil() {
       {tab === 'bioimpedancia' && <Bioimpedancia pacienteId={paciente.id} nutriId={user.id} />}
       {tab === 'calculo'  && <CalculoEnergetico paciente={paciente} />}
       {tab === 'exames'   && <Exames   pacienteId={paciente.id} nutriId={user.id} />}
-      {tab === 'followup' && <FollowUp pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'minha-semana' && <MinhaSemana pacienteId={paciente.id} />}
       {tab === 'suplementacao' && <Suplementacao pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}
       {tab === 'habitos' && <Habitos pacienteId={paciente.id} nutriId={user.id} pacienteNome={paciente.nome} />}

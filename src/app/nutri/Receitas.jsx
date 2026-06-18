@@ -47,10 +47,13 @@ export default function ReceitasNutri() {
       return setErro('Upload falhou: ' + upErr.message);
     }
 
+    const { data: urlData } = supabase.storage.from('receitas').getPublicUrl(path);
+
     const { error: insErr } = await supabase.from('receitas').insert({
       nutri_id: user.id,
       nome: nome.trim(),
       storage_path: path,
+      arquivo_url: urlData.publicUrl,
       tamanho_bytes: arquivo.size,
     });
     setBusy(false);

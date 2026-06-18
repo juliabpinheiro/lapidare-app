@@ -49,6 +49,7 @@ import RecibosPaciente from './app/paciente/Recibos.jsx';
 import HabitosMesPaciente from './app/paciente/HabitosMes.jsx';
 import EvolucaoPaciente from './app/paciente/Evolucao.jsx';
 import ReceitasPaciente from './app/paciente/Receitas.jsx';
+import ExamesPaciente from './app/paciente/Exames.jsx';
 
 export default function App() {
   return (
@@ -107,6 +108,7 @@ export default function App() {
             <Route path="/paciente/evolucao" element={<EvolucaoPaciente />} />
             <Route path="/paciente/checkin" element={<Checkin />} />
             <Route path="/paciente/receitas" element={<ReceitasPaciente />} />
+            <Route path="/paciente/exames" element={<ExamesPaciente />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

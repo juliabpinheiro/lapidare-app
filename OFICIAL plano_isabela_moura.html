@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Plano Alimentar — Isabela Moura</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Poppins:wght@300;400;500&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+.btn-container{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:10px;z-index:999}
+.btn-pdf{background:#95380A;color:#FFF;border:none;border-radius:6px;padding:12px 24px;font-family:'Lato',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;text-transform:uppercase}
+.btn-word{background:#173103;color:#FFF;border:none;border-radius:6px;padding:12px 24px;font-family:'Lato',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;text-transform:uppercase}
+.btn-pdf:hover{background:#7a2d08}.btn-word:hover{background:#0f2002}
+@media print{
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  html,body{width:210mm;background:white!important;margin:0;padding:0}
+  .btn-container{display:none!important}
+  .pagina{width:210mm!important;min-height:297mm!important;margin:0!important;padding:16mm 16mm 16mm 20mm!important;box-shadow:none!important;page-break-after:always}
+  .pagina:last-child{page-break-after:avoid}
+  @page{size:A4;margin:0}
+}
+:root{--verde:#173103;--terra:#95380A;--bege:#E9E5DD;--begeR:#DED3C6;--branco:#FFF;--txt:#1a1a1a;--txtL:#5a5a5a;--ok:#173103;--warn:#b97d00;--err:#c0392b}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Poppins',sans-serif;font-weight:300;background:#E9E5DD;color:var(--txt);font-size:10.5px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.pagina{width:210mm;min-height:297mm;margin:0 auto 16px auto;background:#FFF;padding:16mm 16mm 16mm 20mm;position:relative;box-shadow:0 2px 16px rgba(0,0,0,.10);overflow:hidden}
+.pagina::before{content:'';position:absolute;left:0;top:0;width:5px;height:100%;background:linear-gradient(180deg,#95380A 0%,#173103 100%)}
+.refeicao{page-break-inside:avoid;margin-bottom:14px}
+.grupo{page-break-inside:avoid;margin-bottom:8px}
+.pms-grid{page-break-inside:avoid}
+.orient-card{page-break-inside:avoid}
+.receita-secao{page-break-inside:avoid;margin-bottom:18px}
+.atencao-box{page-break-inside:avoid}
+.ciclo-box{page-break-inside:avoid}
+.tpm-grid{page-break-inside:avoid}
+.liberados-caixa{page-break-inside:avoid}
+.monitor{page-break-inside:avoid}
+.totais{page-break-inside:avoid}
+h1,h2,h3{page-break-after:avoid}
+.secao-titulo{font-family:'Lato',sans-serif;font-size:7.5px;letter-spacing:3px;text-transform:uppercase;color:var(--verde);margin-bottom:12px;font-weight:700}
+.dados-macros{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:16px}
+.dados-paciente{font-size:10px;color:var(--txtL);line-height:2}
+.dados-paciente strong{color:var(--txt);font-weight:500}
+.macros-titulo{font-family:'Playfair Display',serif;font-size:18px;color:var(--verde);margin-bottom:12px}
+.macros-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
+.macro-box{background:var(--bege);border-radius:6px;padding:10px 6px;text-align:center}
+.macro-nome{font-family:'Playfair Display',serif;font-style:italic;font-size:10px;color:var(--txtL);margin-bottom:4px}
+.macro-val{font-family:'Playfair Display',serif;font-size:20px;color:var(--verde);font-weight:700;line-height:1}
+.macro-unit{font-size:8px;color:var(--terra)}
+.calorias-total{text-align:center;font-size:10px;color:var(--txtL);margin-top:6px}
+.calorias-total strong{color:var(--verde);font-size:13px}
+.circunf-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.circunf-box{background:var(--bege);border-radius:6px;padding:8px;text-align:center}
+.circunf-nome{font-family:'Playfair Display',serif;font-style:italic;font-size:9px;color:var(--txtL)}
+.circunf-val{font-size:14px;font-weight:600;color:var(--verde)}
+.pms-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pms-box{background:var(--bege);border-radius:6px;padding:14px;margin-bottom:0}
+.pms-titulo{font-family:'Playfair Display',serif;font-style:italic;font-size:20px;color:var(--verde);margin-bottom:10px;line-height:1}
+.pms-body{font-size:10px;color:var(--txt);line-height:1.8}
+.pms-body li{list-style:none;padding-left:12px;position:relative;margin-bottom:1px}
+.pms-body li::before{content:'—';position:absolute;left:0;color:var(--terra)}
+.ref-titulo{font-family:'Playfair Display',serif;font-style:italic;font-size:28px;color:var(--verde);line-height:1;margin-bottom:2px}
+.ref-horario{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--txtL);margin-bottom:10px}
+.ref-macros{display:flex;gap:14px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--begeR)}
+.ref-macro{font-size:9px;color:var(--txtL)}
+.ref-macro strong{color:var(--terra);font-size:12px}
+.ref-sugestao{font-style:italic;font-size:10px;color:var(--txtL);margin-bottom:10px}
+.alimento-tabela{width:100%;border-collapse:collapse;margin-bottom:8px;font-size:10px}
+.alimento-tabela th{font-family:'Lato',sans-serif;font-size:7px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txtL);padding:4px 6px;text-align:left;border-bottom:1px solid var(--begeR)}
+.alimento-tabela td{padding:5px 6px;border-bottom:1px solid var(--bege);color:var(--txt)}
+.alimento-tabela tr:last-child td{border-bottom:none}
+.alimento-tabela .subtotal td{font-weight:600;color:var(--verde);background:var(--bege);font-size:9px}
+.grupo-label{font-family:'Lato',sans-serif;font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--terra);font-weight:700;text-align:center;margin-bottom:4px}
+.grupo-caixa{background:var(--bege);border-radius:6px;padding:10px 16px;text-align:center;font-size:10px;color:var(--txt);line-height:1.9}
+.ref-nota{font-size:9px;font-style:italic;color:var(--terra);margin-top:6px;padding:6px 10px;background:#fdf3ee;border-radius:4px;border-left:3px solid var(--terra)}
+.totais-titulo{font-family:'Playfair Display',serif;font-size:16px;color:var(--verde);margin-bottom:14px}
+.totais-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px}
+.total-item{text-align:center}
+.total-val{font-family:'Playfair Display',serif;font-size:18px;color:var(--verde);line-height:1}
+.total-unit{font-size:8px;color:var(--terra)}
+.total-label{font-size:7px;letter-spacing:1px;text-transform:uppercase;color:var(--txtL);margin-top:2px}
+.total-bar{height:3px;background:var(--begeR);border-radius:2px;margin:3px auto;width:80%}
+.total-bar-fill{height:100%;border-radius:2px}
+.bar-ok{background:#173103}.bar-warn{background:#b97d00}.bar-err{background:#c0392b}
+.total-alerta{font-size:7px;font-weight:700;margin-top:1px}
+.alerta-warn{color:#b97d00}.alerta-err{color:#c0392b}
+.liberados-titulo-it{font-family:'Playfair Display',serif;font-style:italic;font-size:18px;color:var(--txtL);line-height:1}
+.liberados-titulo-bold{font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:var(--verde);line-height:1;margin-bottom:16px}
+.liberados-caixa{background:var(--bege);border-radius:6px;padding:18px 24px;font-size:11px;color:var(--txt);line-height:2;text-align:center;margin-bottom:8px}
+.liberados-nota{font-size:9px;color:var(--txtL);font-style:italic;text-align:center}
+.receitas-titulo{font-family:'Playfair Display',serif;font-style:italic;font-size:24px;color:var(--verde);margin-bottom:2px}
+.receitas-subtitulo{font-family:'Lato',sans-serif;font-size:7px;letter-spacing:3px;text-transform:uppercase;color:var(--terra);margin-bottom:20px}
+.receita-secao-titulo{font-size:12px;font-weight:600;color:var(--verde);text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--terra);margin-bottom:4px}
+.receita-aviso{font-size:9px;color:var(--terra);font-style:italic;margin-bottom:8px}
+.receita-opcao{margin-bottom:8px}
+.receita-opcao-titulo{font-family:'Lato',sans-serif;font-size:9px;font-weight:700;letter-spacing:.5px;color:var(--txt);text-transform:uppercase;margin-bottom:1px}
+.receita-opcao-corpo{font-size:10px;color:var(--txtL);line-height:1.6}
+.orient-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.orient-card{background:var(--bege);border-radius:6px;padding:12px}
+.orient-card-titulo{font-family:'Lato',sans-serif;font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--terra);font-weight:700;margin-bottom:8px}
+.orient-card-body{font-size:9.5px;color:var(--txt);line-height:1.8}
+.orient-card-body li{list-style:none;padding-left:12px;position:relative;margin-bottom:2px}
+.orient-card-body li::before{content:'—';position:absolute;left:0;color:var(--terra)}
+.atencao-box{border:1.5px solid var(--begeR);border-radius:6px;padding:16px 20px;margin-top:12px}
+.atencao-titulo{font-family:'Playfair Display',serif;font-size:15px;letter-spacing:2px;color:var(--verde);text-align:center;margin-bottom:12px}
+.atencao-body{font-size:9.5px;color:var(--txt);line-height:1.9}
+.atencao-body li{list-style:none;padding-left:12px;position:relative;margin-bottom:2px}
+.atencao-body li::before{content:'—';position:absolute;left:0;color:var(--terra)}
+.ciclo-box{padding:16px 20px;background:#fdf3ee;border:1.5px solid var(--terra);border-radius:6px;margin-bottom:14px}
+.ciclo-titulo{font-family:'Lato',sans-serif;font-size:7.5px;letter-spacing:3px;text-transform:uppercase;color:var(--verde);font-weight:700;margin-bottom:10px}
+.ciclo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.ciclo-item{text-align:center}
+.ciclo-val{font-family:'Playfair Display',serif;font-size:22px;color:var(--terra)}
+.ciclo-label{font-size:7px;letter-spacing:1px;text-transform:uppercase;color:var(--txtL)}
+.ciclo-alerta{font-size:9px;color:var(--terra);font-style:italic;line-height:1.6}
+.tpm-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}
+.tpm-item{background:var(--bege);border-radius:5px;padding:8px 4px;text-align:center}
+.tpm-nome{font-size:8px;font-weight:600;color:var(--verde);text-transform:uppercase;letter-spacing:.4px}
+.tpm-dose{font-size:8px;color:var(--terra);font-weight:500;margin-top:2px}
+.tpm-func{font-size:7.5px;color:var(--txtL);margin-top:2px;line-height:1.4}
+.doce-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.doce-item{font-size:9.5px;color:var(--txt);padding:7px 10px;background:#fdf3ee;border-radius:4px;border-left:3px solid var(--terra);line-height:1.5}
+.doce-item strong{color:var(--terra)}
+.monitor-titulo{font-family:'Lato',sans-serif;font-size:7.5px;letter-spacing:3px;text-transform:uppercase;color:var(--verde);font-weight:700;margin-bottom:4px}
+.monitor-intro{font-size:9.5px;color:var(--txtL);font-style:italic;margin-bottom:10px;line-height:1.5}
+.monitor-grid{display:flex;flex-wrap:wrap;gap:8px}
+.monitor-item{text-align:center;min-width:78px}
+.monitor-label{font-size:7.5px;letter-spacing:1px;text-transform:uppercase;color:var(--txtL)}
+.monitor-freq{font-family:'Playfair Display',serif;font-size:10px;color:var(--verde)}
+.monitor-nota{margin-top:10px;font-size:9px;color:var(--terra);font-style:italic;border-top:1px dashed var(--begeR);padding-top:8px}
+.enc-frase{font-family:'Playfair Display',serif;font-style:italic;font-size:26px;color:var(--verde);line-height:1.4;margin-bottom:28px;max-width:480px;text-align:center}
+.enc-nome{font-family:'Lato',sans-serif;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:var(--txtL);line-height:2;text-align:center}
+.enc-validade{font-size:9px;color:var(--txtL);margin-top:14px;text-align:center}
+</style>
+</head>
+<body>
+
+<div class="btn-container">
+  <button class="btn-word" onclick="baixarWord()">✏ Baixar Word</button>
+  <button class="btn-pdf" onclick="window.print()">⬇ Baixar PDF</button>
+</div>
+
+<script>
+function baixarWord(){
+  const conteudo=document.getElementById('plano-content').innerHTML;
+  const html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="UTF-8"></head><body>'+conteudo+'</body></html>';
+  const blob=new Blob(['\ufeff',html],{type:'application/vnd.ms-word;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='Plano_Alimentar_Isabela_Moura.doc';a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+
+<div id="plano-content">
+
+<!-- ===== PÁGINA 1 — CAPA + DADOS + MACROS ===== -->
+<div class="pagina">
+  <div style="text-align:center;padding:24px 0 20px 0;border-bottom:1px solid var(--begeR);margin-bottom:24px">
+    <div style="font-family:'Lato',sans-serif;font-size:9px;font-weight:500;letter-spacing:4px;text-transform:uppercase;color:var(--terra);margin-bottom:20px">
+      Método Pinheiro · Nutrição Feminina Estratégica
+    </div>
+    <div style="font-family:'Playfair Display',serif;font-style:italic;font-size:24px;font-weight:400;color:var(--txtL);line-height:1;margin-bottom:2px">plano</div>
+    <div style="font-family:'Playfair Display',serif;font-size:58px;font-weight:700;color:var(--verde);line-height:1;margin-bottom:18px;letter-spacing:-1px">Alimentar</div>
+    <div style="font-family:'Lato',sans-serif;font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--txt);margin-bottom:6px">ISABELA MOURA</div>
+    <div style="font-size:10px;color:var(--txtL);line-height:1.9">
+      32 anos · Designer Freelancer · 74kg · 1,65m · IMC 27,2<br>
+      Objetivo: Emagrecimento + Controle do Inchaço · SOP · Anti-inflamatório
+    </div>
+    <div style="font-family:'Lato',sans-serif;font-size:9px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:var(--txtL);margin-top:12px">
+      Consulta Nº 01 · 03/07/2026 · Nutricionista Júlia Pinheiro | CRN 20100737
+    </div>
+  </div>
+
+  <div class="dados-macros">
+    <div>
+      <div class="secao-titulo">Dados da Paciente</div>
+      <div class="dados-paciente">
+        <strong>Peso:</strong> 74kg | <strong>Altura:</strong> 1,65m<br>
+        <strong>IMC:</strong> 27,2 — Sobrepeso leve<br>
+        <strong>% Gordura:</strong> 35% · <strong>MLG:</strong> 48,1kg<br>
+        <strong>Circ. Abdominal:</strong> 88cm ⚠ Limiar risco OMS<br>
+        <strong>Quadril:</strong> 102cm · <strong>RCQ:</strong> 0,86<br>
+        <strong>Retorno:</strong> 30 dias<br>
+        <strong>Válido até:</strong> 03/07/2026
+      </div>
+    </div>
+    <div>
+      <div class="macros-titulo">Macronutrientes do Plano</div>
+      <div class="macros-grid">
+        <div class="macro-box">
+          <div class="macro-nome">carboidratos</div>
+          <div class="macro-val">165<span class="macro-unit">g</span></div>
+          <div style="font-size:7.5px;color:var(--txtL)">40%</div>
+        </div>
+        <div class="macro-box">
+          <div class="macro-nome">proteínas</div>
+          <div class="macro-val">124<span class="macro-unit">g</span></div>
+          <div style="font-size:7.5px;color:var(--txtL)">30% · 1,68g/kg</div>
+        </div>
+        <div class="macro-box">
+          <div class="macro-nome">gorduras</div>
+          <div class="macro-val">55<span class="macro-unit">g</span></div>
+          <div style="font-size:7.5px;color:var(--txtL)">30%</div>
+        </div>
+      </div>
+      <div class="calorias-total"><strong>1.650 kcal</strong> · total diário</div>
+      <div class="circunf-grid" style="margin-top:10px">
+        <div class="circunf-box">
+          <div class="circunf-nome">fibras</div>
+          <div class="circunf-val">28g</div>
+        </div>
+        <div class="circunf-box">
+          <div class="circunf-nome">água/dia</div>
+          <div class="circunf-val">2,6L</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PÁGINA 2 — PRIORIDADES + METAS + SUPLEMENTO ===== -->
+<div class="pagina">
+  <div class="pms-grid">
+    <div>
+      <div class="pms-box">
+        <div class="pms-titulo">prioridades</div>
+        <ul class="pms-body">
+          <li>Não pular o almoço — essa refeição é inegociável</li>
+          <li>Proteína em todas as 5 refeições, sem exceção</li>
+          <li>Nada de açúcar simples isolado — sempre com fibra ou proteína</li>
+          <li>Lanche às 16h estruturado — antes da compulsão das 15h-17h</li>
+          <li>Jantar até às 20h — antecipar pelo menos 1h30 do atual</li>
+          <li>Fermentado 1x ao dia — kefir, iogurte natural ou skyr</li>
+          <li>Refeição livre 1x/semana — não é dia livre, é 1 refeição substituída</li>
+          <li>Beba no mínimo 2,6L de água por dia, ao longo do dia</li>
+          <li>Pese os alimentos pelo menos nas primeiras 2 semanas</li>
+          <li>Furou? Não se culpe — volte na próxima refeição</li>
+        </ul>
+      </div>
+      <div class="pms-box" style="margin-top:16px">
+        <div class="pms-titulo">suplemento</div>
+        <ul class="pms-body">
+          <li>Ômega-3 — 2g/dia (EPA+DHA) — com almoço ou jantar — anti-inflamatório SOP obrigatório (sem peixe)</li>
+          <li>Magnésio bisglícinato — 300mg — à noite antes de dormir — sono, constipação, TPM, depleção ACO</li>
+          <li>Vitamina D — conforme exame — com refeição gordurosa — imunidade, SOP, humor</li>
+          <li>Zinco quelato — 15mg — com jantar — candidíase, imunidade, depleção ACO</li>
+          <li>Probiótico (Lactobacillus spp.) — 1 cápsula/dia — em jejum ou conforme indicação — microbioma + candidíase</li>
+        </ul>
+      </div>
+    </div>
+    <div class="pms-box" style="height:fit-content">
+      <div class="pms-titulo">metas</div>
+      <ul class="pms-body">
+        <li>Reduzir circunferência abdominal de 88cm → meta 83cm em 60 dias</li>
+        <li>Evacuar pelo menos 1x/dia — trânsito intestinal regularizado em 2 semanas</li>
+        <li>Zero episódio de candidíase nos próximos 3 meses</li>
+        <li>Compulsão noturna por doce: de diária → máx. 2x/semana em 30 dias</li>
+        <li>Dormir e acordar com mais disposição — energia ao levantar de 4→7/10</li>
+        <li>Perda de 1 a 1,5kg de gordura/mês (balança pode não refletir — focar na cintura)</li>
+        <li>Reavaliar em 30 dias — peso + circunferência + sintomas</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PÁGINA 3 — CAFÉ DA MANHÃ + LANCHE DA MANHÃ ===== -->
+<div class="pagina">
+
+  <div class="refeicao">
+    <div class="ref-titulo">café da manhã</div>
+    <div class="ref-horario">08h00 · 384 kcal · 20,5g prot · 47,6g cho · 16,3g lip</div>
+    <table class="alimento-tabela">
+      <thead><tr><th>Alimento</th><th>Medida Caseira</th><th>Gramas</th><th>kcal</th><th>Prot</th><th>CHO</th><th>Lip</th></tr></thead>
+      <tbody>
+        <tr><td>Pão integral</td><td>2 fatias finas</td><td>40g</td><td>101</td><td>3,2g</td><td>19,2g</td><td>1,4g</td></tr>
+        <tr><td>Ovo mexido</td><td>1 ovo e meio mexido</td><td>70g</td><td>123</td><td>9,5g</td><td>1,3g</td><td>9,2g</td></tr>
+        <tr><td>Queijo minas frescal</td><td>1 fatia pequena</td><td>20g</td><td>53</td><td>3,5g</td><td>0,6g</td><td>4,0g</td></tr>
+        <tr><td>Mamão papaia</td><td>1 fatia média</td><td>130g</td><td>59</td><td>0,8g</td><td>15,5g</td><td>0,3g</td></tr>
+        <tr><td>Farelo de aveia</td><td>2 col. sopa rasas</td><td>20g</td><td>49</td><td>3,5g</td><td>11,0g</td><td>1,4g</td></tr>
+        <tr class="subtotal"><td colspan="2">Subtotal</td><td>280g</td><td>384 kcal</td><td>20,5g</td><td>47,6g</td><td>16,3g</td></tr>
+      </tbody>
+    </table>
+    <div class="ref-sugestao">Sugestão da nutri: Ovo mexido com queijo esfarelado em cima do pão + mamão no lado com aveia polvilhada. Pronto em 5 minutos, sem louça. Café puro ou com adoçante à vontade.</div>
+
+    <div class="grupo">
+      <div class="grupo-label">Carboidrato (Escolha 1 Opção)</div>
+      <div class="grupo-caixa">
+        Pão integral 2 fatias · Tapioca (goma) 45g · Pão de milho 1 fatia · Pão de centeio 2 fatias ·
+        Torrada integral 4 unidades · Cuscuz milho cozido 100g · Batata-doce cozida 100g ·
+        Inhame cozido 100g · Pão sem glúten 2 fatias · Crepioca (tapioca + ovo) 1 unidade
+      </div>
+    </div>
+    <div class="grupo">
+      <div class="grupo-label">Proteína (Escolha 1 Opção)</div>
+      <div class="grupo-caixa">
+        Ovo mexido 2 unidades · Ovo cozido 2 unidades · Omelete simples 100g ·
+        Queijo minas frescal 30g · Queijo cottage 50g · Iogurte grego integral 80g ·
+        Queijo minas padrão 20g · Ricota firme 40g · Queijo prato 20g · Requeijão cremoso 30g
+      </div>
+    </div>
+    <div class="grupo">
+      <div class="grupo-label">Fruta (Escolha 1 Opção)</div>
+      <div class="grupo-caixa">
+        Mamão papaia 130g · Banana prata 1 unidade · Morango 15 unidades · Melão 250g ·
+        Melancia 300g · Laranja 1 unidade · Kiwi 2 unidades · Manga 150g · Goiaba 150g ·
+        Tangerina 1 unidade · Maçã 1 unidade · Pera 1 unidade · Pitanga 150g · Acerola 150g
+      </div>
+    </div>
+    <div class="ref-nota">O farelo de aveia no café tem função além da fibra — ajuda no controle glicêmico e alimenta as bactérias boas do intestino. É parte do tratamento, não apenas complemento.</div>
+  </div>
+
+  <div class="refeicao">
+    <div class="ref-titulo">lanche da manhã</div>
+    <div class="ref-horario">11h00 · 166 kcal · 9,9g prot · 21,8g cho · 5,1g lip</div>
+    <table class="alimento-tabela">
+      <thead><tr><th>Alimento</th><th>Medida Caseira</th><th>Gramas</th><th>kcal</th><th>Prot</th><th>CHO</th><th>Lip</th></tr></thead>
+      <tbody>
+        <tr><td>Iogurte grego integral</td><td>1 potinho pequeno</td><td>100g</td><td>97</td><td>9,0g</td><td>3,6g</td><td>5,0g</td></tr>
+        <tr><td>Banana prata</td><td>1 unidade pequena</td><td>70g</td><td>69</td><td>0,9g</td><td>18,2g</td><td>0,1g</td></tr>
+        <tr class="subtotal"><td colspan="2">Subtotal</td><td>170g</td><td>166 kcal</td><td>9,9g</td><td>21,8g</td><td>5,1g</td></tr>
+      </tbody>
+    </table>
+    <div class="ref-sugestao">Sugestão da nutri: Iogurte grego com a banana picada em cima. Zero preparo. Se quiser, adiciona canela — ajuda no controle de glicemia.</div>
+    <div class="grupo">
+      <div class="grupo-label">Proteína (Escolha 1 Opção)</div>
+      <div class="grupo-caixa">
+        Iogurte grego integral 100g · Iogurte proteico skyr 150g · Queijo cottage 80g ·
+        Ricota firme 60g · Queijo minas frescal 50g · Ovo cozido 2 unidades ·
+        Queijo minas padrão 40g · Kefir líquido 150mL · Iogurte natural integral 150g ·
+        Bebida proteica (YoPro/Piracanjuba Whey) 1 unidade
+      </div>
+    </div>
+    <div class="ref-nota">Este lanche previne a chegada com fome excessiva no almoço — e reduz o belisco da manhã. Se não sentir fome, pode reduzir a banana pela metade.</div>
+  </div>
+</div>
+
+<!-- ===== PÁGINA 4 — ALMOÇO ===== -->
+<div class="pagina">
+  <div class="refeicao">
+    <div class="ref-titulo">almoço</div>
+    <div class="ref-horario">13h30 · 506 kcal · 49,9g prot · 48,0g cho · 12,7g lip</div>
+    <table class="alimento-tabela">
+      <thead><tr><th>Alimento</th><th>Medida Caseira</th><th>Gramas</th><th>kcal</th><th>Prot</th><th>CHO</th><th>Lip</th></tr></thead>
+      <tbody>
+        <tr><td>Frango peito grelhado sem pele</td><td>1 filé médio</td><td>130g</td><td>212</td><td>41,0g</td><td>0,0g</td><td>4,8g</td></tr>
+        <tr><td>Arroz branco cozido</td><td>2 col. sopa cheias</td><td>100g</td><td>128</td><td>2,5g</td><td>28,1g</td><td>0,2g</td></tr>
+        <tr><td>Feijão carioca cozido</td><td>1 concha média</td><td>100g</td><td>76</td><td>4,8g</td><td>13,6g</td><td>0,5g</td></tr>
+        <tr><td>Abobrinha cozida</td><td>4 col. sopa</td><td>100g</td><td>10</td><td>1,1g</td><td>2,0g</td><td>0,1g</td></tr>
+        <tr><td>Cenoura cozida</td><td>2 col. sopa</td><td>60g</td><td>19</td><td>0,5g</td><td>4,3g</td><td>0,1g</td></tr>
+        <tr><td>Azeite de oliva extra virgem</td><td>1 col. chá rasa + um fio</td><td>7g</td><td>62</td><td>0,0g</td><td>0,0g</td><td>7,0g</td></tr>
+        <tr class="subtotal"><td colspan="2">Subtotal</td><td>497g</td><td>506 kcal</td><td>49,9g</td><td>48,0g</td><td>12,7g</td></tr>
+      </tbody>
+    </table>
+    <div class="ref-sugestao">Sugestão da nutri: Frango grelhado temperado com alho, limão e cúrcuma (anti-inflamatório) + arroz + feijão + legumes refogados no azeite. Pode ser feito em 1 panela só ou no micro-ondas se precisar.</div>
+
+    <div class="grupo">
+      <div class="grupo-label">Proteína (Escolha 1 Opção)</div>
+      <div class="grupo-caixa">
+        Frango peito grelhado 130g · Frango coxa e sobrecoxa cozido sem pele 120g ·
+        Frango desfiado cozido 110g · Frango sobrecoxa assada sem pele 120g ·
+        Carne bovina patinho grelhado 100g · Carne bovina alcatra grelhada 100g ·
+        Carne bovina músculo cozido 120g · Carne moída refogada 100g ·
+        Carne bovina acém cozido 120g · Hambúrguer frango caseiro 100g ·
+        Carne suína lombo assado 100g · Ovo inteiro cozido 3 unidades (150g) ·
+        Whey protein concentrado 30g · Tofu firme 150g · Edamame cozido 150g
+      </div>
+    </div>
+    <div style="font-size:9px;color:var(--txtL);font-style:italic;margin:-4px 0 8px">
+      *Sem peixe, fígado ou miúdos nas opções. Quando quiser uma pastinha, use 20g de requeijão cremoso ou creme de ricota.
+    </div>
+
+    <div class="grupo">
+      <div class="grupo-label">Carboidrato (Escolha 1 Opção)</div>
+      <div class="grupo-caixa">
+        Arroz branco cozido 100g · Arroz integral cozido 100g · Batata-doce cozida 105g ·
+        Batata inglesa cozida 120g · Mandioca cozida 100g · Inhame cozido 100g ·
+        Batata-baroa cozida 150g · Quinoa cozida 100g · Macarrão integral cozido 100g ·
+        Macarrão de arroz cozido 100g · Cuscuz milho cozido 100g · Abóbora cozida 170g ·
+        Milho verde cozido 120g · Polenta cozida 150g
+      </div>
+    </div>
+
+    <div class="grupo">
+      <div class="grupo-label">Leguminosa (Escolha 1 Opção)</div>
+      <div class="grupo-caixa">
+        Feijão carioca cozido 100g · Feijão preto cozido 100g · Feijão branco cozido 100g ·
+        Lentilha cozida 100g · Grão-de-bico cozido 75g · Ervilha verde cozida 100g ·
+        Soja cozida 75g · Feijão de corda cozido 100g
+      </div>
+    </div>
+    <div class="ref-nota">O almoço é a refeição mais importante do plano. Não pular. Se estiver em reunião, 15 minutos é suficiente para comer. Pode ser no sofá — o que não pode é não acontecer.</div>
+  </div>
+</div>
+
+<!-- ===== PÁGINA 5 — LANCHE DA TARDE + JANTAR ===== -->
+<div class="pagina">
+
+  <div class="refeicao">
+    <div class="ref-titulo">lanche da tarde</div>
+    <div class="ref-horario">16h00 · 238 kcal · 21,2g prot · 23,3g cho · 6,8g lip</div>
+    <table class="alimento-tabela">
+      <thead><tr><th>Alimento</th><th>Medida Caseira</th><th>Gramas</th><th>kcal</th><th>Prot</th><th>CHO</th><th>Lip</th></tr></thead>
+      <tbody>
+        <tr><td>Iogurte proteico skyr</td><td>1 pote (170g)</td><td>170g</td><td>111</td><td>18,7g</td><td>7,6g</td><td>0,3g</td></tr>
+        <tr><td>Batata-doce cozida</td><td>1 unidade pequena</td><td>80g</td><td>62</td><td>1,1g</td><td>14,2g</td><td>0,1g</td></tr>
+        <tr><td>Castanha do Pará</td><td>1 unidade grande</td><td>10g</td><td>66</td><td>1,4g</td><td>1,5g</td><td>6,4g</td></tr>
+        <tr class="subtotal"><td colspan="2">Subtotal</td><td>260g</td><td>238 kcal</td><td>21,2g</td><td>23,3g</td><td>6,8g</td></tr>
+      </tbody>
+    </table>
+    <div class="ref-sugestao">Sugestão da nutri: Skyr + batata-doce cozida + 1 castanha. Esse lanche chega ANTES da compulsão das 15h-17h — e é exatamente isso que vai quebrá-la. A batata-doce com proteína equilibra a glicemia e tira o desejo de doce.</div>
+    <div class="grupo">
+      <div class="grupo-label">Proteína (Escolha 1 Opção)</div>
+      <div class="grupo-caixa">
+        Iogurte proteico skyr 170g · Iogurte grego integral 150g · Queijo cottage 100g ·
+        Ricota firme 80g · Queijo minas frescal 60g · Ovo cozido 2 unidades ·
+        Queijo minas padrão 40g · Kefir líquido 200mL · Bebida proteica (YoPro/Piracanjuba Whey) 1 unidade ·
+        Whey protein concentrado 30g (com água ou leite)
+      </div>
+    </div>
+    <div class="grupo">
+      <div class="grupo-label">Carboidrato (Escolha 1 Opção)</div>
+      <div class="grupo-caixa">
+        Batata-doce cozida 80g · Banana prata 1 unidade · Maçã 1 unidade ·
+        Pera 1 unidade · Kiwi 2 unidades · Morango 200g · Uva itália 15 unidades ·
+        Torrada integral 3 unidades · Biscoito de arroz 4 unidades · Aveia em flocos 30g
+      </div>
+    </div>
+    <div class="ref-nota">Este é o lanche anti-compulsão. Comer às 16h não é fraqueza — é estratégia. Quem come aqui não devora a cozinha às 21h.</div>
+  </div>
+
+  <div class="refeicao">
+    <div class="ref-titulo">jantar</div>
+    <div class="ref-horario">20h00 · 392 kcal · 25,1g prot · 28,4g cho · 20,7g lip</div>
+    <table class="alimento-tabela">
+      <thead><tr><th>Alimento</th><th>Medida Caseira</th><th>Gramas</th><th>kcal</th><th>Prot</th><th>CHO</th><th>Lip</th></tr></thead>
+      <tbody>
+        <tr><td>Ovo inteiro cozido</td><td>2 ovos</td><td>100g</td><td>146</td><td>13,3g</td><td>0,6g</td><td>9,5g</td></tr>
+        <tr><td>Quinoa cozida</td><td>4 col. sopa</td><td>80g</td><td>96</td><td>3,5g</td><td>17,0g</td><td>1,5g</td></tr>
+        <tr><td>Brócolis cozido</td><td>1 xícara cheia</td><td>150g</td><td>38</td><td>4,3g</td><td>6,6g</td><td>0,6g</td></tr>
+        <tr><td>Cenoura cozida</td><td>2 col. sopa</td><td>50g</td><td>16</td><td>0,5g</td><td>3,6g</td><td>0,1g</td></tr>
+        <tr><td>Azeite de oliva extra virgem</td><td>1 col. chá</td><td>5g</td><td>44</td><td>0,0g</td><td>0,0g</td><td>5,0g</td></tr>
+        <tr><td>Queijo minas frescal</td><td>1 fatia pequena</td><td>20g</td><td>53</td><td>3,5g</td><td>0,6g</td><td>4,0g</td></tr>
+        <tr class="subtotal"><td colspan="2">Subtotal</td><td>405g</td><td>392 kcal</td><td>25,1g</td><td>28,4g</td><td>20,7g</td></tr>
+      </tbody>
+    </table>
+    <div class="ref-sugestao">Sugestão da nutri: Ovo mexido ou cozido + quinoa salteada + brócolis no vapor com azeite e queijo esfarelado por cima. Jantar leve, proteico e com carboidrato — não precisa sofrer à noite.</div>
+
+    <div class="grupo">
+      <div class="grupo-label">Proteína (Escolha 1 Opção)</div>
+      <div class="grupo-caixa">
+        Ovo inteiro cozido 2 unidades · Frango peito grelhado 100g · Frango desfiado cozido 100g ·
+        Frango coxa e sobrecoxa cozido sem pele 100g · Carne bovina patinho grelhado 80g ·
+        Carne bovina alcatra grelhada 80g · Carne moída refogada 80g ·
+        Carne suína lombo assado 80g · Hambúrguer frango caseiro 80g ·
+        Omelete simples 150g · Tofu firme 150g · Queijo cottage 120g
+      </div>
+    </div>
+    <div style="font-size:9px;color:var(--txtL);font-style:italic;margin:-4px 0 8px">
+      *Sem peixe, fígado ou miúdos. CHO à noite é intencional — não eliminar. Ajuda no cortisol e na serotonina.
+    </div>
+    <div class="grupo">
+      <div class="grupo-label">Carboidrato (Escolha 1 Opção)</div>
+      <div class="grupo-caixa">
+        Quinoa cozida 80g · Batata-doce cozida 100g · Batata inglesa cozida 100g ·
+        Abóbora cozida 150g · Inhame cozido 80g · Arroz integral cozido 80g ·
+        Mandioca cozida 80g · Arroz branco cozido 80g · Macarrão integral cozido 80g
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PÁGINA 6 — TOTAIS + VEGETAIS LIBERADOS ===== -->
+<div class="pagina">
+  <div class="totais" style="margin-bottom:20px">
+    <div class="totais-titulo">Total do Dia · Resumo Nutricional</div>
+    <div class="totais-grid">
+      <div class="total-item">
+        <div class="total-val">1.686<span class="total-unit"> kcal</span></div>
+        <div class="total-bar"><div class="total-bar-fill bar-ok" style="width:100%"></div></div>
+        <div class="total-label">Energia · meta 1.650</div>
+      </div>
+      <div class="total-item">
+        <div class="total-val">126,6<span class="total-unit">g</span></div>
+        <div class="total-bar"><div class="total-bar-fill bar-ok" style="width:100%"></div></div>
+        <div class="total-label">Proteína · 1,71g/kg ✓</div>
+      </div>
+      <div class="total-item">
+        <div class="total-val">31,9<span class="total-unit">g</span></div>
+        <div class="total-bar"><div class="total-bar-fill bar-ok" style="width:100%"></div></div>
+        <div class="total-label">Fibras · meta 28g ✓</div>
+      </div>
+      <div class="total-item">
+        <div class="total-val">1.022<span class="total-unit">mg</span></div>
+        <div class="total-bar"><div class="total-bar-fill bar-ok" style="width:54%"></div></div>
+        <div class="total-label">Sódio · excelente &lt;1.500</div>
+      </div>
+    </div>
+    <div class="totais-grid" style="margin-top:8px">
+      <div class="total-item">
+        <div class="total-val">169,1<span class="total-unit">g</span></div>
+        <div class="total-bar"><div class="total-bar-fill bar-ok" style="width:100%"></div></div>
+        <div class="total-label">Carboidrato · 40% VCT</div>
+      </div>
+      <div class="total-item">
+        <div class="total-val">61,6<span class="total-unit">g</span></div>
+        <div class="total-bar"><div class="total-bar-fill bar-warn" style="width:80%"></div></div>
+        <div class="total-label">Lipídio · 33% VCT</div>
+        <div class="total-alerta alerta-warn">⚠ levemente acima da meta</div>
+      </div>
+      <div class="total-item">
+        <div class="total-val">2.600<span class="total-unit">mL</span></div>
+        <div class="total-bar"><div class="total-bar-fill bar-ok" style="width:100%"></div></div>
+        <div class="total-label">Água · meta 2.590mL ✓</div>
+      </div>
+      <div class="total-item">
+        <div class="total-val">+2g<span class="total-unit"> ômega-3</span></div>
+        <div class="total-bar"><div class="total-bar-fill bar-ok" style="width:100%"></div></div>
+        <div class="total-label">Suplemento obrigatório</div>
+      </div>
+    </div>
+    <div style="font-size:8.5px;color:var(--terra);font-style:italic;margin-top:6px;padding:6px 10px;background:#fdf3ee;border-radius:4px">
+      ⚠ Lipídio 33% (61,6g) está levemente acima da meta de 30% (55g) — diferença de 6,6g/dia.
+      Clinicamente irrelevante. Origem: ovos e azeite (gorduras anti-inflamatórias de qualidade).
+      Não ajustar — o perfil lipídico favorece a SOP.
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-bottom:16px">
+    <div class="liberados-titulo-it">alimentos</div>
+    <div class="liberados-titulo-bold">liberados</div>
+    <div style="font-size:7.5px;letter-spacing:2px;text-transform:uppercase;color:var(--verde);margin-bottom:12px;font-weight:700">
+      Lista de Vegetais e Legumes à Vontade — Coma o Quanto Quiser
+    </div>
+    <div class="liberados-caixa">
+      Acelga, Agrião, Alface, Almeirão, Abobrinha, Berinjela,
+      Beterraba, Brócolis, Cebola, Cenoura, Chicória, Chuchu,
+      Couve, Couve-flor, Cogumelo, Espinafre, Maxixe, Nabo,
+      Pepino, Pimentão, Quiabo, Rabanete, Repolho, Rúcula, Tomate.
+    </div>
+    <div class="liberados-nota">
+      Cru, cozido ou assado. Tempere com limão, vinagre, azeite (1 col. chá),
+      cúrcuma, salsa, cebolinha, alho, orégano, coentro, alecrim, manjericão.
+    </div>
+  </div>
+</div>
+
+<!-- ===== PÁGINA 7 — RECEITAS PRÁTICAS ===== -->
+<div class="pagina">
+  <div class="receitas-titulo">Receitas</div>
+  <div class="receitas-subtitulo">da Nutri Júlia Pinheiro — Práticas, sem complicação</div>
+
+  <div class="receita-secao">
+    <div class="receita-secao-titulo">Substituições para o café da manhã</div>
+    <div class="receita-aviso">*Coma a opção base do plano ou substitua por uma dessas:</div>
+    <div class="receita-opcao">
+      <div class="receita-opcao-titulo">Opção 1 — Crepioca recheada</div>
+      <div class="receita-opcao-corpo">Misture 1 ovo + 2 col. sopa de tapioca + 1 pitada de sal. Despeje na frigideira antiaderente quente. Recheie com queijo minas frescal esfarelado. Vire e sirva. 5 minutos.</div>
+    </div>
+    <div class="receita-opcao">
+      <div class="receita-opcao-titulo">Opção 2 — Tigela de iogurte com aveia</div>
+      <div class="receita-opcao-corpo">100g de iogurte grego + 20g de farelo de aveia + mamão picado. Mistura tudo na tigela. Zero fogo. Ideal para quem não tem fome cedo e quer algo rápido.</div>
+    </div>
+    <div class="receita-opcao">
+      <div class="receita-opcao-titulo">Opção 3 — Panqueca de aveia e banana</div>
+      <div class="receita-opcao-corpo">1 banana pequena amassada + 1 ovo + 2 col. sopa de aveia em flocos. Mistura e faz na frigideira antiaderente. Rende 2-3 panquecas. Pode comer com queijo por cima.</div>
+    </div>
+    <div class="receita-opcao">
+      <div class="receita-opcao-titulo">Opção 4 — Pão com ovo e queijo (clássico)</div>
+      <div class="receita-opcao-corpo">2 fatias de pão integral + ovo mexido com queijo cottage + mamão no lado. A base do plano — se funcionar, não precisa mudar.</div>
+    </div>
+  </div>
+
+  <div class="receita-secao">
+    <div class="receita-secao-titulo">Substituições para o almoço e jantar</div>
+    <div class="receita-aviso">*Coma a opção base do plano ou substitua por uma dessas:</div>
+    <div class="receita-opcao">
+      <div class="receita-opcao-titulo">Opção 1 — Frango xadrez rápido</div>
+      <div class="receita-opcao-corpo">130g de frango em cubos + pimentão + cebola + abobrinha refogados no azeite com shoyu (1 col. chá) e gengibre. Sirva com arroz. Anti-inflamatório, saboroso, 15 minutos.</div>
+    </div>
+    <div class="receita-opcao">
+      <div class="receita-opcao-titulo">Opção 2 — Bowl de quinoa com ovo</div>
+      <div class="receita-opcao-corpo">80g de quinoa cozida + 2 ovos mexidos + brócolis no vapor + fio de azeite + limão. Ideal para o jantar — leve, proteico, sem sujeira.</div>
+    </div>
+    <div class="receita-opcao">
+      <div class="receita-opcao-titulo">Opção 3 — Omelete recheada no forno</div>
+      <div class="receita-opcao-corpo">3 ovos + abobrinha picada + queijo frescal + tomate. Misture e asse em forma antiaderente por 15 min a 180°C. Sirva com batata-doce cozida e salada à vontade.</div>
+    </div>
+    <div class="receita-opcao">
+      <div class="receita-opcao-titulo">Opção 4 — Carne moída com legumes</div>
+      <div class="receita-opcao-corpo">100g de patinho moído refogado com cebola, alho, tomate e cúrcuma. Acrescente cenoura e vagem picadas. Sirva com arroz + feijão. Rende 2 porções — pode guardar para o dia seguinte.</div>
+    </div>
+  </div>
+
+  <div class="receita-secao">
+    <div class="receita-secao-titulo">Opções de delivery para a sexta-feira</div>
+    <div class="receita-aviso">*Não precisa recusar — precisa escolher melhor:</div>
+    <div class="receita-opcao">
+      <div class="receita-opcao-titulo">Opção 1 — Japonês</div>
+      <div class="receita-opcao-corpo">Grelhados (teppanyaki de frango ou carne) + salada + edamame. Evite temaki frito e molhos cremosos. Hot roll eventual — não é o fim do plano.</div>
+    </div>
+    <div class="receita-opcao">
+      <div class="receita-opcao-titulo">Opção 2 — Hambúrguer</div>
+      <div class="receita-opcao-corpo">Peça sem molho especial (maionese industrial). Acrescente salada extra. Batata frita: compartilhe ao invés de porção individual.</div>
+    </div>
+    <div class="receita-opcao">
+      <div class="receita-opcao-titulo">Opção 3 — Comida por quilo / prato</div>
+      <div class="receita-opcao-corpo">Proteína grelhada + arroz + feijão + salada à vontade. Se quiser um doce, escolha fruta ou sorvete de fruta. A regra: monte o prato, não pique enquanto espera.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PÁGINA 8 — ORIENTAÇÕES PERSONALIZADAS + ATENÇÃO ===== -->
+<div class="pagina">
+  <div class="secao-titulo" style="margin-bottom:14px">Orientações Personalizadas</div>
+  <div class="orient-grid">
+    <div class="orient-card">
+      <div class="orient-card-titulo">Orientações Gerais</div>
+      <ul class="orient-card-body">
+        <li>Fixe horários como âncoras — não dependa de sentir fome para comer</li>
+        <li>Tome o magnésio todo dia à noite — sono melhor em 1 semana</li>
+        <li>Ômega-3 com a refeição gordurosa do dia — almoço ou jantar</li>
+        <li>Cúrcuma no tempero diário — anti-inflamatório da SOP</li>
+        <li>Kefir ou iogurte natural 1x/dia — microbioma + candidíase</li>
+        <li>Alho no preparo das refeições — prebiótico natural</li>
+        <li>Levotiroxina não está em uso — mas se iniciar, informar Júlia</li>
+        <li>Yasmin: tomar sempre no mesmo horário, não parar sem consultar</li>
+      </ul>
+    </div>
+    <div class="orient-card">
+      <div class="orient-card-titulo">Alimentos a Reduzir</div>
+      <ul class="orient-card-body">
+        <li>Açúcar refinado e mel em excesso — alimentam candidíase e pioram RI</li>
+        <li>Ultraprocessados doces (biscoito recheado, barra de cereal, granola com açúcar)</li>
+        <li>Álcool — piora candidíase, retenção hídrica e sono</li>
+        <li>Bebidas açucaradas — suco de caixinha, refrigerante, energético</li>
+        <li>Frituras frequentes — gordura saturada agrava inflamação da SOP</li>
+        <li>Sódio excessivo — embutidos, snacks, molhos industriais — piora inchaço</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="orient-card" style="margin-top:10px">
+    <div class="orient-card-titulo">Sexta-Feira com o Namorado · Saída Social · Delivery</div>
+    <ul class="orient-card-body">
+      <li>A sexta não precisa ser perfeita — ela precisa ser consciente. Uma refeição livre não desfaz uma semana.</li>
+      <li>Antes do delivery: coma o lanche da tarde normalmente. Chegar com fome é a raiz do exagero.</li>
+      <li>No delivery: proteína + carboidrato + vegetal quando possível. Molhos cremosos e frituras: divida.</li>
+      <li>Álcool: prefira vinho seco ou destilado puro. Drinks açucarados inflamam e pioram o inchaço do dia seguinte.</li>
+      <li>Se sair do plano: não espere segunda-feira. A próxima refeição já é recomeço — sem culpa.</li>
+    </ul>
+  </div>
+
+  <div class="atencao-box">
+    <div class="atencao-titulo">A T E N Ç Ã O</div>
+    <ul class="atencao-body">
+      <li>Perceba os sinais de saciedade — comer devagar ajuda muito nessa percepção</li>
+      <li>Se pular uma refeição, pode comer a mesma em outro horário — não compensar na próxima</li>
+      <li>Pese os alimentos pelo menos nas primeiras 2 semanas — olho e balança são coisas diferentes</li>
+      <li>Furou? Não se culpe — volte na próxima refeição. Não existe "já que hoje já fui…"</li>
+      <li>Beba água ao longo do dia — não tudo de uma vez. Garrafa de 500mL: 5 garrafinhas no dia</li>
+      <li>Prefira temperos naturais: cúrcuma, salsa, alho, limão, orégano — evite sal em excesso</li>
+      <li>Evite frituras frequentes — prefira grelhado, assado ou cozido</li>
+      <li>Não corte carboidrato à noite — isso piora o cortisol e a compulsão. O CHO noturno é estratégico.</li>
+      <li>Não diminua a proteína — proteína em todas as refeições é o que vai reduzir o belisco</li>
+      <li>O inchaço da fase lútea não é fracasso — é fisiologia. Pese-se sempre após a menstruação</li>
+      <li>A balança pode não mover no primeiro mês — a cintura e a energia vão responder antes</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ===== PÁGINA 9 — CICLO/TPM + MONITORAMENTO ===== -->
+<div class="pagina">
+  <div class="ciclo-box">
+    <div class="ciclo-titulo">Monitor de Ciclo Menstrual</div>
+    <div class="ciclo-grid">
+      <div class="ciclo-item"><div class="ciclo-val">18</div><div class="ciclo-label">dias desde o último ciclo</div></div>
+      <div class="ciclo-item"><div class="ciclo-val">~14</div><div class="ciclo-label">dias para o próximo ciclo</div></div>
+      <div class="ciclo-item"><div class="ciclo-val">Lútea</div><div class="ciclo-label">fase atual estimada</div></div>
+    </div>
+    <div class="ciclo-alerta">
+      Você está na fase lútea agora — é exatamente por isso que o inchaço e a compulsão por doce estão mais intensos.
+      Não é fraqueza. É fisiologia. O peso pode estar 1–2kg maior por retenção hídrica — não é gordura, não é fracasso.
+      Pese-se sempre após o 2º ou 3º dia da menstruação para ter o número real.
+      Com SOP, o ciclo pode variar — anote o primeiro dia de cada menstruação para acompanhar.
+    </div>
+  </div>
+
+  <div class="secao-titulo" style="margin:12px 0 6px;color:var(--verde)">Micronutrientes · Apoio à TPM e Ciclo · SOP</div>
+  <div class="tpm-grid">
+    <div class="tpm-item"><div class="tpm-nome">Ômega-3</div><div class="tpm-dose">2g EPA+DHA/dia</div><div class="tpm-func">Anti-inflamatório SOP. Obrigatório. Substitui o peixe.</div></div>
+    <div class="tpm-item"><div class="tpm-nome">Magnésio</div><div class="tpm-dose">300mg/noite</div><div class="tpm-func">Cólica, ansiedade, compulsão doce, sono, constipação.</div></div>
+    <div class="tpm-item"><div class="tpm-nome">Zinco</div><div class="tpm-dose">15mg/dia</div><div class="tpm-func">Candidíase, imunidade, depleção por ACO.</div></div>
+    <div class="tpm-item"><div class="tpm-nome">Vitamina D</div><div class="tpm-dose">Conforme exame</div><div class="tpm-func">SOP, humor, imunidade, inflamação.</div></div>
+    <div class="tpm-item"><div class="tpm-nome">Probiótico</div><div class="tpm-dose">1 cáp./dia</div><div class="tpm-func">Microbioma, candidíase recorrente, intestino.</div></div>
+  </div>
+
+  <div class="secao-titulo" style="margin:10px 0 6px;color:var(--verde)">Opções de Doce Saudável · Fase Lútea e TPM</div>
+  <div class="doce-grid" style="margin-bottom:14px">
+    <div class="doce-item"><strong>Chocolate amargo 70%+</strong> — 2 quadradinhos. Magnésio natural. A Isabela pode e deve incluir.</div>
+    <div class="doce-item"><strong>Iogurte grego com mel e canela</strong> — 1 potinho. Proteína + satisfação. Controla a compulsão.</div>
+    <div class="doce-item"><strong>Banana congelada com cacau em pó</strong> — ½ banana + 1 col. chá de cacau. Doçura natural sem açúcar.</div>
+    <div class="doce-item"><strong>Castanhas com uva-passa</strong> — 1 punhado. Energia + minerais + gordura boa.</div>
+    <div class="doce-item"><strong>Tâmara com pasta de amendoim</strong> — 1 unidade. Doçura natural + saciedade real.</div>
+    <div class="doce-item"><strong>Leite morno com cacau 100% e canela</strong> — 1 xícara. Conforto noturno sem culpa.</div>
+  </div>
+
+  <div class="monitor">
+    <div class="monitor-titulo">O que Acompanhar · Além do Peso</div>
+    <div class="monitor-intro">
+      O número na balança é um dado — não o único. Energia, sono, inchaço e como você
+      se sente na roupa são resultados tão reais quanto qualquer peso.
+    </div>
+    <div class="monitor-grid">
+      <div class="monitor-item"><div class="monitor-label">Peso</div><div class="monitor-freq">Após menstruação</div></div>
+      <div class="monitor-item"><div class="monitor-label">Circunferência abdominal</div><div class="monitor-freq">A cada 30 dias</div></div>
+      <div class="monitor-item"><div class="monitor-label">Foto</div><div class="monitor-freq">Mensal</div></div>
+      <div class="monitor-item"><div class="monitor-label">Intestino</div><div class="monitor-freq">Diário</div></div>
+      <div class="monitor-item"><div class="monitor-label">Energia ao acordar</div><div class="monitor-freq">Diário (nota 1-10)</div></div>
+      <div class="monitor-item"><div class="monitor-label">Inchaço abdominal</div><div class="monitor-freq">Semanal</div></div>
+      <div class="monitor-item"><div class="monitor-label">Compulsão por doce</div><div class="monitor-freq">Semanal (frequência)</div></div>
+      <div class="monitor-item"><div class="monitor-label">Como se sente na roupa</div><div class="monitor-freq">Semanal</div></div>
+      <div class="monitor-item"><div class="monitor-label">Retorno com Júlia</div><div class="monitor-freq">30 dias</div></div>
+    </div>
+    <div class="monitor-nota">
+      Pese-se sempre após o fim da menstruação — o peso na fase lútea pode estar 1–2kg maior por retenção hídrica.
+      Isso não reflete gordura. A cintura abdominal é o marcador mais importante deste plano.
+    </div>
+  </div>
+</div>
+
+<!-- ===== PÁGINA 10 — ENCERRAMENTO ===== -->
+<div class="pagina" style="display:flex;flex-direction:column;align-items:center;justify-content:center">
+  <div class="enc-frase">"Quem você quer ser<br>é inegociável."</div>
+  <div class="enc-nome">
+    Nutricionista Júlia Pinheiro · CRN 20100737<br>
+    pinheiro.juliabarbosa@gmail.com · @JuliaPinheiro.Nutri
+  </div>
+  <div class="enc-validade">
+    Plano elaborado exclusivamente para Isabela Moura ·
+    Válido até 03/07/2026
+  </div>
+</div>
+
+</div>
+</body>
+</html>
