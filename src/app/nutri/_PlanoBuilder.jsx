@@ -1262,14 +1262,16 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
   async function adicionarImagem(refId, file) {
     if (!file || uploadandoRef) return;
     setUploadandoRef(refId);
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (!currentUser) { setUploadandoRef(null); alert('Sessão expirada. Faça login novamente.'); return; }
     const ext = file.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
-    const path = `${nutriId}/${pacienteId}/${refId}/${Date.now()}.${ext}`;
+    const path = `${currentUser.id}/${pacienteId}/${refId}/${Date.now()}.${ext}`;
     const { error: upErr } = await supabase.storage.from('plano-imagens').upload(path, file, { upsert: false });
     if (upErr) { setUploadandoRef(null); alert('Erro ao enviar imagem: ' + upErr.message); return; }
     const { data: { publicUrl } } = supabase.storage.from('plano-imagens').getPublicUrl(path);
     const ordem = imagensPorRef[refId]?.length ?? 0;
     const { data: inserted, error: insErr } = await supabase.from('refeicao_imagens').insert({
-      refeicao_id: refId, nutri_id: nutriId, paciente_id: pacienteId,
+      refeicao_id: refId, nutri_id: currentUser.id, paciente_id: pacienteId,
       url: publicUrl, path, ordem,
     }).select().single();
     setUploadandoRef(null);
