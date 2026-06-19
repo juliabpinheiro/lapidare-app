@@ -1264,6 +1264,7 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
     setUploadandoRef(refId);
     const { data: { user: currentUser } } = await supabase.auth.getUser();
     if (!currentUser) { setUploadandoRef(null); alert('Sessão expirada. Faça login novamente.'); return; }
+    console.log('[adicionarImagem] currentUser.id:', currentUser.id);
     const ext = file.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
     const path = `${currentUser.id}/${pacienteId}/${refId}/${Date.now()}.${ext}`;
     const { error: upErr } = await supabase.storage.from('plano-imagens').upload(path, file, { upsert: false });
@@ -1275,7 +1276,7 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
       url: publicUrl, path, ordem,
     }).select().single();
     setUploadandoRef(null);
-    if (insErr || !inserted) return;
+    if (insErr || !inserted) { console.error('[adicionarImagem] erro INSERT:', insErr); return; }
     setImagensPorRef(prev => ({ ...prev, [refId]: [...(prev[refId] ?? []), inserted] }));
   }
 
