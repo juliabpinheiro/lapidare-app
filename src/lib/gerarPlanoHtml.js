@@ -248,7 +248,9 @@ function pag2(e) {
 
 function imgsHtml(urls) {
   if (!urls?.length) return '';
-  return `<div class="ref-imagens">${urls.map(u => `<img class="ref-imagem" src="${esc(u)}" alt="" />`).join('')}</div>`;
+  const n = urls.length;
+  const w = n === 1 ? '100%' : n === 2 ? 'calc(50% - 4px)' : n === 3 ? 'calc(33.33% - 4px)' : 'calc(25% - 4px)';
+  return `<div class="ref-imagens">${urls.map(u => `<img class="ref-imagem" src="${esc(u)}" alt="" style="flex:0 0 ${w};max-width:${w}" />`).join('')}</div>`;
 }
 
 function pagRef(ref, idx, e, subsTexto, refImagens) {
@@ -338,8 +340,8 @@ const CSS = `
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
   html,body{width:210mm;background:white!important;margin:0;padding:0}
   .btn-container{display:none!important}
-  .pagina{width:210mm!important;height:auto!important;margin:0!important;padding:16mm 16mm 16mm 20mm!important;box-shadow:none!important;break-after:page;break-inside:auto}
-  .pagina:last-child{page-break-after:avoid;break-after:avoid}
+  .pagina{width:210mm!important;min-height:297mm!important;margin:0!important;padding:16mm 16mm 16mm 20mm!important;box-shadow:none!important;break-after:page!important;page-break-after:always!important;break-inside:avoid!important;box-sizing:border-box!important}
+  .pagina:last-child{page-break-after:avoid!important;break-after:avoid!important}
   .refeicao{break-inside:avoid;page-break-inside:avoid}
   .grupo{break-inside:avoid;page-break-inside:avoid}
   .pms-grid{break-inside:avoid;page-break-inside:avoid}
@@ -351,7 +353,7 @@ const CSS = `
 :root{--verde:#173103;--terra:#95380A;--bege:#E9E5DD;--begeR:#DED3C6;--branco:#FFF;--txt:#173103;--txtL:#5a5a5a;--ok:#173103;--warn:#b97d00;--err:#c0392b}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Poppins',sans-serif;font-weight:300;background:#E9E5DD;color:var(--txt);font-size:11px;line-height:1.6;-webkit-font-smoothing:antialiased;margin:0;padding:0}
-.pagina{width:210mm;height:auto;margin:0 auto;background:#FFF;padding:16mm 16mm 16mm 20mm;position:relative;box-shadow:0 2px 16px rgba(0,0,0,.10);overflow:hidden;break-after:page;break-inside:auto}
+.pagina{width:210mm;min-height:297mm;margin:0 auto;background:#FFF;padding:16mm 16mm 16mm 20mm;position:relative;box-shadow:0 2px 16px rgba(0,0,0,.10);break-after:page;page-break-after:always;break-inside:avoid;box-sizing:border-box}
 .pagina:last-child{page-break-after:avoid;break-after:avoid}
 .pagina::before{content:'';position:absolute;left:0;top:0;width:5px;height:100%;background:linear-gradient(180deg,#95380A 0%,#173103 100%)}
 .refeicao{page-break-inside:avoid;margin-bottom:14px}
@@ -435,8 +437,8 @@ h1,h2,h3{page-break-after:avoid}
 .enc-frase{font-family:'Playfair Display',serif;font-style:italic;font-size:26px;color:var(--verde);line-height:1.4;margin-bottom:28px;max-width:480px;text-align:center}
 .enc-nome{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--txtL);line-height:2;text-align:center}
 .enc-validade{font-size:11px;color:var(--txtL);margin-top:14px;text-align:center}
-.ref-imagens{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;break-inside:avoid;page-break-inside:avoid}
-.ref-imagem{flex:0 0 calc(25% - 5px);max-width:calc(25% - 5px);height:80px;object-fit:cover;border-radius:4px;display:block}
+.ref-imagens{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0;break-inside:avoid;page-break-inside:avoid}
+.ref-imagem{height:120px;object-fit:cover;border-radius:4px;display:block}
 `;
 
 export function gerarPlanoHtml({ pacienteNome, plano, extras, subsTexto, nutriNome, nutriCrn, nutriEmail, pacienteDados, imagensPorRefId = {} }) {
