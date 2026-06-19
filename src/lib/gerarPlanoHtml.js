@@ -246,7 +246,12 @@ function pag2(e) {
   </div>`);
 }
 
-function pagRef(ref, idx, e, subsTexto) {
+function imgsHtml(urls) {
+  if (!urls?.length) return '';
+  return `<div class="ref-imagens">${urls.map(u => `<img class="ref-imagem" src="${esc(u)}" alt="" />`).join('')}</div>`;
+}
+
+function pagRef(ref, idx, e, subsTexto, refImagens) {
   const sugestao = e.sugestoes?.[idx] ?? '';
   const nota = e.notas?.[idx] ?? '';
   const mealKey = normMealKey(ref.nome ?? '');
@@ -266,9 +271,11 @@ function pagRef(ref, idx, e, subsTexto) {
     ${horarioLinha ? `<div class="ref-horario">${esc(horarioLinha)}</div>` : ''}
     <div class="ref-sugestao-label">Sugestão da nutri:</div>
     ${foodTable(ref.alimentos)}
+    ${imgsHtml(refImagens)}
     ${sugestao ? `<div class="ref-sugestao">Sugestão da nutri: ${esc(sugestao)}</div>` : ''}
     ${subs}
     ${nota ? `<div class="ref-nota">${esc(nota)}</div>` : ''}
+    ${ref.obs?.trim() ? `<div class="ref-obs"><span class="ref-obs-label">Observação da nutri:</span>${esc(ref.obs.trim())}</div>` : ''}
   </div>`);
 }
 
@@ -332,7 +339,6 @@ const CSS = `
   html,body{width:210mm;background:white!important;margin:0;padding:0}
   .btn-container{display:none!important}
   .pagina{width:210mm!important;height:auto!important;margin:0!important;padding:16mm 16mm 16mm 20mm!important;box-shadow:none!important;break-after:page;break-inside:auto}
-  .pagina+.pagina{break-before:page;page-break-before:always}
   .pagina:last-child{page-break-after:avoid;break-after:avoid}
   .refeicao{break-inside:avoid;page-break-inside:avoid}
   .grupo{break-inside:avoid;page-break-inside:avoid}
@@ -345,8 +351,7 @@ const CSS = `
 :root{--verde:#173103;--terra:#95380A;--bege:#E9E5DD;--begeR:#DED3C6;--branco:#FFF;--txt:#173103;--txtL:#5a5a5a;--ok:#173103;--warn:#b97d00;--err:#c0392b}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Poppins',sans-serif;font-weight:300;background:#E9E5DD;color:var(--txt);font-size:11px;line-height:1.6;-webkit-font-smoothing:antialiased;margin:0;padding:0}
-.pagina{width:210mm;height:auto;margin:0 auto 16px auto;background:#FFF;padding:16mm 16mm 16mm 20mm;position:relative;box-shadow:0 2px 16px rgba(0,0,0,.10);overflow:hidden;break-after:page;break-inside:auto}
-.pagina+.pagina{break-before:page;page-break-before:always}
+.pagina{width:210mm;height:auto;margin:0 auto;background:#FFF;padding:16mm 16mm 16mm 20mm;position:relative;box-shadow:0 2px 16px rgba(0,0,0,.10);overflow:hidden;break-after:page;break-inside:auto}
 .pagina:last-child{page-break-after:avoid;break-after:avoid}
 .pagina::before{content:'';position:absolute;left:0;top:0;width:5px;height:100%;background:linear-gradient(180deg,#95380A 0%,#173103 100%)}
 .refeicao{page-break-inside:avoid;margin-bottom:14px}
@@ -410,6 +415,8 @@ h1,h2,h3{page-break-after:avoid}
 .grupo-label{font-size:7.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--terra);font-weight:700;text-align:center;margin-bottom:2px}
 .grupo-caixa{background:var(--bege);border-radius:6px;padding:5px 12px;text-align:center;font-size:9.5px;color:var(--txt);line-height:1.5}
 .ref-nota{font-size:11px;font-style:italic;color:var(--terra);margin-top:6px;padding:6px 10px;background:#fdf3ee;border-radius:4px;border-left:3px solid var(--terra)}
+.ref-obs{font-size:11px;margin-top:8px;padding:7px 12px;background:#f0f4eb;border-radius:4px;border-left:3px solid var(--verde);color:var(--txt);line-height:1.6;break-inside:avoid;page-break-inside:avoid}
+.ref-obs-label{display:block;font-family:'Lato',sans-serif;font-size:7.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--verde);font-weight:700;margin-bottom:3px}
 .liberados-titulo-it{font-family:'Playfair Display',serif;font-style:italic;font-size:18px;color:var(--txtL);line-height:1}
 .liberados-titulo-bold{font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:var(--verde);line-height:1;margin-bottom:16px}
 .liberados-caixa{background:var(--bege);border-radius:6px;padding:18px 24px;font-size:11px;color:var(--txt);line-height:2;text-align:center;margin-bottom:8px}
@@ -428,9 +435,11 @@ h1,h2,h3{page-break-after:avoid}
 .enc-frase{font-family:'Playfair Display',serif;font-style:italic;font-size:26px;color:var(--verde);line-height:1.4;margin-bottom:28px;max-width:480px;text-align:center}
 .enc-nome{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--txtL);line-height:2;text-align:center}
 .enc-validade{font-size:11px;color:var(--txtL);margin-top:14px;text-align:center}
+.ref-imagens{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;break-inside:avoid;page-break-inside:avoid}
+.ref-imagem{flex:0 0 calc(25% - 5px);max-width:calc(25% - 5px);height:80px;object-fit:cover;border-radius:4px;display:block}
 `;
 
-export function gerarPlanoHtml({ pacienteNome, plano, extras, subsTexto, nutriNome, nutriCrn, nutriEmail, pacienteDados }) {
+export function gerarPlanoHtml({ pacienteNome, plano, extras, subsTexto, nutriNome, nutriCrn, nutriEmail, pacienteDados, imagensPorRefId = {} }) {
   const e = extras ?? {};
   const macros = plano?.macros ?? {};
   const refeicoes = plano?.refeicoes ?? [];
@@ -440,7 +449,7 @@ export function gerarPlanoHtml({ pacienteNome, plano, extras, subsTexto, nutriNo
   const paginas = [
     pag1(pacienteNome, macros, e, pacienteDados),
     pag2(e),
-    ...refeicoes.map((ref, i) => pagRef(ref, i, e, subsEfetivo)),
+    ...refeicoes.map((ref, i) => pagRef(ref, i, e, subsEfetivo, imagensPorRefId[ref.id] ?? [])),
     pagCustomMeals(subsEfetivo),
     pagTotais(e),
     pagOrientacoes(e),

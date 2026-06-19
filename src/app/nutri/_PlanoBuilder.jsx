@@ -604,7 +604,7 @@ function ModalAlimento({ isSub, nutriId, onConfirm, onConfirmMulti, onFechar }) 
   const [erroManual, setErroManual] = useState(null);
 
   useEffect(() => {
-    if (tab !== 'manual' || !nutriId) return;
+    if ((tab !== 'manual' && tab !== 'meus') || !nutriId) return;
     supabase.from('alimentos_personalizados')
       .select('*').eq('nutri_id', nutriId)
       .order('created_at', { ascending: false })
@@ -694,8 +694,8 @@ function ModalAlimento({ isSub, nutriId, onConfirm, onConfirmMulti, onFechar }) 
         {/* Tabs */}
         <div style={{ display: 'flex', padding: '10px 20px 0', borderBottom: '1px solid var(--border)', marginTop: 6, overflowX: 'auto' }}>
           {(isSub
-            ? [['lista', 'Lista pronta'], ['taco', 'TACO'], ['tbca', 'TBCA (USP)'], ['tucunduva', 'Tucunduva'], ['manual', 'Digitar']]
-            : [['taco', 'TACO'], ['tbca', 'TBCA (USP)'], ['tucunduva', 'Tucunduva'], ['manual', 'Digitar']]
+            ? [['lista', 'Lista pronta'], ['meus', 'Meus alimentos'], ['taco', 'TACO'], ['tbca', 'TBCA (USP)'], ['tucunduva', 'Tucunduva'], ['manual', 'Digitar']]
+            : [['meus', 'Meus alimentos'], ['taco', 'TACO'], ['tbca', 'TBCA (USP)'], ['tucunduva', 'Tucunduva'], ['manual', 'Digitar']]
           ).map(([id, lbl]) => (
             <button key={id} onClick={() => setTab(id)} style={{
               padding: '7px 12px', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap',
@@ -784,6 +784,74 @@ function ModalAlimento({ isSub, nutriId, onConfirm, onConfirmMulti, onFechar }) 
 
           {/* ── Tucunduva ── */}
           {tab === 'tucunduva' && <TabTabela dados={TUCUNDUVA_DATA} rotulo="Tucunduva" onAdicionar={onConfirm} />}
+
+          {/* ── Meus alimentos ── */}
+          {tab === 'meus' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {salvos.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text3)' }}>
+                  <div style={{ fontSize: 13, marginBottom: 6 }}>Nenhum alimento cadastrado ainda.</div>
+                  <div style={{ fontSize: 12 }}>Use a aba <strong>Digitar</strong> para criar e salvar alimentos personalizados.</div>
+                </div>
+              ) : (
+                <>
+                  <div style={{ fontSize: 12, color: 'var(--text3)', marginBottom: 4 }}>
+                    {salvos.length} alimento{salvos.length !== 1 ? 's' : ''} — clique para adicionar ao plano
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    {salvos.map(s => (
+                      <div key={s.id}>
+                        {editandoId === s.id ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '8px 10px', background: '#fffbf5', borderRadius: 6, border: '1px solid var(--border)' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                              <div>
+                                <label className="field-label">Nome</label>
+                                <input value={editForm.nome ?? ''} onChange={e => setEditForm(p => ({ ...p, nome: e.target.value }))} autoFocus />
+                              </div>
+                              <div>
+                                <label className="field-label">Quantidade</label>
+                                <input value={editForm.qty ?? ''} onChange={e => setEditForm(p => ({ ...p, qty: e.target.value }))} />
+                              </div>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6 }}>
+                              {[['kcal','Kcal'],['prot_g','Prot'],['cho_g','Carb'],['lip_g','Gord']].map(([k, lbl]) => (
+                                <div key={k}>
+                                  <label className="field-label">{lbl}</label>
+                                  <input inputMode="decimal" value={editForm[k] ?? ''} onChange={e => setEditForm(p => ({ ...p, [k]: e.target.value }))} />
+                                </div>
+                              ))}
+                            </div>
+                            <div style={{ display: 'flex', gap: 6 }}>
+                              <button className="btn" style={{ fontSize: 11, padding: '5px 12px' }} onClick={atualizarSalvo}>Salvar</button>
+                              <button className="btn-outline" style={{ fontSize: 11, padding: '5px 10px' }} onClick={() => setEditandoId(null)}>Cancelar</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 8px', borderRadius: 6, border: '1px solid var(--border)', background: '#fafafa' }}>
+                            <button
+                              onClick={() => onConfirm({ id: uid(), nome: s.nome, qty: s.qty || '—', kcal: s.kcal, prot_g: s.prot_g, cho_g: s.cho_g, lip_g: s.lip_g, subs: [], catKey: '' })}
+                              style={{ flex: 1, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                            >
+                              <div style={{ fontSize: 13, color: 'var(--dark)', fontWeight: 500 }}>{s.nome}</div>
+                              <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 1 }}>
+                                {[s.qty, s.kcal != null && `${s.kcal} kcal`, s.prot_g != null && `P:${s.prot_g}g`, s.cho_g != null && `C:${s.cho_g}g`, s.lip_g != null && `G:${s.lip_g}g`].filter(Boolean).join(' · ')}
+                              </div>
+                            </button>
+                            <button title="Editar" onClick={() => { setEditandoId(s.id); setEditForm({ nome: s.nome, qty: s.qty ?? '', kcal: s.kcal ?? '', prot_g: s.prot_g ?? '', cho_g: s.cho_g ?? '', lip_g: s.lip_g ?? '' }); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--text3)', fontSize: 13 }}>
+                              <i className="ti ti-pencil" aria-hidden="true" />
+                            </button>
+                            <button title="Excluir" onClick={() => excluirSalvo(s.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--text3)', fontSize: 13 }}>
+                              <i className="ti ti-trash" aria-hidden="true" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
 
           {/* ── Digitar manualmente ── */}
           {tab === 'manual' && (
@@ -987,6 +1055,9 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
   const [draft, setDraft]         = useState('salvo'); // 'salvo' | 'salvando'
   const [previaTab, setPreviaTab] = useState('app');
   const draftTimer                = useRef(null);
+  const [imagensPorRef, setImagensPorRef] = useState({}); // { [refId]: [{id, url, path, ordem}] }
+  const [uploadandoRef, setUploadandoRef] = useState(null);
+  const fileInputsRef             = useRef({});
 
   /* Carrega info da nutri para o PDF */
   useEffect(() => {
@@ -1157,6 +1228,25 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
     carregarDoSupabase();
   }, [pacienteId, nutriId, DRAFT_KEY]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  /* Carrega imagens das refeições do Supabase */
+  useEffect(() => {
+    if (!nutriId || !pacienteId) return;
+    supabase.from('refeicao_imagens')
+      .select('*')
+      .eq('nutri_id', nutriId)
+      .eq('paciente_id', pacienteId)
+      .order('ordem')
+      .then(({ data }) => {
+        if (!data?.length) return;
+        const grouped = {};
+        for (const img of data) {
+          if (!grouped[img.refeicao_id]) grouped[img.refeicao_id] = [];
+          grouped[img.refeicao_id].push(img);
+        }
+        setImagensPorRef(grouped);
+      });
+  }, [nutriId, pacienteId]);
+
   /* Auto-save rascunho (debounce 2s) */
   useEffect(() => {
     setDraft('salvando');
@@ -1168,10 +1258,35 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
     return () => clearTimeout(draftTimer.current);
   }, [refeicoes, DRAFT_KEY]);
 
+  /* ── Handlers de imagem ──────────────────────────────────── */
+  async function adicionarImagem(refId, file) {
+    if (!file || uploadandoRef) return;
+    setUploadandoRef(refId);
+    const ext = file.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+    const path = `${nutriId}/${pacienteId}/${refId}/${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from('plano-imagens').upload(path, file, { upsert: false });
+    if (upErr) { setUploadandoRef(null); alert('Erro ao enviar imagem: ' + upErr.message); return; }
+    const { data: { publicUrl } } = supabase.storage.from('plano-imagens').getPublicUrl(path);
+    const ordem = imagensPorRef[refId]?.length ?? 0;
+    const { data: inserted, error: insErr } = await supabase.from('refeicao_imagens').insert({
+      refeicao_id: refId, nutri_id: nutriId, paciente_id: pacienteId,
+      url: publicUrl, path, ordem,
+    }).select().single();
+    setUploadandoRef(null);
+    if (insErr || !inserted) return;
+    setImagensPorRef(prev => ({ ...prev, [refId]: [...(prev[refId] ?? []), inserted] }));
+  }
+
+  async function removerImagem(refId, imgId, imgPath) {
+    await supabase.storage.from('plano-imagens').remove([imgPath]);
+    await supabase.from('refeicao_imagens').delete().eq('id', imgId);
+    setImagensPorRef(prev => ({ ...prev, [refId]: (prev[refId] ?? []).filter(i => i.id !== imgId) }));
+  }
+
   /* ── Handlers de refeição ─────────────────────────────────── */
   function adicionarRefeicao() {
     const sug = SUGESTOES[refeicoes.length] ?? { nome: '', horario: '' };
-    setRefeicoes(prev => [...prev, { id: uid(), nome: sug.nome, horario: sug.horario, alimentos: [] }]);
+    setRefeicoes(prev => [...prev, { id: uid(), nome: sug.nome, horario: sug.horario, alimentos: [], obs: '' }]);
   }
 
   function removerRefeicao(refId) {
@@ -1268,6 +1383,9 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
       quadril_cm: n(pacienteDadosPdf.quadril_cm),
       objetivo:   pacienteDadosPdf.objetivo.trim() || null,
     };
+    const imagensPorRefId = Object.fromEntries(
+      Object.entries(imagensPorRef).map(([k, imgs]) => [k, imgs.map(i => i.url)])
+    );
     return gerarPlanoHtml({
       pacienteNome,
       plano:      buildPlano(),
@@ -1277,8 +1395,9 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
       nutriCrn:   nutriInfo.crn,
       nutriEmail: nutriInfo.email,
       pacienteDados,
+      imagensPorRefId,
     });
-  }, [temAlimentos, refeicoes, orientacoes, nutriInfo, pacienteDadosPdf, pacienteNome]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [temAlimentos, refeicoes, orientacoes, nutriInfo, pacienteDadosPdf, pacienteNome, imagensPorRef]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── Constrói objeto plano para salvar/PDF ───────────────── */
   function buildPlano() {
@@ -1287,6 +1406,7 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
       .map(r => {
         const tot = somaAlimentos(r.alimentos);
         return {
+          id:        r.id,
           nome:      r.nome,
           horario:   r.horario,
           kcal:      rd(tot.kcal, 0),
@@ -1297,6 +1417,7 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
             nome: a.nome, qty: a.qty, kcal: a.kcal, prot_g: a.prot_g, cho_g: a.cho_g, lip_g: a.lip_g, catKey: a.catKey || '',
             subs: (a.subs ?? []).map(s => ({ id: s.id, nome: s.nome, qty: s.qty, kcal: s.kcal, prot_g: s.prot_g, cho_g: s.cho_g, lip_g: s.lip_g })),
           })),
+          obs: r.obs?.trim() || '',
         };
       });
     return {
@@ -1320,6 +1441,9 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
       quadril_cm: n(pacienteDadosPdf.quadril_cm),
       objetivo:   pacienteDadosPdf.objetivo.trim() || null,
     };
+    const imagensPorRefId = Object.fromEntries(
+      Object.entries(imagensPorRef).map(([k, imgs]) => [k, imgs.map(i => i.url)])
+    );
     const html = gerarPlanoHtml({
       pacienteNome,
       plano:         buildPlano(),
@@ -1335,6 +1459,7 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
       nutriCrn:      nutriInfo.crn,
       nutriEmail:    nutriInfo.email,
       pacienteDados,
+      imagensPorRefId,
     });
     const win = window.open('', '_blank');
     if (!win) { alert('Permita pop-ups para abrir o PDF.'); return; }
@@ -1560,11 +1685,73 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
               </div>
             )}
 
-            {/* Footer: adicionar alimento */}
-            <div style={{ padding: '10px 16px', borderTop: ref.alimentos.length > 0 ? '1px solid var(--border)' : 'none' }}>
+            {/* Imagens da refeição */}
+            {((imagensPorRef[ref.id]?.length ?? 0) > 0 || uploadandoRef === ref.id) && (
+              <div style={{ padding: '8px 16px 4px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(90px, 1fr))', gap: 8 }}>
+                  {(imagensPorRef[ref.id] ?? []).map(img => (
+                    <div key={img.id} style={{ position: 'relative', borderRadius: 8, overflow: 'hidden', aspectRatio: '1 / 1', background: '#f0ebe3' }}>
+                      <img src={img.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      <button
+                        onClick={() => removerImagem(ref.id, img.id, img.path)}
+                        title="Remover imagem"
+                        style={{ position: 'absolute', top: 4, right: 4, background: 'rgba(0,0,0,.55)', border: 'none', borderRadius: '50%', width: 22, height: 22, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12, padding: 0 }}
+                      >
+                        <i className="ti ti-x" aria-hidden="true" />
+                      </button>
+                    </div>
+                  ))}
+                  {uploadandoRef === ref.id && (
+                    <div style={{ borderRadius: 8, background: '#f0ebe3', aspectRatio: '1 / 1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: 'var(--text3)', flexDirection: 'column', gap: 4 }}>
+                      <i className="ti ti-loader-2" style={{ fontSize: 18, animation: 'spin 1s linear infinite' }} aria-hidden="true" />
+                      <span>Enviando…</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Observação da nutri */}
+            <div style={{ padding: '10px 16px 0' }}>
+              <textarea
+                value={ref.obs ?? ''}
+                onChange={e => setRefField(ref.id, 'obs', e.target.value)}
+                placeholder="Observação da nutri (aparece no PDF)..."
+                rows={2}
+                style={{
+                  width: '100%', fontSize: 12, resize: 'vertical',
+                  border: '1px solid var(--border)', borderRadius: 6,
+                  padding: '7px 10px', fontFamily: 'var(--font-sans)',
+                  color: 'var(--dark)', background: 'var(--bg-soft)',
+                  lineHeight: 1.5,
+                }}
+              />
+            </div>
+
+            {/* Footer: adicionar alimento + imagem */}
+            <div style={{ padding: '10px 16px', borderTop: ref.alimentos.length > 0 ? '1px solid var(--border)' : 'none', display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
               <button className="btn-outline" style={{ fontSize: 12 }} onClick={() => setModal({ refId: ref.id, alimentoId: null })}>
                 <i className="ti ti-plus" aria-hidden="true" /> Adicionar alimento
               </button>
+              <button
+                className="btn-outline"
+                style={{ fontSize: 12 }}
+                onClick={() => fileInputsRef.current[ref.id]?.click()}
+                disabled={uploadandoRef === ref.id}
+              >
+                <i className="ti ti-photo-plus" aria-hidden="true" /> {uploadandoRef === ref.id ? 'Enviando…' : 'Adicionar imagem'}
+              </button>
+              <input
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                ref={el => { fileInputsRef.current[ref.id] = el; }}
+                onChange={e => {
+                  const f = e.target.files?.[0];
+                  if (f) adicionarImagem(ref.id, f);
+                  e.target.value = '';
+                }}
+              />
             </div>
           </div>
         );

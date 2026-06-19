@@ -35,6 +35,7 @@ export default function Plano() {
   const [plano, setPlano] = useState(undefined); // undefined=loading, null=vazio
   const [validade, setValidade] = useState(null);
   const [planoVisual, setPlanoVisual] = useState(null);
+  const [imagensPorRefId, setImagensPorRefId] = useState({});
   const [relatorio, setRelatorio] = useState(undefined); // undefined=loading, null=sem resp
   const [respostaRelatorio, setRespostaRelatorio] = useState('');
   const [enviandoRelatorio, setEnviandoRelatorio] = useState(false);
@@ -75,6 +76,20 @@ export default function Plano() {
       .eq('paciente_id', user.id)
       .order('created_at', { ascending: false })
       .then(({ data }) => setRecibos(data ?? []));
+
+    supabase.from('refeicao_imagens')
+      .select('*')
+      .eq('paciente_id', user.id)
+      .order('ordem')
+      .then(({ data }) => {
+        if (!data?.length) return;
+        const grouped = {};
+        for (const img of data) {
+          if (!grouped[img.refeicao_id]) grouped[img.refeicao_id] = [];
+          grouped[img.refeicao_id].push(img);
+        }
+        setImagensPorRefId(grouped);
+      });
   }, [user]);
 
   async function submitRelatorio() {
@@ -124,6 +139,9 @@ export default function Plano() {
     if (!plano) { alert('Plano não carregado ainda.'); return; }
 
     const visual = planoVisual ?? {};
+    const imagensPorRefId_pdf = Object.fromEntries(
+      Object.entries(imagensPorRefId).map(([k, imgs]) => [k, imgs.map(i => i.url)])
+    );
     const html = gerarPlanoHtml({
       pacienteNome: visual.paciente_dados?.nome ?? user?.user_metadata?.nome ?? user?.email ?? '',
       plano,
@@ -133,6 +151,7 @@ export default function Plano() {
       nutriCrn:   visual.nutri_crn   ?? '',
       nutriEmail: visual.nutri_email ?? '',
       pacienteDados: visual.paciente_dados ?? null,
+      imagensPorRefId: imagensPorRefId_pdf,
     });
 
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -320,7 +339,10 @@ export default function Plano() {
       )}
 
       {/* Refeições */}
-      {plano.refeicoes?.map((ref, ri) => (
+      {plano.refeicoes?.map((ref, ri) => {
+        const refId = ref.id ?? planoVisual?.refeicoes?.[ri]?.id;
+        const refImagens = refId ? (imagensPorRefId[refId] ?? []) : [];
+        return (
         <div key={ri} className="refeicao-card">
           <div className="refeicao-header">
             <div>
@@ -344,6 +366,20 @@ export default function Plano() {
               {al.kcal && <span className="alimento-kcal">{al.kcal} kcal</span>}
             </div>
           ))}
+
+          {/* Imagens de produtos */}
+          {refImagens.length > 0 && (
+            <div style={{ padding: '8px 12px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(72px, 1fr))', gap: 6 }}>
+              {refImagens.map(img => (
+                <img
+                  key={img.id}
+                  src={img.url}
+                  alt=""
+                  style={{ width: '100%', aspectRatio: '1 / 1', objectFit: 'cover', borderRadius: 8, display: 'block' }}
+                />
+              ))}
+            </div>
+          )}
 
           {/* Substituições por refeição (agrupadas por categoria, vindas de planoVisual) */}
           {(() => {
@@ -373,7 +409,8 @@ export default function Plano() {
             </div>
           )}
         </div>
-      ))}
+        );
+      })}
 
       {/* Orientações */}
       {(() => {
