@@ -135,9 +135,8 @@ export default function Plano() {
   const totalFeitos = plano.refeicoes?.filter(r => r.feita).length ?? 0;
   const total = plano.refeicoes?.length ?? 0;
 
-  async function baixarPdf() {
+  function baixarPdf() {
     if (!plano) { alert('Plano não carregado ainda.'); return; }
-
     const visual = planoVisual ?? {};
     const imagensPorRefId_pdf = Object.fromEntries(
       Object.entries(imagensPorRefId).map(([k, imgs]) => [k, imgs.map(i => i.url)])
@@ -153,63 +152,11 @@ export default function Plano() {
       pacienteDados: visual.paciente_dados ?? null,
       imagensPorRefId: imagensPorRefId_pdf,
     });
-
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-
-    // iOS: abre HTML em nova aba — sem nenhum await antes do window.open
-    if (isIOS) {
-      const win = window.open('', '_blank');
-      if (win) {
-        win.document.write(html);
-        win.document.close();
-      } else {
-        alert('Permita pop-ups para baixar o plano.');
-      }
-      return;
-    }
-
-    // Não-iOS: gera PDF com html2pdf
-    const styleEl = document.createElement('style');
-    const elemento = document.createElement('div');
-
-    try {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      styleEl.textContent = doc.querySelector('style')?.textContent ?? '';
-      document.head.appendChild(styleEl);
-      elemento.innerHTML = doc.body?.innerHTML ?? html;
-      elemento.style.cssText = 'position:absolute;left:-9999px;top:0;width:210mm;background:#E9E5DD';
-      document.body.appendChild(elemento);
-
-      if (!window.html2pdf) {
-        await new Promise((resolve, reject) => {
-          const s = document.createElement('script');
-          s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
-          s.onload = resolve;
-          s.onerror = reject;
-          document.head.appendChild(s);
-        });
-      }
-
-      const nomePaciente = (visual.paciente_dados?.nome ?? 'alimentar')
-        .normalize('NFD').replace(/[^a-z0-9 ]/gi, '').trim().replace(/ +/g, '_').toLowerCase();
-
-      const opt = {
-        margin: 0,
-        filename: `plano_${nomePaciente}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
-      };
-
-      await window.html2pdf().set(opt).from(elemento).save();
-    } catch(e) {
-      alert('Erro ao gerar PDF: ' + e.message);
-    } finally {
-      if (document.body.contains(elemento)) document.body.removeChild(elemento);
-      if (document.head.contains(styleEl)) document.head.removeChild(styleEl);
-    }
+    const win = window.open('', '_blank');
+    if (!win) { alert('Permita pop-ups para baixar o plano.'); return; }
+    win.document.write(html);
+    win.document.close();
+    win.print();
   }
 
   return (
