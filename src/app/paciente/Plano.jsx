@@ -224,28 +224,33 @@ export default function Plano() {
 
       {/* Banner do plano completo */}
       {planoVisual && (
-        <div style={{
-          margin: '0 0 12px', background: 'linear-gradient(135deg, #173103 0%, #95380A 100%)',
-          borderRadius: 12, padding: '14px 16px',
-          display: 'flex', alignItems: 'center', gap: 12,
-        }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#fff', marginBottom: 2 }}>
-              Plano alimentar completo disponível
-            </div>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)' }}>
-              Prioridades, metas, substituições e orientações personalizadas
-            </div>
-          </div>
-          <button onClick={baixarPdf} style={{
-            background: '#fff', color: '#95380A', border: 'none', borderRadius: 8,
-            padding: '8px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
-            whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 5,
+        <>
+          <div style={{
+            margin: '0 0 8px', background: 'linear-gradient(135deg, #173103 0%, #95380A 100%)',
+            borderRadius: 12, padding: '14px 16px',
+            display: 'flex', alignItems: 'center', gap: 12,
           }}>
-            <i className="ti ti-download" style={{ fontSize: 14 }} aria-hidden="true"></i>
-            Baixar PDF
-          </button>
-        </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#fff', marginBottom: 2 }}>
+                Plano alimentar completo disponível
+              </div>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)' }}>
+                Prioridades, metas, substituições e orientações personalizadas
+              </div>
+            </div>
+            <button onClick={baixarPdf} style={{
+              background: '#fff', color: '#95380A', border: 'none', borderRadius: 8,
+              padding: '8px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+              whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 5,
+            }}>
+              <i className="ti ti-download" style={{ fontSize: 14 }} aria-hidden="true"></i>
+              Baixar PDF
+            </button>
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--muted)', textAlign: 'center', marginBottom: 12, lineHeight: 1.5 }}>
+            Na tela de impressão, selecione "Salvar como PDF" ou "Microsoft Print to PDF" e clique em Imprimir para baixar o arquivo.
+          </div>
+        </>
       )}
 
       {/* Macros */}
