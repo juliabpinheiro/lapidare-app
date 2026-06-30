@@ -318,7 +318,7 @@ function pagEncerramento(pacienteNome, e, nutriNome, nutriCrn, nutriEmail) {
   const frase = e.frase_encerramento ?? '"Quem você quer ser é inegociável."';
   const validade = e.validade ?? '';
   return pagina(`
-  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:220mm">
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40mm 0">
     <div class="enc-frase">${esc(frase).replace(/\\n/g,'<br>')}</div>
     <div class="enc-nome">
       ${esc(nutriNome ? `Nutricionista ${nutriNome}` : '')}${nutriCrn ? ` · CRN ${esc(nutriCrn)}` : ''}<br>
@@ -340,7 +340,7 @@ const CSS = `
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
   html,body{width:210mm;background:white!important;margin:0;padding:0}
   .btn-container{display:none!important}
-  .pagina{width:210mm!important;min-height:297mm!important;margin:0!important;padding:16mm 16mm 16mm 20mm!important;box-shadow:none!important;break-after:page!important;page-break-after:always!important;break-inside:avoid!important;box-sizing:border-box!important}
+  .pagina{width:210mm!important;height:auto!important;overflow:visible!important;margin:0!important;padding:16mm 16mm 16mm 20mm!important;box-shadow:none!important;break-after:page!important;page-break-after:always!important;box-sizing:border-box!important}
   .pagina:last-child{page-break-after:avoid!important;break-after:avoid!important}
   .refeicao{break-inside:avoid;page-break-inside:avoid}
   .grupo{break-inside:avoid;page-break-inside:avoid}
@@ -353,7 +353,7 @@ const CSS = `
 :root{--verde:#173103;--terra:#95380A;--bege:#E9E5DD;--begeR:#DED3C6;--branco:#FFF;--txt:#173103;--txtL:#5a5a5a;--ok:#173103;--warn:#b97d00;--err:#c0392b}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Poppins',sans-serif;font-weight:300;background:#E9E5DD;color:var(--txt);font-size:11px;line-height:1.6;-webkit-font-smoothing:antialiased;margin:0;padding:0}
-.pagina{width:210mm;min-height:297mm;margin:0 auto;background:#FFF;padding:16mm 16mm 16mm 20mm;position:relative;box-shadow:0 2px 16px rgba(0,0,0,.10);break-after:page;page-break-after:always;break-inside:avoid;box-sizing:border-box}
+.pagina{width:210mm;height:auto;overflow:visible;margin:0 auto;background:#FFF;padding:16mm 16mm 16mm 20mm;position:relative;box-shadow:0 2px 16px rgba(0,0,0,.10);break-after:page;page-break-after:always;box-sizing:border-box}
 .pagina:last-child{page-break-after:avoid;break-after:avoid}
 .pagina::before{content:'';position:absolute;left:0;top:0;width:5px;height:100%;background:linear-gradient(180deg,#95380A 0%,#173103 100%)}
 .refeicao{page-break-inside:avoid;margin-bottom:14px}
@@ -464,42 +464,18 @@ export function gerarPlanoHtml({ pacienteNome, plano, extras, subsTexto, nutriNo
 <meta charset="UTF-8">
 <title>Plano Alimentar — ${esc(pacienteNome)}</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Poppins:wght@300;400;500&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>${CSS}</style>
 </head>
 <body>
 <div class="btn-container">
   <button class="btn-voltar" onclick="window.close()">&#8592; Voltar ao app</button>
   <button class="btn-word" onclick="baixarWord()">&#8659; Baixar Word</button>
-  <button class="btn-pdf" onclick="baixarPdf()">&#8659; Baixar PDF</button>
+  <button class="btn-pdf" onclick="window.print()">&#8659; Baixar PDF</button>
 </div>
 <div id="plano-content">
 ${paginas.join('\n')}
 </div>
 <script>
-function baixarPdf() {
-  var btn = document.querySelector('.btn-container');
-  if (btn) btn.style.display = 'none';
-  var nomeTitulo = document.title.replace('Plano Alimentar — ', '').replace('Plano Alimentar - ', '').trim();
-  var s = nomeTitulo;
-  if (s.normalize) s = s.normalize('NFD');
-  s = s.replace(/[^A-Za-z0-9 ]/g, '').toLowerCase().trim().replace(/ +/g, '_');
-  var nomeArq = s || 'plano';
-  document.fonts.ready.then(function() {
-    html2pdf().from(document.getElementById('plano-content')).set({
-      margin: 0,
-      filename: 'plano_' + nomeArq + '.pdf',
-      html2canvas: { scale: 2, useCORS: true, logging: false },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: 'css' }
-    }).save().then(function() {
-      if (btn) btn.style.display = 'flex';
-    }).catch(function() {
-      if (btn) btn.style.display = 'flex';
-      window.print();
-    });
-  });
-}
 function baixarWord() {
   var nome = document.title.replace(/[<>:"/\\|?*]/g, '').trim();
   var estilos = Array.from(document.styleSheets).map(function(s) {
