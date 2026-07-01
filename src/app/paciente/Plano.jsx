@@ -248,7 +248,7 @@ export default function Plano() {
             </button>
           </div>
           <div style={{ fontSize: 11, color: 'var(--muted)', textAlign: 'center', marginBottom: 12, lineHeight: 1.5 }}>
-            Na tela de impressão, selecione "Salvar como PDF" ou "Microsoft Print to PDF" e clique em Imprimir para baixar o arquivo.
+            Para salvar como PDF: clique no botão acima → na tela que abrir, selecione "Salvar como PDF" ou "Microsoft Print to PDF" → clique em Imprimir.
           </div>
         </>
       )}
