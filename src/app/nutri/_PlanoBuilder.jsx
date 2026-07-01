@@ -1544,7 +1544,7 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
           {draft === 'salvando' ? 'Salvando rascunho…' : 'Rascunho salvo'}
         </span>
         <button className="btn-outline" onClick={gerarPdf} disabled={!temAlimentos}>
-          <i className="ti ti-printer" aria-hidden="true" /> Gerar PDF
+          <i className="ti ti-printer" aria-hidden="true" /> Imprimir / Salvar PDF
         </button>
         <button className="btn" onClick={liberarParaPaciente} disabled={publicando || !temAlimentos}>
           <i className="ti ti-send" aria-hidden="true" />
@@ -1994,7 +1994,7 @@ export default function PlanoBuilder({ pacienteId, nutriId, pacienteNome, pacien
             <div style={{ display: 'flex', justifyContent: 'center', padding: '0 0 8px' }}>
               <div>
                 <div style={{ fontSize: 11, color: '#888888', marginBottom: 8, textAlign: 'center' }}>
-                  Prévia — capa (página 1). Use "Gerar PDF" para ver o documento completo.
+                  Prévia — capa (página 1). Use "Imprimir / Salvar PDF" para ver o documento completo.
                 </div>
                 <div style={{
                   width: Math.round(794 * 0.4),

@@ -244,7 +244,7 @@ export default function Plano() {
               whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 5,
             }}>
               <i className="ti ti-download" style={{ fontSize: 14 }} aria-hidden="true"></i>
-              Baixar PDF
+              Imprimir / Salvar PDF
             </button>
           </div>
           <div style={{ fontSize: 11, color: 'var(--muted)', textAlign: 'center', marginBottom: 12, lineHeight: 1.5 }}>
