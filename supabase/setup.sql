@@ -968,6 +968,7 @@ alter table public.pacientes        add column if not exists nascimento       da
 alter table public.pacientes        add column if not exists termo_aceito_em  timestamptz;
 alter table public.pacientes        add column if not exists termo_versao     text;
 alter table public.pacientes        add column if not exists obs              text;
+alter table public.pacientes        add column if not exists whatsapp         text;
 
 alter table public.checkin_templates add column if not exists tipo text not null default 'recorrente';
 alter table public.checkin_templates drop constraint if exists checkin_templates_tipo_check;

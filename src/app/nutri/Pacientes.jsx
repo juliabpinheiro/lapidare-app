@@ -18,7 +18,7 @@ export default function Pacientes() {
     const [pacRes, pendRes] = await Promise.all([
       supabase
         .from('pacientes')
-        .select('id, nome, email, objetivo, tipo_plano, modalidade, created_at, ativo')
+        .select('id, nome, email, objetivo, tipo_plano, modalidade, created_at, ativo, whatsapp')
         .order('created_at', { ascending: false }),
       supabase
         .from('pacientes_pendentes')
@@ -44,6 +44,31 @@ export default function Pacientes() {
     if (!window.confirm(`Remover "${p.nome}" da lista de pendentes?`)) return;
     await supabase.from('pacientes_pendentes').delete().eq('id', p.id);
     carregar();
+  }
+
+  function numeroWhats(raw) {
+    const digitos = (raw || '').replace(/\D/g, '');
+    if (!digitos) return null;
+    return digitos.startsWith('55') ? digitos : `55${digitos}`;
+  }
+
+  function mensagemWhats(nome) {
+    const primeiroNome = nome.split(' ')[0];
+    return encodeURIComponent(
+      `Oi ${primeiroNome}! 😊\n\nSeu acesso ao app de acompanhamento nutricional já está pronto!\n\n` +
+      `📱 Link: https://app-juliapinheiro.netlify.app\n` +
+      `🔑 Senha inicial: 12345\n\n` +
+      `Pra deixar o app na tela inicial do celular:\n` +
+      `📲 Android: acesse o link pelo Chrome, toque nos 3 pontinhos e escolha "Adicionar à tela inicial"\n` +
+      `🍎 iPhone: acesse o link pelo Safari, toque no ícone de compartilhar e escolha "Adicionar à Tela de Início"\n\n` +
+      `Assim que entrar, recomendo trocar a senha em Mais → Alterar senha 🔒\n\nQualquer dúvida, me chama!`
+    );
+  }
+
+  function linkWhatsapp(p) {
+    const numero = numeroWhats(p.whatsapp);
+    const texto = mensagemWhats(p.nome);
+    return numero ? `https://wa.me/${numero}?text=${texto}` : `https://wa.me/?text=${texto}`;
   }
 
   const filtradas = useMemo(() => {
@@ -191,7 +216,22 @@ export default function Pacientes() {
                         fontSize: 12, fontWeight: 600, color: 'var(--dark)'
                       }}>{iniciais(p.nome)}</div>
                       <div>
-                        <div style={{ fontWeight: 500 }}>{p.nome}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontWeight: 500 }}>{p.nome}</span>
+                          <a
+                            href={linkWhatsapp(p)}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={e => e.stopPropagation()}
+                            title="Enviar acesso pelo WhatsApp"
+                            style={{
+                              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                              width: 18, height: 18, color: '#25d366', flexShrink: 0,
+                            }}
+                          >
+                            <i className="ti ti-brand-whatsapp" style={{ fontSize: 14 }} aria-hidden="true"></i>
+                          </a>
+                        </div>
                         <div style={{ fontSize: 12, color: 'var(--text3)' }}>{p.email}</div>
                       </div>
                     </div>

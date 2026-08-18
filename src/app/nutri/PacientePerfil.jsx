@@ -31,6 +31,9 @@ export default function PacientePerfil() {
   const [editandoNasc, setEditandoNasc] = useState(false);
   const [novoNasc, setNovoNasc] = useState('');
   const [salvandoNasc, setSalvandoNasc] = useState(false);
+  const [editandoWhats, setEditandoWhats] = useState(false);
+  const [novoWhats, setNovoWhats] = useState('');
+  const [salvandoWhats, setSalvandoWhats] = useState(false);
   const [listaDraft, setListaDraft] = useState(null);
   const [ultimaAnamnese, setUltimaAnamnese] = useState(undefined); // undefined=carregando, null=sem anamnese
   const [confirmInativar, setConfirmInativar] = useState(false);
@@ -128,6 +131,16 @@ export default function PacientePerfil() {
     setSalvandoNasc(false);
     if (error) { alert('Erro: ' + error.message); return; }
     setEditandoNasc(false);
+    carregar();
+  }
+
+  async function salvarWhatsapp() {
+    setSalvandoWhats(true);
+    const { error } = await supabase.from('pacientes')
+      .update({ whatsapp: novoWhats.trim() || null }).eq('id', id);
+    setSalvandoWhats(false);
+    if (error) { alert('Erro: ' + error.message); return; }
+    setEditandoWhats(false);
     carregar();
   }
 
@@ -258,6 +271,48 @@ export default function PacientePerfil() {
                 fontFamily: 'var(--font-sans)',
               }}>
               + Adicionar data de nascimento
+            </button>
+          )}
+          {editandoWhats ? (
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, marginLeft: 10 }}>
+              <input type="tel" value={novoWhats} onChange={e => setNovoWhats(e.target.value)}
+                placeholder="ex: 11912345678"
+                style={{
+                  padding: '4px 8px', fontSize: 12, margin: 0, width: 140,
+                  border: '0.5px solid var(--border)', borderRadius: 6,
+                  fontFamily: 'var(--font-sans)',
+                }} />
+              <button onClick={salvarWhatsapp} disabled={salvandoWhats}
+                style={{
+                  background: 'var(--dark)', color: '#fff', border: 'none',
+                  borderRadius: 6, padding: '4px 10px', fontSize: 11, cursor: 'pointer',
+                }}>{salvandoWhats ? '…' : 'Salvar'}</button>
+              <button onClick={() => setEditandoWhats(false)} style={{
+                background: 'none', border: '0.5px solid var(--border)',
+                borderRadius: 6, padding: '4px 10px', fontSize: 11, cursor: 'pointer',
+              }}>Cancelar</button>
+            </div>
+          ) : paciente.whatsapp ? (
+            <button onClick={() => { setNovoWhats(paciente.whatsapp); setEditandoWhats(true); }}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                fontSize: 12, color: 'var(--text3)', padding: 0, marginLeft: 10,
+                display: 'inline-flex', alignItems: 'center', gap: 4,
+                fontFamily: 'var(--font-sans)',
+              }}>
+              <i className="ti ti-brand-whatsapp" style={{ fontSize: 13, color: '#25d366' }} aria-hidden="true"></i>
+              {paciente.whatsapp}
+              <i className="ti ti-edit" style={{ fontSize: 12, marginLeft: 2, opacity: .6 }} aria-hidden="true"></i>
+            </button>
+          ) : (
+            <button onClick={() => { setNovoWhats(''); setEditandoWhats(true); }}
+              style={{
+                background: 'none', border: '0.5px dashed var(--border)',
+                borderRadius: 6, padding: '3px 10px', fontSize: 11, marginLeft: 10,
+                color: 'var(--text3)', cursor: 'pointer',
+                fontFamily: 'var(--font-sans)',
+              }}>
+              + Adicionar WhatsApp
             </button>
           )}
         </div>
