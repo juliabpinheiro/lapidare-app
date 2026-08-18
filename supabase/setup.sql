@@ -1472,7 +1472,7 @@ create or replace function public.cadastrar_paciente_direto(
   p_obs        text    default null
 )
 returns jsonb
-language plpgsql security definer set search_path = public
+language plpgsql security definer set search_path = public, extensions
 as $$
 declare
   v_nutri_id uuid;

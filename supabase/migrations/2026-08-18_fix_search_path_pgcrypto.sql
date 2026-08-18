@@ -1,14 +1,12 @@
 -- =============================================================
--- Migration 2026-06-15
--- Senha padrão 12345 para novas pacientes cadastradas diretamente
+-- Migration 2026-08-18
+-- Fix: search_path de cadastrar_paciente_direto não incluía o
+-- schema onde o pgcrypto está instalado ("extensions"), causando
+-- "function gen_salt(unknown) does not exist" mesmo com a
+-- extensão habilitada.
 -- =============================================================
--- Antes: senha era gerada aleatoriamente (dois UUIDs concatenados),
---        e a paciente precisava usar "Esqueci minha senha" pra criar a própria.
--- Agora: senha padrão '12345' → paciente acessa direto com email + 12345,
---        e é orientada a trocar depois de entrar.
+-- Cole no SQL Editor do Supabase e clique em Run.
 -- =============================================================
-
-drop function if exists public.cadastrar_paciente_direto(text, text, date, text, text, text, text);
 
 create or replace function public.cadastrar_paciente_direto(
   p_nome       text,
