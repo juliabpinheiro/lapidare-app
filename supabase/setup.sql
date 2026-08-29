@@ -1499,7 +1499,14 @@ begin
   end if;
 
   if exists (select 1 from auth.users where email = lower(p_email)) then
-    raise exception 'Este email já possui uma conta no sistema.';
+    if exists (
+      select 1 from public.pacientes
+      where lower(email) = lower(p_email) and nutri_id = v_nutri_id
+    ) then
+      raise exception 'Este email já pertence a uma paciente sua (pode estar inativa). Pra reaproveitar o email, exclua definitivamente a paciente antiga primeiro (perfil da paciente → menu → Excluir paciente).';
+    else
+      raise exception 'Este email já possui uma conta no sistema (de outra nutricionista ou paciente). Peça pra ela usar outro email.';
+    end if;
   end if;
 
   -- Cria usuário no Auth sem enviar email (email_confirmed_at = now() → já confirmado)
@@ -1565,6 +1572,46 @@ end;
 $$;
 grant execute on function public.cadastrar_paciente_direto(text, text, date, text, text, text, text)
   to authenticated;
+
+-- 11.Z Exclusão definitiva de paciente (LGPD / cadastro incorreto) ---
+-- Apaga a conta de Auth da paciente; o ON DELETE CASCADE de public.pacientes
+-- (e de todas as tabelas clínicas que referenciam pacientes.id) cuida do
+-- resto automaticamente. Exceções tratadas à parte:
+--   • vendas.paciente_id é ON DELETE SET NULL (mantém histórico financeiro)
+--   • recibos_paciente não tem FK — apagamos explicitamente pra não deixar órfão
+create or replace function public.excluir_paciente_direto(p_paciente_id uuid)
+returns jsonb
+language plpgsql security definer set search_path = public, extensions
+as $$
+declare
+  v_nutri_id uuid;
+  v_paciente record;
+begin
+  v_nutri_id := nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub';
+
+  if v_nutri_id is null then
+    raise exception 'Sessão inválida. Faça login novamente.';
+  end if;
+
+  select * into v_paciente from public.pacientes where id = p_paciente_id;
+
+  if not found then
+    raise exception 'Paciente não encontrada.';
+  end if;
+
+  if v_paciente.nutri_id <> v_nutri_id then
+    raise exception 'Você não tem permissão para excluir esta paciente.';
+  end if;
+
+  delete from public.recibos_paciente where paciente_id = p_paciente_id;
+
+  delete from auth.users where id = p_paciente_id;
+
+  return jsonb_build_object('id', p_paciente_id, 'nome', v_paciente.nome);
+end;
+$$;
+
+grant execute on function public.excluir_paciente_direto(uuid) to authenticated;
 
 
 -- =============================================================

@@ -1,15 +1,14 @@
 -- =============================================================
--- Migration 2026-06-15
--- Senha padrão 12345 para novas pacientes cadastradas diretamente
+-- Migration 2026-08-29
+-- Exclusão definitiva de paciente + mensagem de erro mais clara
+-- quando o email já está em uso.
 -- =============================================================
--- Antes: senha era gerada aleatoriamente (dois UUIDs concatenados),
---        e a paciente precisava usar "Esqueci minha senha" pra criar a própria.
--- Agora: senha padrão '12345' → paciente acessa direto com email + 12345,
---        e é orientada a trocar depois de entrar.
+-- Cole no SQL Editor do Supabase e clique em Run.
 -- =============================================================
 
-drop function if exists public.cadastrar_paciente_direto(text, text, date, text, text, text, text);
-
+-- 1. cadastrar_paciente_direto: mensagem específica quando o email
+--    já pertence a uma paciente da própria nutri (orienta a excluir
+--    a paciente antiga em vez de só dizer "email já existe").
 create or replace function public.cadastrar_paciente_direto(
   p_nome       text,
   p_email      text,
@@ -116,3 +115,45 @@ $$;
 
 grant execute on function public.cadastrar_paciente_direto(text, text, date, text, text, text, text)
   to authenticated;
+
+
+-- 2. excluir_paciente_direto: apaga em cascata auth.users, auth.identities,
+--    public.pacientes e todas as tabelas clínicas relacionadas (peso_registros,
+--    habitos, habitos_logs, checkin_envios, anamneses, fotos_evolucao, etc.),
+--    via ON DELETE CASCADE já existente em cada uma delas.
+--    Exceções tratadas à parte:
+--      • vendas.paciente_id é ON DELETE SET NULL — histórico financeiro fica preservado
+--      • recibos_paciente não tem FK — apagado explicitamente pra não deixar órfão
+create or replace function public.excluir_paciente_direto(p_paciente_id uuid)
+returns jsonb
+language plpgsql security definer set search_path = public, extensions
+as $$
+declare
+  v_nutri_id uuid;
+  v_paciente record;
+begin
+  v_nutri_id := nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub';
+
+  if v_nutri_id is null then
+    raise exception 'Sessão inválida. Faça login novamente.';
+  end if;
+
+  select * into v_paciente from public.pacientes where id = p_paciente_id;
+
+  if not found then
+    raise exception 'Paciente não encontrada.';
+  end if;
+
+  if v_paciente.nutri_id <> v_nutri_id then
+    raise exception 'Você não tem permissão para excluir esta paciente.';
+  end if;
+
+  delete from public.recibos_paciente where paciente_id = p_paciente_id;
+
+  delete from auth.users where id = p_paciente_id;
+
+  return jsonb_build_object('id', p_paciente_id, 'nome', v_paciente.nome);
+end;
+$$;
+
+grant execute on function public.excluir_paciente_direto(uuid) to authenticated;

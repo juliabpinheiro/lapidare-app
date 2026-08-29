@@ -40,6 +40,11 @@ export default function PacientePerfil() {
   const [confirmInativar, setConfirmInativar] = useState(false);
   const [busyInativar, setBusyInativar] = useState(false);
   const [unreadExames, setUnreadExames] = useState(0);
+  const [menuOpcoesAberto, setMenuOpcoesAberto] = useState(false);
+  const [confirmExcluir, setConfirmExcluir] = useState(false);
+  const [textoConfirmExcluir, setTextoConfirmExcluir] = useState('');
+  const [busyExcluir, setBusyExcluir] = useState(false);
+  const [erroExcluir, setErroExcluir] = useState(null);
 
   async function carregar() {
     const { data } = await supabase
@@ -107,6 +112,22 @@ export default function PacientePerfil() {
     } catch (err) {
       alert('Erro inesperado: ' + (err?.message || 'tente de novo'));
     }
+  }
+
+  async function confirmarExcluir() {
+    setErroExcluir(null);
+    if (textoConfirmExcluir.trim().toLowerCase() !== paciente.nome.trim().toLowerCase()) {
+      setErroExcluir('O nome digitado não confere.');
+      return;
+    }
+    setBusyExcluir(true);
+    const { error } = await supabase.rpc('excluir_paciente_direto', { p_paciente_id: id });
+    setBusyExcluir(false);
+    if (error) {
+      setErroExcluir(error.message);
+      return;
+    }
+    navigate('/nutri/pacientes');
   }
 
   async function confirmarToggleAtivo() {
@@ -317,6 +338,35 @@ export default function PacientePerfil() {
             </button>
           )}
         </div>
+
+        <div style={{ position: 'relative' }}>
+          <button onClick={() => setMenuOpcoesAberto(v => !v)}
+            title="Mais opções"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', padding: 6, fontSize: 18 }}>
+            <i className="ti ti-dots-vertical" aria-hidden="true"></i>
+          </button>
+          {menuOpcoesAberto && (
+            <>
+              <div style={{ position: 'fixed', inset: 0, zIndex: 90 }} onClick={() => setMenuOpcoesAberto(false)}></div>
+              <div style={{
+                position: 'absolute', right: 0, top: '100%', marginTop: 4, zIndex: 100,
+                background: 'var(--white)', border: '0.5px solid var(--border)', borderRadius: 8,
+                boxShadow: '0 4px 12px rgba(0,0,0,.12)', minWidth: 175, padding: 4,
+              }}>
+                <button
+                  onClick={() => { setMenuOpcoesAberto(false); setTextoConfirmExcluir(''); setErroExcluir(null); setConfirmExcluir(true); }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+                    background: 'none', border: 'none', borderRadius: 6, padding: '8px 10px',
+                    fontSize: 12.5, color: 'var(--red)', cursor: 'pointer', textAlign: 'left',
+                    fontFamily: 'var(--font-sans)',
+                  }}>
+                  <i className="ti ti-trash" aria-hidden="true"></i> Excluir paciente
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="g3">
@@ -474,6 +524,71 @@ export default function PacientePerfil() {
                   color: '#fff', opacity: busyInativar ? .6 : 1,
                 }}>
                 {busyInativar ? '…' : paciente.ativo === false ? 'Reativar' : 'Inativar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirmExcluir && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 300,
+          background: 'rgba(28,23,18,.55)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: 24,
+        }} onClick={() => !busyExcluir && setConfirmExcluir(false)}>
+          <div style={{
+            background: 'var(--white)', borderRadius: 16,
+            padding: '24px 20px', width: '100%', maxWidth: 380,
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8, color: 'var(--red)' }}>
+              Excluir paciente definitivamente?
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--text3)', marginBottom: 14, lineHeight: 1.55 }}>
+              Isso apaga <strong>permanentemente</strong> a conta de acesso de {paciente.nome.split(' ')[0]} e todo o histórico dela (peso, medidas, hábitos, check-ins, anamnese, fotos, planos, prescrições etc). <strong>Não pode ser desfeito.</strong> Vendas já registradas são mantidas, sem vínculo com a paciente.
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--text3)', marginBottom: 6 }}>
+              Digite <strong>{paciente.nome}</strong> pra confirmar:
+            </div>
+            <input
+              value={textoConfirmExcluir}
+              onChange={e => setTextoConfirmExcluir(e.target.value)}
+              placeholder={paciente.nome}
+              autoFocus
+              style={{
+                width: '100%', padding: '10px 12px', fontSize: 13, marginBottom: 10,
+                border: '0.5px solid var(--border)', borderRadius: 8,
+                outline: 'none', fontFamily: 'var(--font-sans)', boxSizing: 'border-box',
+              }}
+            />
+            {erroExcluir && (
+              <div style={{
+                fontSize: 12, padding: '8px 12px', borderRadius: 6, marginBottom: 10,
+                background: 'var(--red-soft)', color: 'var(--red)',
+              }}>{erroExcluir}</div>
+            )}
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                onClick={() => setConfirmExcluir(false)}
+                disabled={busyExcluir}
+                style={{
+                  flex: 1, padding: '10px', borderRadius: 10, fontSize: 13,
+                  border: '0.5px solid var(--border)', background: 'transparent',
+                  cursor: 'pointer', fontFamily: 'var(--font-sans)',
+                }}>
+                Cancelar
+              </button>
+              <button
+                onClick={confirmarExcluir}
+                disabled={busyExcluir || textoConfirmExcluir.trim().toLowerCase() !== paciente.nome.trim().toLowerCase()}
+                style={{
+                  flex: 1, padding: '10px', borderRadius: 10, fontSize: 13, fontWeight: 600,
+                  border: 'none', cursor: busyExcluir ? 'not-allowed' : 'pointer',
+                  fontFamily: 'var(--font-sans)',
+                  background: '#e05555', color: '#fff',
+                  opacity: (busyExcluir || textoConfirmExcluir.trim().toLowerCase() !== paciente.nome.trim().toLowerCase()) ? .5 : 1,
+                }}>
+                {busyExcluir ? '…' : 'Excluir definitivamente'}
               </button>
             </div>
           </div>
