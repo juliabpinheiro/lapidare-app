@@ -12,6 +12,7 @@ const NAV_CONFIG = [
     group: 'Atendimento',
     items: [
       { id: 'visao',        path: '/nutri/visao',        label: 'Visão geral',         icon: 'layout-dashboard' },
+      { id: 'resumo',       path: '/nutri/resumo',       label: 'Resumo',              icon: 'report-analytics' },
       { id: 'pacientes',    path: '/nutri/pacientes',    label: 'Pacientes',           icon: 'users' },
       { id: 'agenda',       path: '/nutri/agenda',       label: 'Agenda',              icon: 'calendar' },
       { id: 'calendario',   path: '/nutri/calendario',   label: 'Calendário',          icon: 'calendar-month' },

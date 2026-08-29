@@ -13,6 +13,7 @@ import SignupPaciente from './app/auth/SignupPaciente.jsx';
 import RedefinirSenha from './app/auth/RedefinirSenha.jsx';
 
 import Visao from './app/nutri/Visao.jsx';
+import Resumo from './app/nutri/Resumo.jsx';
 import Pacientes from './app/nutri/Pacientes.jsx';
 import PacientePerfil from './app/nutri/PacientePerfil.jsx';
 import Agenda from './app/nutri/Agenda.jsx';
@@ -68,6 +69,7 @@ export default function App() {
           <Route element={<RequireAuth role="nutri"><NutriLayout /></RequireAuth>}>
             <Route path="/nutri" element={<Navigate to="/nutri/visao" replace />} />
             <Route path="/nutri/visao" element={<Visao />} />
+            <Route path="/nutri/resumo" element={<Resumo />} />
             <Route path="/nutri/pacientes" element={<Pacientes />} />
             <Route path="/nutri/pacientes/:id" element={<PacientePerfil />} />
             <Route path="/nutri/agenda" element={<Agenda />} />

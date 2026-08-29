@@ -17,6 +17,7 @@ import Anamnese from './_Anamnese.jsx';
 import MapaGeral from './_MapaGeral.jsx';
 import Bioimpedancia from './_Bioimpedancia.jsx';
 import Exames from './_Exames.jsx';
+import Resumo from './_Resumo.jsx';
 import PlanoBuilder from './_PlanoBuilder.jsx';
 import Recibo from './_Recibo.jsx';
 import DicaJSON from '../../components/DicaJSON.jsx';
@@ -365,6 +366,7 @@ export default function PacientePerfil() {
         overflowX: 'auto', scrollbarWidth: 'thin',
       }}>
         {[
+          { id: 'resumo',      label: 'Resumo',       icon: 'report-analytics' },
           { id: 'evolucao',    label: 'Evolução',     icon: 'chart-line' },
           { id: 'fotos',       label: 'Fotos',        icon: 'camera' },
           { id: 'mapa-geral',  label: 'Mapa Geral',   icon: 'map-2' },
@@ -411,6 +413,7 @@ export default function PacientePerfil() {
         ))}
       </div>
 
+      {tab === 'resumo'     && <Resumo pacienteId={paciente.id} />}
       {tab === 'evolucao'   && <Evolucao pacienteId={paciente.id} paciente={paciente} nutriId={user.id} />}
       {tab === 'fotos'      && <FotosEvolucao pacienteId={paciente.id} pacienteNome={paciente.nome} />}
       {tab === 'mapa-geral' && <MapaGeral pacienteId={paciente.id} nutriId={user.id} />}
