@@ -46,6 +46,27 @@ export function resumoHabitos(habitosPaciente, logsPaciente, dias = 30) {
   };
 }
 
+// Perguntas fixas do check-in semanal (tabela `checkins`, ver lib/checkinDefault.js
+// → PERGUNTAS_SEMANAL). Escala 1-5 em todas.
+export const CAMPOS_CHECKIN_SEMANAL = [
+  { id: 'bem_estar',   label: 'Bem-estar' },
+  { id: 'alimentacao', label: 'Alimentação' },
+  { id: 'energia',     label: 'Energia' },
+  { id: 'sono',        label: 'Sono' },
+  { id: 'atividade',   label: 'Atividade física' },
+];
+
+// checkinsPaciente: linhas de `checkins` de UMA paciente (campo `respostas` jsonb)
+export function mediaCheckinsSemanal(checkinsPaciente) {
+  return CAMPOS_CHECKIN_SEMANAL.map(campo => {
+    const valores = checkinsPaciente
+      .map(c => c.respostas?.[campo.id])
+      .filter(v => typeof v === 'number');
+    const media = valores.length ? valores.reduce((a, b) => a + b, 0) / valores.length : null;
+    return { ...campo, media, n: valores.length };
+  });
+}
+
 // pesoRegistrosPaciente: linhas de `peso_registros` de UMA paciente
 export function ultimaMedida(pesoRegistrosPaciente) {
   if (!pesoRegistrosPaciente.length) return null;

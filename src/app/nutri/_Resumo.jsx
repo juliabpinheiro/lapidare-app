@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase.js';
 import { dataBR } from '../../lib/utils.js';
-import { cutoffISO, resumoHabitos, ultimaMedida, evolucaoPeso } from '../../lib/resumoPaciente.js';
+import { cutoffISO, resumoHabitos, ultimaMedida, evolucaoPeso, mediaCheckinsSemanal } from '../../lib/resumoPaciente.js';
 
 const DIAS_JANELA = 30;
 
@@ -11,6 +11,7 @@ export default function Resumo({ pacienteId }) {
   const [logs, setLogs] = useState([]);
   const [pesos, setPesos] = useState([]);
   const [checkinsRespondidos, setCheckinsRespondidos] = useState(0);
+  const [checkinsSemanais, setCheckinsSemanais] = useState([]);
 
   useEffect(() => {
     let active = true;
@@ -18,7 +19,7 @@ export default function Resumo({ pacienteId }) {
       setCarregando(true);
       const cutoff = cutoffISO(DIAS_JANELA);
       const cutoffTs = new Date(Date.now() - DIAS_JANELA * 86_400_000).toISOString();
-      const [hRes, lRes, pRes, cRes] = await Promise.all([
+      const [hRes, lRes, pRes, cRes, csRes] = await Promise.all([
         supabase.from('habitos').select('id, nome, emoji, tipo, meta, unidade, ativo')
           .eq('paciente_id', pacienteId),
         supabase.from('habitos_logs').select('habito_id, data, valor')
@@ -27,12 +28,15 @@ export default function Resumo({ pacienteId }) {
           .eq('paciente_id', pacienteId).order('data', { ascending: false }),
         supabase.from('checkin_envios').select('id', { count: 'exact', head: true })
           .eq('paciente_id', pacienteId).not('respondido_em', 'is', null).gte('respondido_em', cutoffTs),
+        supabase.from('checkins').select('respostas, semana')
+          .eq('paciente_id', pacienteId).gte('semana', cutoff),
       ]);
       if (!active) return;
       setHabitos(hRes.data ?? []);
       setLogs(lRes.data ?? []);
       setPesos(pRes.data ?? []);
       setCheckinsRespondidos(cRes.count ?? 0);
+      setCheckinsSemanais(csRes.data ?? []);
       setCarregando(false);
     }
     carregar();
@@ -46,6 +50,7 @@ export default function Resumo({ pacienteId }) {
   const { mediaAgua, mediaSono, porHabito } = resumoHabitos(habitos, logs, DIAS_JANELA);
   const medida = ultimaMedida(pesos);
   const evolucao = evolucaoPeso(pesos);
+  const mediasCheckin = mediaCheckinsSemanal(checkinsSemanais);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
@@ -123,10 +128,25 @@ export default function Resumo({ pacienteId }) {
       {/* 3. Check-ins */}
       <div>
         <div className="section-label" style={{ marginBottom: 8 }}>Check-ins · último mês</div>
-        <div className="stat" style={{ maxWidth: 220 }}>
+        <div className="stat" style={{ maxWidth: 220, marginBottom: 12 }}>
           <div className="stat-lbl">Respondidos</div>
           <div className="stat-val" style={{ fontSize: 18 }}>{checkinsRespondidos}</div>
         </div>
+
+        {checkinsSemanais.length === 0 ? (
+          <div className="card empty-card" style={{ padding: 16 }}>
+            <div className="empty-sub">Nenhuma resposta de check-in semanal nos últimos {DIAS_JANELA} dias.</div>
+          </div>
+        ) : (
+          <div className="card" style={{ padding: 16 }}>
+            <div style={{ fontSize: 12, color: 'var(--text3)', marginBottom: 12 }}>
+              Média das respostas (escala 1-5) · {checkinsSemanais.length} check-in{checkinsSemanais.length === 1 ? '' : 's'}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {mediasCheckin.map(c => <BarraCheckin key={c.id} campo={c} />)}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 4. Evolução */}
@@ -148,6 +168,24 @@ export default function Resumo({ pacienteId }) {
             </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function BarraCheckin({ campo }) {
+  const pct = campo.media != null ? (campo.media / 5) * 100 : 0;
+  const cor = pct >= 70 ? 'var(--green, #10b981)' : pct >= 40 ? 'var(--orange)' : 'var(--red)';
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
+        <span>{campo.label}</span>
+        <span style={{ fontWeight: 600, color: campo.media != null ? cor : 'var(--text3)' }}>
+          {campo.media != null ? `${campo.media.toFixed(1)} / 5` : '—'}
+        </span>
+      </div>
+      <div style={{ height: 6, borderRadius: 999, background: 'var(--bg2)', overflow: 'hidden' }}>
+        <div style={{ height: '100%', width: `${pct}%`, borderRadius: 999, background: cor }}></div>
       </div>
     </div>
   );
