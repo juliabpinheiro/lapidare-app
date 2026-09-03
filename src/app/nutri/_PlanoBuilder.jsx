@@ -621,6 +621,7 @@ function ModalAlimento({ isSub, nutriId, onConfirm, onConfirmMulti, onFechar }) 
   const [erroManual, setErroManual] = useState(null);
   const [selSalvoId, setSelSalvoId] = useState(null);
   const [qtdSalvo, setQtdSalvo] = useState('');
+  const [subLivre, setSubLivre] = useState({ nome: '', qty: '' });
 
   useEffect(() => {
     if ((tab !== 'manual' && tab !== 'meus') || !nutriId) return;
@@ -700,6 +701,15 @@ function ModalAlimento({ isSub, nutriId, onConfirm, onConfirmMulti, onFechar }) 
       next.set(key, qty);
       return next;
     });
+  }
+
+  function adicionarSubLivre() {
+    if (!subLivre.nome.trim()) return;
+    onConfirm({
+      id: uid(), nome: subLivre.nome.trim(), qty: subLivre.qty.trim() || '',
+      kcal: null, prot_g: null, cho_g: null, lip_g: null, subs: [], catKey: '',
+    });
+    setSubLivre({ nome: '', qty: '' });
   }
 
   function confirmarLista() {
@@ -809,6 +819,37 @@ function ModalAlimento({ isSub, nutriId, onConfirm, onConfirmMulti, onFechar }) 
                   </div>
                 ))}
               </div>
+
+              {/* Substituto livre — não fica salvo, só entra no substituto deste alimento */}
+              <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.07em', color: 'var(--terra)', marginBottom: 8 }}>
+                  Substituto livre
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 8, marginBottom: 8 }}>
+                  <div>
+                    <label className="field-label">Nome</label>
+                    <input
+                      value={subLivre.nome}
+                      onChange={e => setSubLivre(p => ({ ...p, nome: e.target.value }))}
+                      onKeyDown={e => e.key === 'Enter' && adicionarSubLivre()}
+                      placeholder="ex: Pão sírio"
+                    />
+                  </div>
+                  <div>
+                    <label className="field-label">Quantidade</label>
+                    <input
+                      value={subLivre.qty}
+                      onChange={e => setSubLivre(p => ({ ...p, qty: e.target.value }))}
+                      onKeyDown={e => e.key === 'Enter' && adicionarSubLivre()}
+                      placeholder="ex: 1 unidade"
+                    />
+                  </div>
+                </div>
+                <button className="btn-outline" style={{ fontSize: 13 }} onClick={adicionarSubLivre} disabled={!subLivre.nome.trim()}>
+                  <i className="ti ti-plus" aria-hidden="true" /> Adicionar substituto
+                </button>
+              </div>
+
               <div style={{ position: 'sticky', bottom: 0, background: 'var(--white)', paddingTop: 14, marginTop: 14, borderTop: '1px solid var(--border)' }}>
                 <button className="btn" style={{ width: '100%', fontSize: 14 }} onClick={confirmarLista} disabled={listaSel.size === 0}>
                   Adicionar selecionados {listaSel.size > 0 ? `(${listaSel.size})` : ''}
