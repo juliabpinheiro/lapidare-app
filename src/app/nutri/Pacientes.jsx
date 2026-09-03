@@ -57,7 +57,7 @@ export default function Pacientes() {
     return encodeURIComponent(
       `Oi ${primeiroNome}! 😊\n\nSeu acesso ao app de acompanhamento nutricional já está pronto!\n\n` +
       `📱 Link: https://app-juliapinheiro.netlify.app\n` +
-      `🔑 Senha inicial: 12345\n\n` +
+      `🔑 Senha inicial: 123456\n\n` +
       `Pra deixar o app na tela inicial do celular:\n` +
       `📲 Android: acesse o link pelo Chrome, toque nos 3 pontinhos e escolha "Adicionar à tela inicial"\n` +
       `🍎 iPhone: acesse o link pelo Safari, toque no ícone de compartilhar e escolha "Adicionar à Tela de Início"\n\n` +

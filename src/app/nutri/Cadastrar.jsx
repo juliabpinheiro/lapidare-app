@@ -97,7 +97,7 @@ export default function Cadastrar() {
       `Oi ${primeiroNome}! 😊\n\nSeu perfil no app de acompanhamento nutricional já está pronto!\n\n` +
       `📱 Acesse: ${url}\n` +
       `📧 Email: ${email}\n` +
-      `🔑 Senha inicial: 12345\n\n` +
+      `🔑 Senha inicial: 123456\n\n` +
       `Assim que entrar, recomendo trocar a senha em Mais → Alterar senha 🔒\n\nQualquer dúvida, me chama!`
     );
   }
@@ -105,7 +105,7 @@ export default function Cadastrar() {
   return (
     <>
       <div className="page-title">Cadastrar paciente</div>
-      <div className="page-sub">Preencha os dados — a conta é criada com a senha inicial <strong>12345</strong>. A paciente acessa direto e pode trocar a senha quando quiser.</div>
+      <div className="page-sub">Preencha os dados — a conta é criada com a senha inicial <strong>123456</strong>. A paciente acessa direto e pode trocar a senha quando quiser.</div>
 
       <div className="cadastrar-grid">
 
@@ -168,7 +168,7 @@ export default function Cadastrar() {
               <div>
                 <div className="al-t" style={{ color: 'var(--blue)' }}>Como funciona</div>
                 <div className="al-d">
-                  Você preenche os dados e a conta é criada na hora com a senha padrão <strong>12345</strong>.
+                  Você preenche os dados e a conta é criada na hora com a senha padrão <strong>123456</strong>.
                   A paciente acessa direto com o email dela + essa senha. Depois do primeiro acesso, ela pode trocar em <em>Mais → Alterar senha</em>.
                 </div>
               </div>
@@ -220,7 +220,7 @@ function CartaoSucesso({ nome, email, mensagemWhats, onDispensar }) {
             ✓ {nome.split(' ')[0]} cadastrada!
           </div>
           <div style={{ fontSize: 12, color: 'var(--text2)', lineHeight: 1.5 }}>
-            Conta criada com senha inicial <strong>12345</strong>. Para acessar, ela usa o email abaixo + essa senha (pode trocar depois em Mais → Alterar senha):
+            Conta criada com senha inicial <strong>123456</strong>. Para acessar, ela usa o email abaixo + essa senha (pode trocar depois em Mais → Alterar senha):
           </div>
         </div>
         <button onClick={onDispensar}
