@@ -703,12 +703,18 @@ function ModalAlimento({ isSub, nutriId, onConfirm, onConfirmMulti, onFechar }) 
     });
   }
 
-  function adicionarSubLivre() {
-    if (!subLivre.nome.trim()) return;
-    onConfirm({
-      id: uid(), nome: subLivre.nome.trim(), qty: subLivre.qty.trim() || '',
-      kcal: null, prot_g: null, cho_g: null, lip_g: null, subs: [], catKey: '',
-    });
+  async function adicionarSubLivre() {
+    const nome = subLivre.nome.trim();
+    if (!nome) return;
+    const qty = subLivre.qty.trim() || '';
+    setSalvando(true); setErroManual(null);
+    const { data, error } = await supabase.from('alimentos_personalizados')
+      .insert({ nutri_id: nutriId, nome, qty, kcal: null, prot_g: null, cho_g: null, lip_g: null })
+      .select().single();
+    setSalvando(false);
+    if (error) { setErroManual(error.message); return; }
+    if (data) setSalvos(prev => [data, ...prev]);
+    onConfirm({ id: uid(), nome, qty: qty || '—', kcal: null, prot_g: null, cho_g: null, lip_g: null, subs: [], catKey: '' });
     setSubLivre({ nome: '', qty: '' });
   }
 
@@ -820,7 +826,7 @@ function ModalAlimento({ isSub, nutriId, onConfirm, onConfirmMulti, onFechar }) 
                 ))}
               </div>
 
-              {/* Substituto livre — não fica salvo, só entra no substituto deste alimento */}
+              {/* Substituto livre — salva em alimentos_personalizados (reutilizável) e já adiciona a este alimento */}
               <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
                 <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.07em', color: 'var(--terra)', marginBottom: 8 }}>
                   Substituto livre
@@ -845,8 +851,9 @@ function ModalAlimento({ isSub, nutriId, onConfirm, onConfirmMulti, onFechar }) 
                     />
                   </div>
                 </div>
-                <button className="btn-outline" style={{ fontSize: 13 }} onClick={adicionarSubLivre} disabled={!subLivre.nome.trim()}>
-                  <i className="ti ti-plus" aria-hidden="true" /> Adicionar substituto
+                {erroManual && <div style={{ fontSize: 11, color: 'var(--red)', marginBottom: 8 }}>{erroManual}</div>}
+                <button className="btn-outline" style={{ fontSize: 13 }} onClick={adicionarSubLivre} disabled={!subLivre.nome.trim() || salvando}>
+                  <i className="ti ti-plus" aria-hidden="true" /> {salvando ? 'Salvando…' : 'Salvar e adicionar'}
                 </button>
               </div>
 
