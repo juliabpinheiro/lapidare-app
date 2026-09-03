@@ -26,6 +26,23 @@ function uid() { return Math.random().toString(36).slice(2, 9); }
 function rd(v, d = 1) { if (v == null) return null; const m = 10 ** d; return Math.round(v * m) / m; }
 function fmt(v, d = 1) { if (v == null || isNaN(v)) return '—'; return Number(v).toFixed(d); }
 
+// Extrai a quantidade numérica base de uma string tipo "70g", "1 unidade", "150ml"
+// pra permitir escalar proporcionalmente quando o usuário edita a quantidade.
+function parseQtyBase(qtyStr) {
+  const s = (qtyStr || '').trim();
+  const m = s.match(/^([\d.,]+)(\s*)(.*)$/);
+  if (m && m[1]) {
+    const n = parseFloat(m[1].replace(',', '.'));
+    if (!isNaN(n) && n > 0) return { base: n, sep: m[2] || '', suffix: m[3] || '' };
+  }
+  return { base: 1, sep: s ? ' ' : '', suffix: s };
+}
+
+function formatQtyFromBase(n, parsed) {
+  const nStr = Number.isInteger(n) ? String(n) : String(rd(n, 1));
+  return `${nStr}${parsed.sep}${parsed.suffix}`;
+}
+
 function servingG(food) {
   if (food?.serving_g > 0) return food.serving_g;
   const s = food?.serving ?? '';
@@ -602,6 +619,8 @@ function ModalAlimento({ isSub, nutriId, onConfirm, onConfirmMulti, onFechar }) 
   const [editForm, setEditForm] = useState({});
   const [salvando, setSalvando] = useState(false);
   const [erroManual, setErroManual] = useState(null);
+  const [selSalvoId, setSelSalvoId] = useState(null);
+  const [qtdSalvo, setQtdSalvo] = useState('');
 
   useEffect(() => {
     if ((tab !== 'manual' && tab !== 'meus') || !nutriId) return;
@@ -643,6 +662,28 @@ function ModalAlimento({ isSub, nutriId, onConfirm, onConfirmMulti, onFechar }) 
   async function excluirSalvo(id) {
     await supabase.from('alimentos_personalizados').delete().eq('id', id);
     setSalvos(prev => prev.filter(s => s.id !== id));
+  }
+
+  function abrirQtdSalvo(s) {
+    setSelSalvoId(s.id);
+    setQtdSalvo(String(parseQtyBase(s.qty).base));
+  }
+
+  function confirmarSalvo(s) {
+    const parsed = parseQtyBase(s.qty);
+    const n = parseFloat(String(qtdSalvo).replace(',', '.'));
+    if (!n || n <= 0) return;
+    const f = n / parsed.base;
+    onConfirm({
+      id: uid(), nome: s.nome, qty: formatQtyFromBase(n, parsed),
+      kcal:   s.kcal   != null ? rd(s.kcal   * f, 0) : null,
+      prot_g: s.prot_g != null ? rd(s.prot_g * f, 1) : null,
+      cho_g:  s.cho_g  != null ? rd(s.cho_g  * f, 1) : null,
+      lip_g:  s.lip_g  != null ? rd(s.lip_g  * f, 1) : null,
+      subs: [], catKey: '',
+    });
+    setSelSalvoId(null);
+    setQtdSalvo('');
   }
 
   function toggleLista(key, defaultQty) {
@@ -891,10 +932,58 @@ function ModalAlimento({ isSub, nutriId, onConfirm, onConfirmMulti, onFechar }) 
                               <button className="btn-outline" style={{ fontSize: 11, padding: '5px 10px' }} onClick={() => setEditandoId(null)}>Cancelar</button>
                             </div>
                           </div>
+                        ) : selSalvoId === s.id ? (
+                          (() => {
+                            const parsed = parseQtyBase(s.qty);
+                            const n = parseFloat(String(qtdSalvo).replace(',', '.'));
+                            const f = n > 0 ? n / parsed.base : null;
+                            const preview = f != null ? {
+                              kcal:   s.kcal   != null ? rd(s.kcal   * f, 0) : null,
+                              prot_g: s.prot_g != null ? rd(s.prot_g * f, 1) : null,
+                              cho_g:  s.cho_g  != null ? rd(s.cho_g  * f, 1) : null,
+                              lip_g:  s.lip_g  != null ? rd(s.lip_g  * f, 1) : null,
+                            } : null;
+                            return (
+                              <div style={{ padding: '10px 10px 12px', background: '#fffbf5', borderRadius: 6, border: '1px solid var(--border)' }}>
+                                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--dark)', marginBottom: 8 }}>{s.nome}</div>
+                                {preview && (
+                                  <div style={{ display: 'flex', gap: 14, marginBottom: 10 }}>
+                                    {[
+                                      { l: 'kcal', v: preview.kcal ?? '—' },
+                                      { l: 'prot', v: preview.prot_g != null ? `${preview.prot_g}g` : '—' },
+                                      { l: 'carb', v: preview.cho_g != null ? `${preview.cho_g}g` : '—' },
+                                      { l: 'gord', v: preview.lip_g != null ? `${preview.lip_g}g` : '—' },
+                                    ].map(m => (
+                                      <div key={m.l} style={{ textAlign: 'center', minWidth: 44 }}>
+                                        <div style={{ fontSize: 16, fontWeight: 700, lineHeight: 1, color: 'var(--dark)' }}>{m.v}</div>
+                                        <div style={{ fontSize: 9, color: 'var(--text3)', textTransform: 'uppercase', marginTop: 2 }}>{m.l}</div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                                  <input
+                                    type="number" min="0.1" step="any" value={qtdSalvo}
+                                    onChange={e => setQtdSalvo(e.target.value)}
+                                    onKeyDown={e => e.key === 'Enter' && confirmarSalvo(s)}
+                                    style={{ width: 80, fontSize: 14, textAlign: 'center' }}
+                                    autoFocus
+                                  />
+                                  <span style={{ fontSize: 13, color: 'var(--text3)' }}>{parsed.suffix || 'un'}</span>
+                                  <button className="btn" style={{ fontSize: 13 }} onClick={() => confirmarSalvo(s)} disabled={!qtdSalvo || parseFloat(String(qtdSalvo).replace(',', '.')) <= 0}>
+                                    Confirmar
+                                  </button>
+                                  <button className="btn-outline" style={{ fontSize: 13 }} onClick={() => setSelSalvoId(null)}>
+                                    Cancelar
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })()
                         ) : (
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 6px', borderRadius: 5 }}>
                             <button
-                              onClick={() => onConfirm({ id: uid(), nome: s.nome, qty: s.qty || '—', kcal: s.kcal, prot_g: s.prot_g, cho_g: s.cho_g, lip_g: s.lip_g, subs: [], catKey: '' })}
+                              onClick={() => abrirQtdSalvo(s)}
                               style={{ flex: 1, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
                             >
                               <div style={{ fontSize: 13, color: 'var(--dark)', fontWeight: 500 }}>{s.nome}</div>
