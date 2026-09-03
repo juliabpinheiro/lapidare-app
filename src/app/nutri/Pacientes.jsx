@@ -52,22 +52,26 @@ export default function Pacientes() {
     return digitos.startsWith('55') ? digitos : `55${digitos}`;
   }
 
-  function mensagemWhats(nome) {
+  function mensagemWhats(nome, email) {
     const primeiroNome = nome.split(' ')[0];
     return encodeURIComponent(
-      `Oi ${primeiroNome}! 😊\n\nSeu acesso ao app de acompanhamento nutricional já está pronto!\n\n` +
-      `📱 Link: https://app-juliapinheiro.netlify.app\n` +
-      `🔑 Senha inicial: 123456\n\n` +
-      `Pra deixar o app na tela inicial do celular:\n` +
-      `📲 Android: acesse o link pelo Chrome, toque nos 3 pontinhos e escolha "Adicionar à tela inicial"\n` +
-      `🍎 iPhone: acesse o link pelo Safari, toque no ícone de compartilhar e escolha "Adicionar à Tela de Início"\n\n` +
-      `Assim que entrar, recomendo trocar a senha em Mais → Alterar senha 🔒\n\nQualquer dúvida, me chama!`
+      `Olá ${primeiroNome}, você está recebendo seu acesso ao aplicativo exclusivo da Nutricionista Júlia Pinheiro.\n\n` +
+      `No app você acompanha seu plano alimentar completo, registra seus hábitos diários, bate sua meta de água, fotografa suas refeições, responde check-ins semanais, acessa sua lista de compras e ainda tem um chat direto comigo para tirar dúvidas no dia a dia.\n\n` +
+      `Como baixar o aplicativo:\n\n` +
+      `iPhone: Acesse o link pelo Safari, toque no ícone de compartilhar (quadradinho com seta) e selecione Adicionar à Tela de Início.\n\n` +
+      `Android: Acesse o link pelo Chrome, toque nos 3 pontinhos no canto superior direito e selecione Adicionar à tela inicial.\n\n` +
+      `Link: app-juliapinheiro.netlify.app\n\n` +
+      `Login e senha:\n` +
+      `Email: ${email}\n` +
+      `Senha inicial: 123456\n\n` +
+      `Você pode redefinir sua senha a qualquer momento dentro do app em Mais > Alterar senha.\n\n` +
+      `Seja bem-vinda ao time da nutri.`
     );
   }
 
   function linkWhatsapp(p) {
     const numero = numeroWhats(p.whatsapp);
-    const texto = mensagemWhats(p.nome);
+    const texto = mensagemWhats(p.nome, p.email);
     return numero ? `https://wa.me/${numero}?text=${texto}` : `https://wa.me/?text=${texto}`;
   }
 
